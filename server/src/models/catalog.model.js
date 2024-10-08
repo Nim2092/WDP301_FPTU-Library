@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const {Schema} = mongoose;
 
-const roleSchema = new Schema({
+const catalogSchema = new Schema({
     name: String,
     code: Number,
     major: String,
@@ -10,6 +10,6 @@ const roleSchema = new Schema({
     updatedAt: Date
 });
 
-const Catalog = mongoose.model('catalog', roleSchema);
+const Catalog = mongoose.model('catalog', catalogSchema);
 
 module.exports = Catalog;
