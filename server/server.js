@@ -1,0 +1,49 @@
+require("dotenv").config();
+const express = require("express");
+const cors = require('cors');
+const morgan = require("morgan");
+const httpErrors = require("http-errors");
+const bodyParser = require("body-parser");
+const db = require("./src/models/index");
+const routes = require('./src/routes');
+const app = express();
+
+const corsOptions = {
+  origin: '*', 
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: 'Content-Type, Authorization, x-access-token',
+};
+
+app.use(cors(corsOptions));
+app.use(bodyParser.json());
+app.options('*', cors(corsOptions));
+app.use(morgan("dev"));
+//router toi web root
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Welcome to RestFul API",
+  });
+});
+
+//tiep nhan cac request tu Client
+app.use('/api', routes);
+// kiem soat url ko xac dinh
+app.use(async (req, res, next) => {
+  next(httpErrors.NotFound());
+});
+
+app.use((err, req, res, next) => {
+  res.status(err.status || 500);
+  res.send({
+    status: err.status || 500,
+    message: err.message,
+  });
+});
+
+// tiep nhan cac req
+app.listen(process.env.PORT || 8080, process.env.HOST_NAME, () => {
+  console.log(
+    `Server is running at: ${process.env.HOST_NAME}:${process.env.PORT}`
+  );
+  db.connectDB();
+});
