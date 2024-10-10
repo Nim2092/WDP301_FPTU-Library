@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const User = require('./user.model');
 const Role = require('./role.model');
+const Catalog = require('./catalog.model');
 // Khai bao doi tuong mongoose su dung nhu moi bien global
 mongoose.Promise = global.Promise;
 // Khai bao 1 doi tuong dai dien db
@@ -9,6 +10,7 @@ const db = {};
 db.mongoose = mongoose;
 db.user = User;
 db.role = Role;
+db.catalog = Catalog;
 db.connectDB = async () => {
   mongoose
     .connect(process.env.MONGO_URI, {
