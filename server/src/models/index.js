@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
-const User = require('./user.model');
-const Role = require('./role.model');
-const Catalog = require('./catalog.model');
+
+const User = require("./user.model");
+const Role = require("./role.model");
+const Catalog = require("./catalog.model");
+
 // Khai bao doi tuong mongoose su dung nhu moi bien global
 mongoose.Promise = global.Promise;
 // Khai bao 1 doi tuong dai dien db
