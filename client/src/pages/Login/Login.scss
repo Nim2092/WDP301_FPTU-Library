@@ -1,0 +1,63 @@
+.login-page-container {
+    display: flex;
+    height: 100vh;
+
+    .image-section {
+        flex: 2;
+        background-color: #f0f0f0; // Optional: Add a background color
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .login-section {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        form {
+            width: 100%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+
+            div {
+                margin-bottom: 15px;
+
+                label {
+                    display: block;
+                    margin-bottom: 5px;
+                }
+
+                input {
+                    width: 100%;
+                    padding: 8px;
+                    box-sizing: border-box;
+                }
+            }
+
+            button {
+                padding: 10px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                cursor: pointer;
+                transition: background-color 0.3s;
+
+                &:hover {
+                    background-color: #0056b3;
+                }
+            }
+        }
+    }
+}
