@@ -14,6 +14,7 @@ async function listNews(req, res, next) {
       id: news.id,
       title: news.title,
       content: news.content,
+      thumbnail: news.thumbnail,
       createdBy: news.createdBy,
       updatedBy: news.updatedBy,
     }));
@@ -30,15 +31,16 @@ async function listNews(req, res, next) {
 //create a news
 async function createNews(req, res, next) {
   try {
-    const { title, content, createdBy, updatedBy } = req.body;
-    if (!title || !content) {
+    const { title, content, thumbnail, createdBy, updatedBy } = req.body;
+    if (!title || !content || !thumbnail) {
       return res
         .status(400)
-        .send({ message: "Title and content are required" });
+        .send({ message: "Title, content and thumbnail are required" });
     }
     const news = new News({
       title: title,
       content: title,
+      thumbnail: thumbnail,
       //   createdBy: req.user.id,
       //   updatedBy: req.user.id,
       createdBy: createdBy,
@@ -59,17 +61,17 @@ async function createNews(req, res, next) {
 async function updateNews(req, res, next) {
   try {
     const { id } = req.params;
-    const { title, content, updatedBy } = req.body;
+    const { title, content, thumbnail, updatedBy } = req.body;
 
-    if (!title || !content) {
+    if (!title || !content || !thumbnail) {
       return res
         .status(400)
-        .send({ message: "Title and content are required" });
+        .send({ message: "Title, content and thumbnail are required" });
     }
 
     const news = await News.findByIdAndUpdate(
       id,
-      { title, content, updatedBy: /* req.user.id */ updatedBy },
+      { title, content, thumbnail, updatedBy: /* req.user.id */ updatedBy },
       { new: true }
     );
     if (!news) {
