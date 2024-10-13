@@ -6,7 +6,7 @@ const catalogSchema = new Schema(
     name: { type: String, required: true },
     code: { type: Number, required: true, unique: true },
     major: String,
-    semester: String,
+    semester: Number,
   },
   { timestamps: true }
 );
