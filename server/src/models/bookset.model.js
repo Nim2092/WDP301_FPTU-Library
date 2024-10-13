@@ -4,7 +4,8 @@ const { Schema } = mongoose;
 const bookSetSchema = new Schema(
   {
     catalog_id: { type: Schema.Types.ObjectId, ref: "Catalog", required: true },
-    isbn: { type: String, required: true },
+    isbn: { type: String, required: true, unique: true },
+    code: { type: String, required: true, unique: true },
     shelfLocationCode: { type: String, required: true },
     title: { type: String, required: true },
     author: { type: String, required: true },
