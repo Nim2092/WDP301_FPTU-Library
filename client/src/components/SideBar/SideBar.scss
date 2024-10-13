@@ -1,23 +1,23 @@
+
 .sidebar {
-    width: 250px;
-    height: 100vh;
-    background-color: #f4f4f4;
-    padding: 15px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-}
-
-.sidebar h2 {
-    margin-top: 0;
-}
-
-.sidebar ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.sidebar ul li {
-    margin: 15px 0;
+    background-color: #f8f9fa; // Màu nền của sidebar
+    padding: 20px;
+    height: 100vh; // Chiều cao 100% của viewport
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease; // Hiệu ứng chuyển động mượt mà khi ẩn và hiện sidebar
+  
+    .sidebar-link {
+      display: block;
+      padding: 10px;
+      color: #333; // Màu chữ
+      text-decoration: none; // Bỏ gạch chân
+      border-radius: 5px; // Bo tròn góc
+  
+      &:hover {
+        background-color: #e2e6ea; // Màu nền khi hover
+      }
+    }
+    .btn-secondary {
+        margin-bottom: 15px; // Khoảng cách dưới nút
+  }
 }
