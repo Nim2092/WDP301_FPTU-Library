@@ -1,35 +1,53 @@
 const { default: mongoose } = require("mongoose");
 const db = require("../models");
-const { user: User, role: Role, booking: Booking } = db;
+const { user: User, role: Role, order: Order } = db;
 
+//Get all user
+const getAllUser = async (req, res, next) => {
+  try {
+    const user = await User.find({});
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Get all user failed",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      message: "Get all user successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error listing user", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//get user by id
 const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId);
-
+    console.log(user);
     if (!user) {
-      return res.status(404).json({ message: "User not found", data: null });
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
     }
 
-    res.status(200).json({ user });
+    res.status(200).json({
+      message: "Get user successfully",
+      data: user,
+    });
   } catch (error) {
-    next(error);
+    console.error("Error getting a user", error);
+    res.status(500).send({ message: error.message });
   }
 };
-const getAllUser = async (req, res, next) => {
-  try {
-    const { userId } = req.params;
-    const user = await User.find({});
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found", data: null });
-    }
-
-    res.status(200).json({ user });
-  } catch (error) {
-    next(error);
-  }
-};
+//get user by role - not ok
 const getUserByRole = async (req, res, next) => {
   try {
     const { roleName } = req.params;
@@ -39,23 +57,124 @@ const getUserByRole = async (req, res, next) => {
       return res.status(404).json({ message: "Role not found", data: null });
     }
 
-    const users = await User.find({ roles: role._id }).populate("roles");
+    const users = await User.find({ role_id: role._id }).populate("role_id");
 
-    if (users.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No users found with this role", data: null });
+    if (!users || users.length === 0) {
+      return res.status(404).json({
+        message: "No users found with this role",
+        data: null,
+      });
     }
-
-    res.status(200).json({ message: "Users found successfully", data: users });
+    res.status(200).json({
+      message: "Users found successfully",
+      data: users,
+    });
   } catch (error) {
     console.error("Error in getUserByRole:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred", error: error.message });
+  }
+};
+
+// Delete user by id
+async function deleteUserById(req, res, next) {
+  try {
+    const { userId } = req.params;
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "Delete user successfully" });
+  } catch (error) {
+    console.error("Error deleting user", error);
+    res.status(500).send({ message: error.message });
+  }
+}
+
+//Add new user
+const addNewUser = async (req, res, next) => {
+  const { role_id, code, fullName, email, password, phoneNumber } = req.body;
+
+  if (!role_id || !code || !email || !password) {
+    return res.status(400).json({
+      message: "Role, code, email, and password are required fields",
+    });
+  }
+
+  try {
+    const newUser = new User({
+      role_id,
+      code,
+      fullName,
+      email,
+      password,
+      phoneNumber,
+    });
+
+    const savedUser = await newUser.save();
+
+    res.status(201).json({
+      message: "User created successfully",
+      data: savedUser,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      const duplicateField = Object.keys(error.keyPattern)[0];
+      return res.status(409).json({
+        message: `Duplicate ${duplicateField} error`,
+        error: error.message,
+      });
+    }
+
+    console.error("Error in addNewUser:", error);
     res
       .status(500)
       .json({ message: "An error occurred", error: error.message });
     next(error);
   }
 };
+
+// View user profile
+const viewProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id; // Assuming the user's ID is available in the request
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found", data: null });
+    }
+
+    res.status(200).json({
+      message: "Get user profile successfully",
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Edit user profile
+const editProfile = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const updatedData = {
+      fullName: req.body.fullName,
+      phoneNumber: req.body.phoneNumber,
+    };
+    const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
+      new: true,
+    });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getUserBookings = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -127,89 +246,17 @@ const getUserAllBookings = async (req, res, next) => {
     next(error);
   }
 };
-const addNewUser = async (req, res, next) => {
-  const { username, email, role, status } = req.body;
-
-  //default password : 12345678
-  try {
-    const newUser = new User({
-      username,
-      email,
-      password: "$2b$10$WFU/GFebYKHler9LE2bDHO3CCbhRqs40RA7/P/XD5pIrH9ejSgvQa",
-      role,
-      status
-    });
-
-    const savedUser = await newUser.save();
-
-    res.status(201).json({ message: "User created successfully", data: savedUser });
-  } catch (error) {
-    if (error.code === 11000) {
-      const duplicateField = Object.keys(error.keyPattern)[0];
-      return res.status(409).json({ message: `Duplicate ${duplicateField} error`, error: error.message });
-    }
-
-    // Handle other errors
-    console.error("Error in addNewUser:", error);
-    res.status(500).json({ message: "An error occurred", error: error.message });
-    next(error);
-  }
-};
-
-
-// View user profile
-const viewProfile = async (req, res, next) => {
-  try {
-    const userId = req.user.id; // Assuming the user's ID is available in the request
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found", data: null });
-    }
-
-    res.status(200).json({ user });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Edit user profile
-const editProfile = async (req, res, next) => {
-  try {
-    const userId = req.params.id;
-    const updatedData = {
-      email: req.body.email,
-      username: req.body.username,
-      fullName: req.body.fullName,
-      dob: req.body.dob,
-      gender: req.body.gender,
-      phoneNumber: req.body.phoneNumber,
-      address: req.body.address,
-      image: req.body.image
-    };
-    const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
-      new: true,
-    });
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    next(error);
-  }
-};
 
 async function list(req, res, next) {
   try {
     const list = await User.find();
-    const newList = list.map(r => ({
+    const newList = list.map((r) => ({
       _id: r._id,
       username: r.username,
       email: r.email,
       fullName: r.fullName,
       phoneNumber: r.phoneNumber,
-      address: r.address
+      address: r.address,
     }));
     res.status(200).json(newList);
   } catch (error) {
@@ -217,29 +264,17 @@ async function list(req, res, next) {
   }
 }
 
-async function deleteUserById(req, res, next) {
-  try {
-    const userId = req.params.id;
-    await User.findByIdAndDelete(userId);
-    res.status(204).json({ message: " deleted successfully" });
-  } catch (error) {
-    next(error);
-  }
-}
-
-
 const UserController = {
-  // getCustomerById, 
-  viewProfile, 
-  editProfile, 
-  list, 
-  deleteUserById, 
+  viewProfile,
+  editProfile,
+  list,
+  deleteUserById,
   getAllUser,
   getUserById,
   getUserByRole,
   getUserBookings,
   getUserAllBookings,
   updateUserBookings,
-  addNewUser
+  addNewUser,
 };
 module.exports = UserController;
