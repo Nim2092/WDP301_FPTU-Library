@@ -1,22 +1,22 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require('cors');
+const cors = require("cors");
 const morgan = require("morgan");
 const httpErrors = require("http-errors");
 const bodyParser = require("body-parser");
 const db = require("./src/models/index");
-const routes = require('./src/routes');
+const routes = require("./src/routes");
 const app = express();
 
 const corsOptions = {
-  origin: '*', 
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: 'Content-Type, Authorization, x-access-token',
+  origin: "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Content-Type, Authorization, x-access-token",
 };
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
-app.options('*', cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(morgan("dev"));
 //router toi web root
 app.get("/", (req, res) => {
@@ -26,7 +26,7 @@ app.get("/", (req, res) => {
 });
 
 //tiep nhan cac request tu Client
-app.use('/api', routes);
+app.use("/api", routes);
 // kiem soat url ko xac dinh
 app.use(async (req, res, next) => {
   next(httpErrors.NotFound());
