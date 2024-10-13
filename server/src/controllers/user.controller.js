@@ -1,4 +1,7 @@
 const { default: mongoose } = require("mongoose");
+const bcrypt = require("bcrypt");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 const db = require("../models");
 const { user: User, role: Role, order: Order } = db;
 
@@ -94,21 +97,23 @@ async function deleteUserById(req, res, next) {
 
 //Add new user
 const addNewUser = async (req, res, next) => {
-  const { role_id, code, fullName, email, password, phoneNumber } = req.body;
-
-  if (!role_id || !code || !email || !password) {
-    return res.status(400).json({
-      message: "Role, code, email, and password are required fields",
-    });
-  }
-
   try {
+    const { role_id, code, fullName, email, password, phoneNumber } = req.body;
+
+    if (!role_id || !code || !email || !password) {
+      return res.status(400).json({
+        message: "Data are required fields",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new User({
       role_id,
       code,
       fullName,
       email,
-      password,
+      password: hashedPassword,
       phoneNumber,
     });
 
@@ -138,11 +143,14 @@ const addNewUser = async (req, res, next) => {
 // View user profile
 const viewProfile = async (req, res, next) => {
   try {
-    const userId = req.user.id; // Assuming the user's ID is available in the request
-    const user = await User.findById(userId);
+    const { id } = req.params;
+    const user = await User.findById(id);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found", data: null });
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
     }
 
     res.status(200).json({
@@ -150,28 +158,169 @@ const viewProfile = async (req, res, next) => {
       data: user,
     });
   } catch (error) {
-    next(error);
+    console.error("Error getting user profile", error);
+    res.status(500).send({ message: error.message });
   }
 };
 
 // Edit user profile
 const editProfile = async (req, res, next) => {
   try {
-    const userId = req.params.id;
+    const { id } = req.params;
     const updatedData = {
       fullName: req.body.fullName,
       phoneNumber: req.body.phoneNumber,
     };
-    const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
+    const updatedUser = await User.findByIdAndUpdate(id, updatedData, {
       new: true,
     });
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
     }
 
-    res.status(200).json(updatedUser);
+    res.status(200).json({
+      message: "Update user profile successfully",
+      data: updatedUser,
+    });
   } catch (error) {
-    next(error);
+    console.error("Error updating user profile", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//change user password
+const changePassword = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Old password is incorrect",
+      });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    const newPass = await user.save();
+
+    res.status(200).json({
+      message: "Change password successfully",
+      data: newPass,
+    });
+  } catch (error) {
+    console.error("Error changing password", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//forgot password
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    // Create reset token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+    await user.save();
+
+    // NodeMailer
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "titi2024hd@gmail.com", // Email
+        pass: "mrwm vfbp dprc qwyu", // App password
+      },
+    });
+
+    // Email content
+    const mailOptions = {
+      from: "titi2024hd@gmail.com",
+      to: user.email,
+      subject: "FPTU Library - Password Reset Request",
+      text: `Dear ${user.fullName},\n\n
+      We received a request to reset the password for your FPTU Library account. If you initiated this request, please follow the link below to set a new password:\n\n
+      http://localhost:3000/api/user/reset-password/${resetToken}\n\n
+      This link will expire in 1 hour. If you did not request a password reset, please ignore this email, and no changes will be made to your account.\n\n
+      If you have any questions, feel free to contact our support team.\n\n
+      Best regards,\n
+      FPTU Library Team`,
+    };
+
+    // Send email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return res.status(500).json({
+          message: "Error sending email",
+          error: error.message,
+        });
+      }
+      console.log("Email sent: " + info.response);
+      res.status(200).json({
+        message: "Email sent to reset password",
+      });
+    });
+  } catch (error) {
+    console.error("Error in forgotPassword:", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//reset password
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }, // Kiểm tra token còn hạn
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Reset token is invalid or has expired",
+      });
+    }
+
+    // Hash new password before saving
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    // Delete reset token and expiry date
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    console.error("Error in resetPassword:", error);
+    res.status(500).send({ message: error.message });
   }
 };
 
@@ -276,5 +425,8 @@ const UserController = {
   getUserAllBookings,
   updateUserBookings,
   addNewUser,
+  changePassword,
+  forgotPassword,
+  resetPassword,
 };
 module.exports = UserController;

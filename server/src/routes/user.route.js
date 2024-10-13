@@ -20,6 +20,12 @@ userRouter.get("/profile/:id", userController.viewProfile);
 
 userRouter.put("/profile/update/:id", userController.editProfile);
 
+userRouter.put("/profile/change-password/:id", userController.changePassword);
+
+userRouter.post("/forgot-password", userController.forgotPassword);
+
+userRouter.post("/reset-password/:token", userController.resetPassword);
+
 userRouter.get("/by-booking/user/:userId", userController.getUserBookings);
 
 userRouter.get("/by-booking/getAll", userController.getUserAllBookings);
