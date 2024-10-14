@@ -50,12 +50,12 @@ const getUserById = async (req, res, next) => {
   }
 };
 
-//get user by role - not ok
+//get user by role id
 const getUserByRole = async (req, res, next) => {
   try {
-    const { roleName } = req.params;
+    const { roleId } = req.params;
 
-    const role = await Role.findOne({ name: roleName });
+    const role = await Role.findById(roleId);
     if (!role) {
       return res.status(404).json({ message: "Role not found", data: null });
     }
@@ -324,27 +324,34 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
-const getUserBookings = async (req, res, next) => {
+//Get user orders by user id (book_id, created_by, updated_by)
+const getUserOrders = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const bookings = await Booking.find({
-      userId: new mongoose.Types.ObjectId(userId),
-    }).populate("scheduleId");
+    const order = await Order.find({
+      $or: [{ created_by: userId }, { updated_by: userId }],
+    })
+      .populate("book_id")
+      .populate("created_by")
+      .populate("updated_by");
 
-    if (bookings.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No bookings found for this user", data: null });
+    if (!order || order.length === 0) {
+      return res.status(404).json({
+        message: "No order found for this user!",
+        data: null,
+      });
     }
 
-    res
-      .status(200)
-      .json({ message: "Bookings found successfully", data: bookings });
+    res.status(200).json({
+      message: "Order found successfully",
+      data: order,
+    });
   } catch (error) {
-    console.error("Error in getUserBookings:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred", error: error.message });
+    console.error("Error in getUserOrder:", error);
+    res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
     next(error);
   }
 };
@@ -421,7 +428,7 @@ const UserController = {
   getAllUser,
   getUserById,
   getUserByRole,
-  getUserBookings,
+  getUserOrders,
   getUserAllBookings,
   updateUserBookings,
   addNewUser,

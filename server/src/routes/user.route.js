@@ -9,8 +9,7 @@ userRouter.get("/getAll", userController.getAllUser);
 
 userRouter.get("/get/:userId", userController.getUserById);
 
-//not ok
-userRouter.get("/role/:roleName", userController.getUserByRole);
+userRouter.get("/role/:roleId", userController.getUserByRole);
 
 userRouter.delete("/delete/:userId", userController.deleteUserById);
 
@@ -26,7 +25,7 @@ userRouter.post("/forgot-password", userController.forgotPassword);
 
 userRouter.post("/reset-password/:token", userController.resetPassword);
 
-userRouter.get("/by-booking/user/:userId", userController.getUserBookings);
+userRouter.get("/by-order/:userId", userController.getUserOrders);
 
 userRouter.get("/by-booking/getAll", userController.getUserAllBookings);
 
