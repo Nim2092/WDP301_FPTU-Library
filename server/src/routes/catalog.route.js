@@ -6,9 +6,9 @@ const catalogRouter = express.Router();
 catalogRouter.use(bodyParser.json());
 
 catalogRouter.post("/create", catalogController.createCatalog);
-catalogRouter.post("/update/:id", catalogController.updateCatalog);
+catalogRouter.put("/update/:id", catalogController.updateCatalog);
 catalogRouter.get("/list", catalogController.listCatalogs);
-catalogRouter.get("/delete/:id", catalogController.deleteCatalog);
+catalogRouter.delete("/delete/:id", catalogController.deleteCatalog);
 
 
 module.exports = catalogRouter;
