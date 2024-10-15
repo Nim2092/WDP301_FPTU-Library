@@ -18,6 +18,6 @@ const bookSetSchema = new Schema(
   { timestamps: true }
 );
 
-const BookSet = mongoose.model("bookSet", bookSetSchema);
+const BookSet = mongoose.model("BookSet", bookSetSchema);
 
 module.exports = BookSet;
