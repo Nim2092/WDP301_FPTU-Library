@@ -1,41 +1,48 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import React from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import AuthContext, { AuthProvider } from './contexts/UserContext';
+import AuthContext, { AuthProvider, isTokenExpired } from './contexts/UserContext';
+
 
 // Import các trang
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import AdvancedSearch from './pages/AdvancedSearch';
-import NewsPage from './pages/NewsPage';
-import NewsDetail from './pages/NewsDetail';
-import BookDetail from './pages/BookDetail';
-import ListBookBorrowed from './pages/ListBookBorrowed';
-import ReportLostBook from './pages/ReportLostBook';
-import RenewBook from './pages/RenewBook';
-import OrderBook from './pages/OrderBook';
-import ManageOrder from './pages/ManageOrder';
-import CreateNews from './pages/CreateNews';
-import ListNews from './pages/ListNews';
-import UpdateNews from './pages/UpdateNews';
-import CreateAccount from './pages/CreateAccount';
-import CatalogList from './pages/CatalogList';
+import LoginPage from "./pages/Login";
+import AdvancedSearch from "./pages/AdvancedSearch";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import HomePage from "./pages/Home";
+import NewsPage from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
+import BookDetail from "./pages/BookDetail";
+import ListBookBorrowed from "./pages/ListBookBorrowed";
+import ReportLostBook from "./pages/ReportLostBook";
+import RenewBook from "./pages/RenewBook";
+import OrderBook from "./pages/OrderBook";
+import ManageOrder from "./pages/ManageOrder";
+import CreateNews from "./pages/CreateNews";
+import ListNews from "./pages/ListNews.Admin";
+import UpdateNews from "./pages/UpdateNews";
+import CreateAccount from "./pages/CreateAccount";
+import CatalogList from "./pages/ListCatalog";
+import Unauthorized from "./pages/Unauthorized";
 
 function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <BrowserRouter>
+        <Header />
           <Routes>
             {/* Route công khai */}
             <Route path="/login" element={<LoginPage />} />
+            {/* <Route path="/" element={<HomePage />} /> */}
 
-            {/* Routes dành cho Borrower */}
             <Route path="/" element={
               <ProtectedRoute roles={['borrower', 'librarian']}>
                 <HomePage />
               </ProtectedRoute>
             } />
+
+            {/* Routes dành cho Borrower */}
             <Route path="/advanced-search" element={
               <ProtectedRoute roles={['borrower']}>
                 <AdvancedSearch />
@@ -112,29 +119,42 @@ function App() {
             } />
 
             {/* Đường dẫn cho các trang khác */}
-            <Route path="/unauthorized" element={<h2>Unauthorized Access</h2>} />
+            <Route path="/unauthorized" element={<Unauthorized/>} />
           </Routes>
+          <Footer />
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>
   );
 }
 
-// ProtectedRoute component for role-based access
 const ProtectedRoute = ({ roles, children }) => {
-  const { user } = React.useContext(AuthContext);
+  const { user, token, login } = React.useContext(AuthContext);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  // Nếu không có người dùng đăng nhập, chuyển hướng đến trang login
+  React.useEffect(() => {
+    const storedToken = localStorage.getItem("accessToken");
+    if (!user && storedToken && !isTokenExpired(storedToken)) {
+      login(storedToken).finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
+    }
+  }, [user, login]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Nếu vai trò của người dùng không khớp với các vai trò được phép, chuyển hướng đến trang unauthorized
-  if (!roles.includes(user.role)) {
+  if (!roles.includes(user.role?.name)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
   return children;
 };
+
 
 export default App;

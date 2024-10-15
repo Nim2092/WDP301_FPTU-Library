@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import AuthContext from "../../contexts/UserContext";
 import axios from "axios";
@@ -8,6 +9,7 @@ function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -17,6 +19,9 @@ function LoginPage() {
         password: password,
       });
       login(response.data.accessToken); 
+      console.log("chuyển trang /");
+      
+      navigate("/");
     } catch (error) {
       console.error("Login error", error);
     }
@@ -28,6 +33,7 @@ function LoginPage() {
         token: response.credential,
       });
       login(res.data.accessToken); 
+      navigate("/");
     } catch (error) {
       console.error("Google login error", error);
     }

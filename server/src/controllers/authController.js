@@ -34,7 +34,7 @@ const authController = {
       const { role } = req.body;
 
       // Validate role
-      const validRoles = ["Librarian", "Admin"];
+      const validRoles = ["librarian", "admin"];
       if (!validRoles.includes(role)) {
         return res.status(400).json({ message: "Invalid role for registration" });
       }

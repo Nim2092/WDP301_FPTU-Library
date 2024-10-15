@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
-    role_id: { type: Schema.Types.ObjectId, ref: "Role", required: true },
+    role_id: { type: Schema.Types.ObjectId, ref: "role", required: true },
     code: { type: String, required: true, unique: true },
     fullName: String,
     email: { type: String, required: true, unique: true },
