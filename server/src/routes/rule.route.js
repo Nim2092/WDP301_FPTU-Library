@@ -7,6 +7,8 @@ ruleRouter.use(bodyParser.json());
 
 ruleRouter.get("/list", ruleController.listRule);
 
+ruleRouter.get("/get/:id", ruleController.getRuleDetailById);
+
 ruleRouter.post("/create", ruleController.createRule);
 
 ruleRouter.put("/update/:id", ruleController.updateRule);
