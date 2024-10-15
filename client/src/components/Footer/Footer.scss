@@ -1,4 +1,21 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
 .footer {
+    margin-top: auto;
     background-color: chocolate;
     color: #fff;
     padding: 20px 0;
