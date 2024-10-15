@@ -15,4 +15,36 @@
     padding: 20px; // Padding cho nội dung
     flex-grow: 1; // Để nội dung mở rộng để lấp đầy không gian còn lại
   }
-  
+  /* App Container to manage overall layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header Styling */
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #007bff;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  z-index: 1000; /* Ensure header is on top */
+}
+
+/* Footer Styling */
+
+
+/* Content Area Styling */
+.content {
+  flex: 1;
+  margin-top: 60px; /* Adjust according to header height */
+  margin-bottom: 40px; /* Adjust according to footer height */
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #f9f9f9;
+}

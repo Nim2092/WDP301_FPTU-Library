@@ -19,6 +19,10 @@ import CreateAccount from "./pages/CreateAccount";
 import CatalogList from "./pages/ListCatalog";
 import AccountList from "./pages/AccountList";
 import UpdateAccount from "./pages/UpdateAccount";
+import CreateBook from "./pages/CreateBookSet";
+import ListBookSet from "./pages/ListBookSet";
+import UpdateBookSet from "./pages/UpdateBookSet";
+import ManageReturnBook from "./pages/ManageReturnBook";
 function App() {
   return (
     <BrowserRouter>
@@ -42,6 +46,10 @@ function App() {
         <Route path="/list-catalog" element={<CatalogList />} />
         <Route path="/account-list" element={<AccountList />} />
         <Route path="/update-account/:id" element={<UpdateAccount />} />
+        <Route path="/create-book" element={<CreateBook />} />
+        <Route path="/list-book-set" element={<ListBookSet />} />
+        <Route path="/update-bookset/:id" element={<UpdateBookSet />} />
+        <Route path="/manage-return-book" element={<ManageReturnBook />} />
       </Routes>
       <Footer />
     </BrowserRouter>
