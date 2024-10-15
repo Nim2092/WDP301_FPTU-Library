@@ -1,33 +1,72 @@
-import React, { useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AuthContext from '../../contexts/UserContext';
 import './Header.scss';
 
 function Header() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const navigate = useNavigate(); // Hook để điều hướng
+    const { user, logout } = useContext(AuthContext); // Use context for user info
+    const navigate = useNavigate();
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to toggle dropdown
 
-    const handleLoginLogout = () => {
-        if (isLoggedIn) {
-            setIsLoggedIn(false);
-        } else {
-            navigate('/login'); // Điều hướng đến trang đăng nhập khi nhấn Login
-        }
+    // Hide dropdown initially when the user logs in
+    useEffect(() => {
+        setIsDropdownVisible(false);
+    }, [user]);
+
+    const handleLogout = () => {
+        logout(); // Perform logout
+        navigate('/login');
+    };
+
+    const handleProfileClick = () => {
+        navigate('/profile'); // Navigate to profile page
+    };
+
+    const handleNotificationsClick = () => {
+        navigate('/notifications'); // Navigate to notifications page
+    };
+
+    const toggleDropdown = () => {
+        setIsDropdownVisible(!isDropdownVisible); // Toggle dropdown visibility
     };
 
     const handleLogoClick = () => {
-        navigate('/'); // Điều hướng về trang chủ khi nhấn logo
+        navigate('/'); // Navigate to homepage
     };
 
     return (
         <header className="header">
             <div className="logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
-                {/* Thay thế bằng đường dẫn logo của bạn */}
-                <img src="https://via.placeholder.com/150" alt="Logo" />
+                <img src="https://library.fpt.edu.vn/Uploads/HN/images/opac-logo/logo.png" alt="Logo" />
             </div>
             <h1>FPTU Library</h1>
-            <button onClick={handleLoginLogout}>
-                {isLoggedIn ? 'Logout' : 'Login'}
-            </button>
+            <div className="header-icons">
+                {user ? (
+                    <div className="profile-container">
+                        <div className="notification-icon">
+                            <i className="fas fa-bell"></i>
+                            <span className="notification-badge">1</span>
+                        </div>
+                        <div className="profile-dropdown">
+                            <img
+                                src={user.profilePicture || "https://static.vecteezy.com/system/resources/thumbnails/020/911/731/small/profile-icon-avatar-icon-user-icon-person-icon-free-png.png"}
+                                alt="Profile"
+                                className="profile-pic"
+                                onClick={toggleDropdown} // Toggle dropdown on click
+                            />
+                            {isDropdownVisible && ( // Conditionally render dropdown
+                                <div className="dropdown-content">
+                                    <button onClick={handleProfileClick}>Profile</button>
+                                    <button onClick={handleNotificationsClick}>Notifications</button>
+                                    <button onClick={handleLogout}>Logout</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <button className="custom-login-button" onClick={() => navigate('/login')}>Login</button>
+                )}
+            </div>
         </header>
     );
 }
