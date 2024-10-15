@@ -21,12 +21,10 @@ userRouter.put("/profile/update/:id", userController.editProfile);
 
 userRouter.put("/profile/change-password/:id", userController.changePassword);
 
-userRouter.get("/by-order/:userId", userController.getUserOrders);
+userRouter.put("/status/:id", userController.activateDeactivateUser);
 
-userRouter.get("/by-booking/getAll", userController.getUserAllBookings);
+userRouter.get("/search", userController.searchUser);
 
-userRouter.put(
-  "/by-booking/booking/:bookingId",
-  userController.updateUserBookings
-);
+userRouter.put("/assign-role/:id", userController.assignRole);
+
 module.exports = userRouter;
