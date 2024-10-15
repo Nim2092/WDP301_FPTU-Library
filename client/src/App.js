@@ -17,6 +17,8 @@ import ListNews from "./pages/ListNews.Admin";
 import UpdateNews from "./pages/UpdateNews";
 import CreateAccount from "./pages/CreateAccount";
 import CatalogList from "./pages/ListCatalog";
+import AccountList from "./pages/AccountList";
+import UpdateAccount from "./pages/UpdateAccount";
 function App() {
   return (
     <BrowserRouter>
@@ -33,11 +35,13 @@ function App() {
         <Route path="/renew-book" element={<RenewBook />} />
         <Route path="/order-book" element={<OrderBook />} />
         <Route path="/manage-order" element={<ManageOrder />} />
-        <Route path="/create-news" element={<CreateNews />} />  
+        <Route path="/create-news" element={<CreateNews />} />
         <Route path="/list-news-admin" element={<ListNews />} />
         <Route path="/update-news/:id" element={<UpdateNews />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/list-catalog" element={<CatalogList />} />
+        <Route path="/account-list" element={<AccountList />} />
+        <Route path="/update-account/:id" element={<UpdateAccount />} />
       </Routes>
       <Footer />
     </BrowserRouter>
