@@ -10,7 +10,7 @@ const orderSchema = new Schema(
     requestDate: { type: Date, required: true },
     borrowDate: { type: Date, required: true },
     dueDate: { type: Date, required: true },
-    returnDate: { type: Date, required: true },
+    returnDate: { type: Date },
     reason_order: String,
     renewalCount: Number,
     renewalDate: Date,
