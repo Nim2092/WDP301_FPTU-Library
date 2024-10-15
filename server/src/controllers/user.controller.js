@@ -50,33 +50,34 @@ const getUserById = async (req, res, next) => {
   }
 };
 
-//get user by role id
+//get user by role name
 const getUserByRole = async (req, res, next) => {
   try {
-    const { roleId } = req.params;
-
-    const role = await Role.findById(roleId);
+    const { roleName } = req.params;
+    const role = await Role.findOne({ name: roleName });
     if (!role) {
-      return res.status(404).json({ message: "Role not found", data: null });
-    }
-
-    const users = await User.find({ role_id: role._id }).populate("role_id");
-
-    if (!users || users.length === 0) {
       return res.status(404).json({
-        message: "No users found with this role",
+        message: "Role not found",
         data: null,
       });
     }
+
+    const user = await User.find({ role_id: role._id });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
     res.status(200).json({
-      message: "Users found successfully",
-      data: users,
+      message: "Get user by role successfully",
+      data: user,
     });
   } catch (error) {
-    console.error("Error in getUserByRole:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred", error: error.message });
+    console.error("Error getting user by role", error);
+    res.status(500).send({ message: error.message });
   }
 };
 
@@ -226,104 +227,6 @@ const changePassword = async (req, res, next) => {
   }
 };
 
-//forgot password
-const forgotPassword = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-        data: null,
-      });
-    }
-
-    // Create reset token
-    const resetToken = crypto.randomBytes(20).toString("hex");
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-
-    await user.save();
-
-    // NodeMailer
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "titi2024hd@gmail.com", // Email
-        pass: "mrwm vfbp dprc qwyu", // App password
-      },
-    });
-
-    // Email content
-    const mailOptions = {
-      from: "titi2024hd@gmail.com",
-      to: user.email,
-      subject: "FPTU Library - Password Reset Request",
-      text: `Dear ${user.fullName},\n\n
-      We received a request to reset the password for your FPTU Library account. If you initiated this request, please follow the link below to set a new password:\n\n
-      http://localhost:3000/api/user/reset-password/${resetToken}\n\n
-      This link will expire in 1 hour. If you did not request a password reset, please ignore this email, and no changes will be made to your account.\n\n
-      If you have any questions, feel free to contact our support team.\n\n
-      Best regards,\n
-      FPTU Library Team`,
-    };
-
-    // Send email
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        return res.status(500).json({
-          message: "Error sending email",
-          error: error.message,
-        });
-      }
-      console.log("Email sent: " + info.response);
-      res.status(200).json({
-        message: "Email sent to reset password",
-      });
-    });
-  } catch (error) {
-    console.error("Error in forgotPassword:", error);
-    res.status(500).send({ message: error.message });
-  }
-};
-
-//reset password
-const resetPassword = async (req, res, next) => {
-  try {
-    const { token } = req.params;
-    const { newPassword } = req.body;
-
-    const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }, // Kiểm tra token còn hạn
-    });
-
-    if (!user) {
-      return res.status(400).json({
-        message: "Reset token is invalid or has expired",
-      });
-    }
-
-    // Hash new password before saving
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
-
-    // Delete reset token and expiry date
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-
-    await user.save();
-
-    res.status(200).json({
-      message: "Password has been reset successfully",
-    });
-  } catch (error) {
-    console.error("Error in resetPassword:", error);
-    res.status(500).send({ message: error.message });
-  }
-};
-
 //Get user orders by user id (book_id, created_by, updated_by)
 const getUserOrders = async (req, res, next) => {
   try {
@@ -429,11 +332,9 @@ const UserController = {
   getUserById,
   getUserByRole,
   getUserOrders,
-  getUserAllBookings,
   updateUserBookings,
   addNewUser,
   changePassword,
-  forgotPassword,
-  resetPassword,
+  getUserAllBookings,
 };
 module.exports = UserController;
