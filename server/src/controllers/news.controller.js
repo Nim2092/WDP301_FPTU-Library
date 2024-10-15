@@ -28,6 +28,24 @@ async function listNews(req, res, next) {
   }
 }
 
+//get news by id
+async function getNewsDetailById(req, res, next) {
+  try {
+    const { id } = req.params;
+    const news = await News.findById(id);
+    if (!news) {
+      return res.status(404).send({ message: "News not found" });
+    }
+    res.status(200).json({
+      message: "Get news successfully",
+      data: news,
+    });
+  } catch (error) {
+    console.error("Error getting news", error);
+    res.status(500).send({ message: error.message });
+  }
+}
+
 //create a news
 async function createNews(req, res, next) {
   try {
@@ -109,5 +127,6 @@ const NewsController = {
   createNews,
   updateNews,
   deleteNews,
+  getNewsDetailById,
 };
 module.exports = NewsController;

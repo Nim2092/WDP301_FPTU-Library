@@ -9,7 +9,6 @@ userRouter.get("/getAll", userController.getAllUser);
 
 userRouter.get("/get/:userId", userController.getUserById);
 
-//not ok
 userRouter.get("/role/:roleName", userController.getUserByRole);
 
 userRouter.delete("/delete/:userId", userController.deleteUserById);
@@ -20,12 +19,12 @@ userRouter.get("/profile/:id", userController.viewProfile);
 
 userRouter.put("/profile/update/:id", userController.editProfile);
 
-userRouter.get("/by-booking/user/:userId", userController.getUserBookings);
+userRouter.put("/profile/change-password/:id", userController.changePassword);
 
-userRouter.get("/by-booking/getAll", userController.getUserAllBookings);
+userRouter.put("/status/:id", userController.activateDeactivateUser);
 
-userRouter.put(
-  "/by-booking/booking/:bookingId",
-  userController.updateUserBookings
-);
+userRouter.get("/search", userController.searchUser);
+
+userRouter.put("/assign-role/:id", userController.assignRole);
+
 module.exports = userRouter;

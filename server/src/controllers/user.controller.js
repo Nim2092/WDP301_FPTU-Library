@@ -1,4 +1,5 @@
 const { default: mongoose } = require("mongoose");
+const bcrypt = require("bcrypt");
 const db = require("../models");
 const { user: User, role: Role, order: Order } = db;
 
@@ -24,7 +25,7 @@ const getAllUser = async (req, res, next) => {
   }
 };
 
-//get user by id
+//Get user by id
 const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -47,33 +48,34 @@ const getUserById = async (req, res, next) => {
   }
 };
 
-//get user by role - not ok
+//Get user by role name
 const getUserByRole = async (req, res, next) => {
   try {
     const { roleName } = req.params;
-
     const role = await Role.findOne({ name: roleName });
     if (!role) {
-      return res.status(404).json({ message: "Role not found", data: null });
-    }
-
-    const users = await User.find({ role_id: role._id }).populate("role_id");
-
-    if (!users || users.length === 0) {
       return res.status(404).json({
-        message: "No users found with this role",
+        message: "Role not found",
         data: null,
       });
     }
+
+    const user = await User.find({ role_id: role._id });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
     res.status(200).json({
-      message: "Users found successfully",
-      data: users,
+      message: "Get user by role successfully",
+      data: user,
     });
   } catch (error) {
-    console.error("Error in getUserByRole:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred", error: error.message });
+    console.error("Error getting user by role", error);
+    res.status(500).send({ message: error.message });
   }
 };
 
@@ -94,22 +96,25 @@ async function deleteUserById(req, res, next) {
 
 //Add new user
 const addNewUser = async (req, res, next) => {
-  const { role_id, code, fullName, email, password, phoneNumber } = req.body;
-
-  if (!role_id || !code || !email || !password) {
-    return res.status(400).json({
-      message: "Role, code, email, and password are required fields",
-    });
-  }
-
   try {
+    const { role_id, code, fullName, email, password, phoneNumber } = req.body;
+
+    if (!role_id || !code || !email || !password) {
+      return res.status(400).json({
+        message: "Data are required fields",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new User({
       role_id,
       code,
       fullName,
       email,
-      password,
+      password: hashedPassword,
       phoneNumber,
+      isActive: true,
     });
 
     const savedUser = await newUser.save();
@@ -138,11 +143,14 @@ const addNewUser = async (req, res, next) => {
 // View user profile
 const viewProfile = async (req, res, next) => {
   try {
-    const userId = req.user.id; // Assuming the user's ID is available in the request
-    const user = await User.findById(userId);
+    const { id } = req.params;
+    const user = await User.findById(id);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found", data: null });
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
     }
 
     res.status(200).json({
@@ -150,131 +158,170 @@ const viewProfile = async (req, res, next) => {
       data: user,
     });
   } catch (error) {
-    next(error);
+    console.error("Error getting user profile", error);
+    res.status(500).send({ message: error.message });
   }
 };
 
 // Edit user profile
 const editProfile = async (req, res, next) => {
   try {
-    const userId = req.params.id;
+    const { id } = req.params;
     const updatedData = {
       fullName: req.body.fullName,
       phoneNumber: req.body.phoneNumber,
     };
-    const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
+    const updatedUser = await User.findByIdAndUpdate(id, updatedData, {
       new: true,
     });
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
     }
 
-    res.status(200).json(updatedUser);
+    res.status(200).json({
+      message: "Update user profile successfully",
+      data: updatedUser,
+    });
   } catch (error) {
-    next(error);
+    console.error("Error updating user profile", error);
+    res.status(500).send({ message: error.message });
   }
 };
 
-const getUserBookings = async (req, res, next) => {
+//change user password
+const changePassword = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    const bookings = await Booking.find({
-      userId: new mongoose.Types.ObjectId(userId),
-    }).populate("scheduleId");
+    const { id } = req.params;
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(id);
 
-    if (bookings.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No bookings found for this user", data: null });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
     }
 
-    res
-      .status(200)
-      .json({ message: "Bookings found successfully", data: bookings });
-  } catch (error) {
-    console.error("Error in getUserBookings:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred", error: error.message });
-    next(error);
-  }
-};
-const updateUserBookings = async (req, res, next) => {
-  try {
-    const { bookingId } = req.params;
-    const updatedData = req.body;
-
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      bookingId,
-      updatedData,
-      { new: true }
-    ).populate("scheduleId");
-
-    if (!updatedBooking) {
-      return res.status(404).json({ message: "Booking not found", data: null });
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Old password is incorrect",
+      });
     }
 
-    res
-      .status(200)
-      .json({ message: "Booking updated successfully", data: updatedBooking });
-  } catch (error) {
-    console.error("Error in updateUserBookings:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred", error: error.message });
-    next(error);
-  }
-};
-const getUserAllBookings = async (req, res, next) => {
-  try {
-    const bookings = await Booking.find({}).populate("scheduleId");
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    const newPass = await user.save();
 
-    if (bookings.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No bookings found for this user", data: null });
-    }
-
-    res
-      .status(200)
-      .json({ message: "Bookings found successfully", data: bookings });
+    res.status(200).json({
+      message: "Change password successfully",
+      data: newPass,
+    });
   } catch (error) {
-    console.error("Error in getUserBookings:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred", error: error.message });
-    next(error);
+    console.error("Error changing password", error);
+    res.status(500).send({ message: error.message });
   }
 };
 
-async function list(req, res, next) {
+// Activate/Deactivate User
+const activateDeactivateUser = async (req, res, next) => {
   try {
-    const list = await User.find();
-    const newList = list.map((r) => ({
-      _id: r._id,
-      username: r.username,
-      email: r.email,
-      fullName: r.fullName,
-      phoneNumber: r.phoneNumber,
-      address: r.address,
-    }));
-    res.status(200).json(newList);
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+    user.isActive = !user.isActive;
+    const updatedUser = await user.save();
+    res.status(200).json({
+      message: "User status updated successfully",
+      data: updatedUser,
+    });
   } catch (error) {
-    next(error);
+    console.error("Error updating user status", error);
+    res.status(500).send({ message: error.message });
   }
-}
+};
+
+// Search user
+const searchUser = async (req, res, next) => {
+  try {
+    const { searchKey } = req.query;
+    const trimSearchKey = searchKey.trim();
+    const user = await User.find({
+      $or: [
+        { code: { $regex: trimSearchKey, $options: "i" } },
+        { fullName: { $regex: trimSearchKey, $options: "i" } },
+        { email: { $regex: trimSearchKey, $options: "i" } },
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "No user found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      message: "Search user successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error searching user", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//Assign Role
+const assignRole = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const { roleId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    user.role_id = roleId;
+    const updatedUser = await user.save();
+
+    const role = await Role.findById(roleId);
+
+    res.status(200).json({
+      message: "Role assigned successfully",
+      data: {
+        user: updatedUser,
+        role: role ? role.name : null,
+      },
+    });
+  } catch (error) {
+    console.error("Error assigning role", error);
+    res.status(500).send({ message: error.message });
+  }
+};
 
 const UserController = {
   viewProfile,
   editProfile,
-  list,
   deleteUserById,
   getAllUser,
   getUserById,
   getUserByRole,
-  getUserBookings,
-  getUserAllBookings,
-  updateUserBookings,
   addNewUser,
+  changePassword,
+  activateDeactivateUser,
+  searchUser,
+  assignRole,
 };
 module.exports = UserController;
