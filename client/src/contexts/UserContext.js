@@ -1,32 +1,30 @@
-import React, { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
-import Cookies from "js-cookie";
+import React, { createContext, useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
-const UserContext = React.createContext(null);
+const AuthContext = createContext();
 
-const UserProvider = ({ children }) => {
-    const [user, setUser] = useState({});
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem("accessToken"));
 
-    const loginContext = (data) => {
-        setUser(data);
-    };
+  const login = (token) => {
+    const decodedToken = jwtDecode(token);
+    setUser({ ...decodedToken }); // Gán thông tin user từ token đã giải mã
+    localStorage.setItem("accessToken", token);
+    setToken(token);
+  };
 
-    const logoutContext = () => {
-        Cookies.remove("jwt");
-        setUser({});
-    };
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("accessToken");
+  };
 
-    useEffect(() => {
-        const jwtToken = Cookies.get("jwt");
-        if (jwtToken && jwtToken !== "undefined") {
-            const decoded = jwtDecode(jwtToken);
-            setUser(decoded);
-        } else {
-            setUser({})
-        }
-    }, []);
-
-    return <UserContext.Provider value={{ user, setUser, loginContext, logoutContext }}>{children}</UserContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, login, logout, token }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export { UserContext, UserProvider };
+export default AuthContext;

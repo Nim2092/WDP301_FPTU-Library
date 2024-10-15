@@ -9,6 +9,8 @@ const userSchema = new Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     phoneNumber: Number,
+    createdBy: { type: Schema.Types.ObjectId, ref: "User" }, // Reference to the user who created this entry
+    updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

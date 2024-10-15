@@ -12,7 +12,7 @@ function Header() {
         <header className="header">
             <div className="logo">
                 {/* Replace with your logo image */}
-                <img src="path/to/logo.png" alt="Logo" />
+                <img src="https://library.fpt.edu.vn/Uploads/HN/images/opac-logo/logo.png" alt="Logo" />
             </div>
             <h1>FPTU Library</h1>
             <button onClick={handleLoginLogout}>
