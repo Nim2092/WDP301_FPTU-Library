@@ -1,25 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Editor } from "react-draft-wysiwyg";
-import { EditorState } from "draft-js";
+import { EditorState, convertToRaw } from "draft-js";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+import draftToHtml from "draftjs-to-html";
 
 const CreateNews = () => {
   const [image, setImage] = useState(null);
   const [name, setName] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(""); // Initialize date state
   const [editorState, setEditorState] = useState(EditorState.createEmpty()); // Initialize editor state
 
+  // Function to format date as yyyy-mm-dd (HTML date input format)
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const month = `${d.getMonth() + 1}`.padStart(2, "0");
+    const day = `${d.getDate()}`.padStart(2, "0");
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+
+  // Set current date as default
+  useEffect(() => {
+    const currentDate = formatDate(new Date());
+    setDate(currentDate); // Set the date to current date on component mount
+  }, []);
+
   const handleImageChange = (e) => {
-    setImage(URL.createObjectURL(e.target.files[0]));
+    setImage(e.target.files[0]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const content = editorState.getCurrentContent().getPlainText(); // Get the editor's text content
-    console.log({ image, name, date, content }); // Use content instead of detail
+    
+    const content = draftToHtml(convertToRaw(editorState.getCurrentContent())); // Get HTML content from editor
+
+    // Prepare the form data
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("date", date);
+    formData.append("detail", content); 
+    if (image) {
+      formData.append("image", image); 
+    }
+
+    try {
+      const response = await fetch("http://localhost:9999/api/news/create", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create news");
+      }
+
+      const result = await response.json();
+      console.log("News created:", result);
+    } catch (error) {
+      console.error("Error creating news:", error);
+    }
   };
 
-  // This is the callback that handles image upload
+  // Image upload callback for the editor (if needed)
   const uploadImageCallBack = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -38,7 +79,7 @@ const CreateNews = () => {
           <div className="col-md-3">
             <div className="form-group">
               {image ? (
-                <img src={image} alt="Selected" className="img-thumbnail" />
+                <img src={URL.createObjectURL(image)} alt="Selected" className="img-thumbnail" />
               ) : (
                 <div
                   className="img-thumbnail d-flex justify-content-center align-items-center"
@@ -79,7 +120,7 @@ const CreateNews = () => {
                 className="form-control"
                 id="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => setDate(e.target.value)} // Allow manual changes to date
               />
             </div>
             <div className="form-group mt-3">

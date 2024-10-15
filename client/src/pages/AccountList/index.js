@@ -1,5 +1,5 @@
 import React from "react";
-
+import { useNavigate } from "react-router-dom";
 const AccountList = () => {
   const accountData = [
     { id: 1, fullName: "John Doe", email: "john@example.com", phone: "123-456-7890", role: "Admin" },
@@ -8,9 +8,10 @@ const AccountList = () => {
   ];
 
   const handleEdit = (id) => {
+    navigate(`/update-account/${id}`);
     console.log(`Edit account with ID: ${id}`);
   };
-
+  const navigate = useNavigate();
   const handleDelete = (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this account?");
     if (confirmDelete) {
@@ -20,6 +21,7 @@ const AccountList = () => {
 
   const handleCreateNewAccount = () => {
     console.log("Create new account");
+    navigate("/create-account");
   };
 
   return (
@@ -42,7 +44,7 @@ const AccountList = () => {
             <th>Phone</th>
             <th>Role</th>
             <th>Action</th>
-            <th>Action</th>
+            
           </tr>
         </thead>
         <tbody>
@@ -53,15 +55,14 @@ const AccountList = () => {
               <td>{account.email}</td>
               <td>{account.phone}</td>
               <td>{account.role}</td>
-              <td>
+              <td className="d-flex justify-content-between">
                 <button
                   className="btn btn-warning"
                   onClick={() => handleEdit(account.id)}
                 >
                   Edit
                 </button>
-              </td>
-              <td>
+              
                 <button
                   className="btn btn-danger"
                   onClick={() => handleDelete(account.id)}
