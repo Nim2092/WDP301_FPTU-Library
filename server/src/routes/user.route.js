@@ -1,27 +1,30 @@
-const express = require('express');
+const express = require("express");
 const bodyParser = require("body-parser");
-const userController = require('../controllers/user.controller');
+const userController = require("../controllers/user.controller");
 
 const userRouter = express.Router();
 userRouter.use(bodyParser.json());
 
-userRouter.get('/get/:userId',userController.getUserById);
+userRouter.get("/getAll", userController.getAllUser);
 
-userRouter.get('/getAll',userController.getAllUser);
+userRouter.get("/get/:userId", userController.getUserById);
 
-userRouter.get('/by-booking/user/:userId',userController.getUserBookings);
+userRouter.get("/role/:roleName", userController.getUserByRole);
 
-userRouter.get('/by-booking/getAll',userController.getUserAllBookings);
+userRouter.delete("/delete/:userId", userController.deleteUserById);
 
-userRouter.put('/by-booking/booking/:bookingId',userController.updateUserBookings);
+userRouter.post("/add", userController.addNewUser);
 
-userRouter.get('/by-role/:roleName',userController.getUserByRole);
+userRouter.get("/profile/:id", userController.viewProfile);
 
-userRouter.post('/new',userController.addNewUser);
+userRouter.put("/profile/update/:id", userController.editProfile);
 
-// Định nghĩa các route và liên kết với các phương thức trong controller
-userRouter.get('/profile/:id', userController.viewProfile);
+userRouter.put("/profile/change-password/:id", userController.changePassword);
 
-userRouter.put('/profile/update/:id', userController.editProfile);
+userRouter.put("/status/:id", userController.activateDeactivateUser);
+
+userRouter.get("/search", userController.searchUser);
+
+userRouter.put("/assign-role/:id", userController.assignRole);
 
 module.exports = userRouter;

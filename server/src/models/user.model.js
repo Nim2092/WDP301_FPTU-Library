@@ -11,6 +11,9 @@ const userSchema = new Schema(
     phoneNumber: Number,
     createdBy: { type: Schema.Types.ObjectId, ref: "User" }, // Reference to the user who created this entry
     updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    isActive: { type: Boolean, default: true },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

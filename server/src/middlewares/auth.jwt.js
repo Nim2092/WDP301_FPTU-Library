@@ -9,7 +9,7 @@ const { user: User, role: Role } = db;
 async function verifyToken(req, res, next) {
   try {
     const token = req.headers["x-access-token"];
-    console.log("🚀 ~ verifyToken ~ token:", token)
+    console.log("🚀 ~ verifyToken ~ token:", token);
     if (!token) return next(createHttpError.Unauthorized("Token not provided"));
 
     // Verify token
@@ -19,7 +19,8 @@ async function verifyToken(req, res, next) {
           err instanceof JsonWebTokenError
             ? "Unauthorized! Access Token was expired!"
             : err.message;
-            if (!token) return next(createHttpError.Unauthorized("Token not provided"));
+        if (!token)
+          return next(createHttpError.Unauthorized("Token not provided"));
       }
       req.userId = decode.id;
       const user = await User.findById(decode.id, {
@@ -33,12 +34,12 @@ async function verifyToken(req, res, next) {
   }
 }
 
-async function isGuest(req, res, next) {
+async function isBorrower(req, res, next) {
   try {
     if (!req.user) {
       throw createHttpError.Unauthorized("Unauthorized access");
     }
-    if (req.user.roles.some((role) => role.name === "Guest")) {
+    if (req.user.roles.some((role) => role.name === "Borrower")) {
       next();
     } else {
       throw createHttpError.Forbidden("Forbidden access");
@@ -48,42 +49,12 @@ async function isGuest(req, res, next) {
   }
 }
 
-async function isMember(req, res, next) {
+async function isLibrarian(req, res, next) {
   try {
     if (!req.user) {
       throw createHttpError.Unauthorized("Unauthorized access");
     }
-    if (req.user.roles.some((role) => role.name === "Member")) {
-      next();
-    } else {
-      throw createHttpError.Forbidden("Forbidden access");
-    }
-  } catch (error) {
-    next(error);
-  }
-}
-
-async function isStaff(req, res, next) {
-  try {
-    if (!req.user) {
-      throw createHttpError.Unauthorized("Unauthorized access");
-    }
-    if (req.user.roles.some((role) => role.name === "Staff")) {
-      next();
-    } else {
-      throw createHttpError.Forbidden("Forbidden access");
-    }
-  } catch (error) {
-    next(error);
-  }
-}
-
-async function isSupervisor(req, res, next) {
-  try {
-    if (!req.user) {
-      throw createHttpError.Unauthorized("Unauthorized access");
-    }
-    if (req.user.roles.some((role) => role.name === "Supervisor")) {
+    if (req.user.roles.some((role) => role.name === "Librarian")) {
       next();
     } else {
       throw createHttpError.Forbidden("Forbidden access");
@@ -110,11 +81,9 @@ async function isAdmin(req, res, next) {
 
 const authJWT = {
   verifyToken,
-  isMember,
-  isGuest,
+  isBorrower,
   isAdmin,
-  isStaff,
-  isSupervisor,
+  isLibrarian,
 };
 
 module.exports = authJWT;

@@ -27,6 +27,24 @@ async function listRule(req, res, next) {
   }
 }
 
+//get rule by id
+async function getRuleDetailById(req, res, next) {
+  try {
+    const { id } = req.params;
+    const rule = await Rule.findById(id);
+    if (!rule) {
+      return res.status(404).send({ message: "Rule not found" });
+    }
+    res.status(200).json({
+      message: "Get rule successfully",
+      data: rule,
+    });
+  } catch (error) {
+    console.error("Error getting rule", error);
+    res.status(500).send({ message: error.message });
+  }
+}
+
 //create a rule
 async function createRule(req, res, next) {
   try {
@@ -108,5 +126,6 @@ const RuleController = {
   createRule,
   updateRule,
   deleteRule,
+  getRuleDetailById,
 };
 module.exports = RuleController;

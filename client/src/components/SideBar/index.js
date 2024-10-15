@@ -1,33 +1,42 @@
-import React, { useState } from 'react';
-import './SideBar.scss'; 
+import React, { useState } from "react";
+import { Link } from "react-router-dom"; // Nếu bạn sử dụng react-router-dom
+import "./SideBar.scss"; // Tùy chọn: CSS cho Sidebar
 
-const SideBar = () => {
-    const [isVisible, setIsVisible] = useState(true);
+function Sidebar() {
+  const [isVisible, setIsVisible] = useState(true); // Trạng thái để kiểm soát sidebar
 
-    const toggleSidebar = () => {
-        setIsVisible(!isVisible);
-    };
+  const toggleSidebar = () => {
+    setIsVisible(!isVisible); // Đảo ngược trạng thái hiển thị của sidebar
+  };
 
-    return (
-        <div>
-            <button onClick={toggleSidebar}>
-                {isVisible ? '✖' : '☰'} {/* Unicode characters for close and menu icons */}
-                {isVisible ? ' Hide Sidebar' : ' Show Sidebar'}
-            </button>
-            {/* Sidebar is conditionally rendered, but the button is always visible */}
-            {isVisible && (
-                <div className="sidebar">
-                    <h2>Sidebar</h2>
-                    <ul>
-                        <li>Home</li>
-                        <li>About</li>
-                        <li>Contact</li>
-                        <li>Services</li>
-                    </ul>
-                </div>
-            )}
-        </div>
-    );
-};
+  return (
+    <div>
+      <button onClick={toggleSidebar} className="btn btn-secondary">
+        {isVisible ? 'Hide Sidebar' : 'Show Sidebar'}
+      </button>
+      {isVisible && (
+        <nav className="sidebar">
+          <ul className="list-unstyled">
+            <li>
+              <Link to="/home" className="sidebar-link">Home</Link>
+            </li>
+            <li>
+              <Link to="/news" className="sidebar-link">News</Link>
+            </li>
+            <li>
+              <Link to="/borrowed-books" className="sidebar-link">Borrowed Books</Link>
+            </li>
+            <li>
+              <Link to="/renew" className="sidebar-link">Renew Book</Link>
+            </li>
+            <li>
+              <Link to="/contact" className="sidebar-link">Contact</Link>
+            </li>
+          </ul>
+        </nav>
+      )}
+    </div>
+  );
+}
 
-export default SideBar;
+export default Sidebar;

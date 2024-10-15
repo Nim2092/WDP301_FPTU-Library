@@ -7,6 +7,8 @@ newsRouter.use(bodyParser.json());
 
 newsRouter.get("/list", newsController.listNews);
 
+newsRouter.get("/get/:id", newsController.getNewsDetailById);
+
 newsRouter.post("/create", newsController.createNews);
 
 newsRouter.put("/update/:id", newsController.updateNews);
