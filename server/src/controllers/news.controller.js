@@ -6,25 +6,13 @@ const { GridFSBucket } = require("mongodb");
 //list news
 async function listNews(req, res, next) {
   try {
-    const listNews = await News.find();
-
-    if (!listNews) {
-      return res.status(404).send({ message: "News not found" });
-    }
-    const newListNews = listNews.map((news) => ({
-      id: news.id,
-      title: news.title,
-      content: news.content,
-      thumbnail: news.thumbnail,
-      createdBy: news.createdBy,
-      updatedBy: news.updatedBy,
-    }));
+    const news = await News.find();
     res.status(200).json({
-      message: "Get list news successfully",
-      data: newListNews,
+      message: "Get news successfully",
+      data: news,
     });
   } catch (error) {
-    close.error("Error listing news", error);
+    console.error("Error getting news", error);
     res.status(500).send({ message: error.message });
   }
 }
@@ -126,7 +114,6 @@ async function updateNews(req, res, next) {
     if (title) news.title = title;
     if (content) news.content = content;
     if (updatedBy) news.updatedBy = updatedBy;
-    // news.updatedBy = req.user.id;
 
     if (thumbnail) {
       const bucket = new GridFSBucket(mongoose.connection.db, {
@@ -188,30 +175,16 @@ async function deleteNews(req, res, next) {
   }
 }
 
-//get thumbnail by news id
-async function getThumbnailByNewsId(req, res, next) {
-  const { newsId } = req.params;
+//get Thumbnail By Id
+async function getThumbnailById(req, res, next) {
+  const { id } = req.params;
   try {
-    const news = await News.findById(newsId);
-    if (!news) {
-      return res.status(404).json({ message: "News not found" });
-    }
-
-    // Kiểm tra xem news.thumbnail có chứa ObjectId hay là một URL có ObjectId
-    let thumbnailId;
-
-    if (news.thumbnail.includes("/")) {
-      thumbnailId = news.thumbnail.split("/").pop();
-    } else {
-      thumbnailId = news.thumbnail;
-    }
-
     const bucket = new GridFSBucket(mongoose.connection.db, {
       bucketName: "uploads",
     });
 
     const downloadStream = bucket.openDownloadStream(
-      new mongoose.Types.ObjectId(thumbnailId)
+      new mongoose.Types.ObjectId(id)
     );
 
     downloadStream.on("error", (err) => {
@@ -229,6 +202,6 @@ const NewsController = {
   updateNews,
   deleteNews,
   getNewsDetailById,
-  getThumbnailByNewsId,
+  getThumbnailById,
 };
 module.exports = NewsController;

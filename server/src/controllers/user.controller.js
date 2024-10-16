@@ -394,31 +394,17 @@ const assignRole = async (req, res, next) => {
   }
 };
 
-//get image by user id
-const getImageByUserId = async (req, res) => {
-  const { userId } = req.params;
+//get image by id
+const getImageById = async (req, res) => {
+  const { id } = req.params;
 
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Kiểm tra xem user.image có chứa ObjectId hay là một URL có ObjectId
-    let imageId;
-
-    if (user.image.includes("/")) {
-      imageId = user.image.split("/").pop();
-    } else {
-      imageId = user.image;
-    }
-
     const bucket = new GridFSBucket(mongoose.connection.db, {
       bucketName: "uploads",
     });
 
     const downloadStream = bucket.openDownloadStream(
-      new mongoose.Types.ObjectId(imageId)
+      new mongoose.Types.ObjectId(id)
     );
 
     downloadStream.on("error", (err) => {
@@ -443,7 +429,7 @@ const UserController = {
   activateDeactivateUser,
   searchUser,
   assignRole,
-  getImageByUserId,
   updateUserByAdmin,
+  getImageById,
 };
 module.exports = UserController;

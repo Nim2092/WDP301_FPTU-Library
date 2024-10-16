@@ -38,6 +38,6 @@ userRouter.get("/search", userController.searchUser);
 
 userRouter.put("/assign-role/:id", userController.assignRole);
 
-userRouter.get("/image/:userId", userController.getImageByUserId);
+userRouter.get("/image/:id", userController.getImageById);
 
 module.exports = userRouter;
