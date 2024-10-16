@@ -139,10 +139,10 @@ async function updateNews(req, res, next) {
       const uploadStream = bucket.openUploadStream(thumbnail.originalname);
       uploadStream.end(thumbnail.buffer);
 
-      // Khi hoàn thành upload ảnh mới, cập nhật thumbnailUrl
+      // Khi hoàn thành upload ảnh mới, cập nhật thumbnail
       uploadStream.on("finish", async () => {
         // Cập nhật đường dẫn thumbnail
-        news.thumbnailUrl = `/uploads/${uploadStream.id}`;
+        news.thumbnail = `/uploads/${uploadStream.id}`;
 
         // Lưu bài viết sau khi cập nhật
         await news.save();
