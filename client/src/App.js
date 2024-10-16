@@ -33,11 +33,22 @@ import ListBookSet from "./pages/ListBookSet";
 import UpdateBookSet from "./pages/UpdateBookSet";
 import ManageReturnBook from "./pages/ManageReturnBook";
 import UserProfile from "./pages/UserProfile";
+import ListRule from "./pages/ListRule";
+import CreateNewRule from "./pages/CreateNewRule";
+import UpdateRule from "./pages/UpdateRule";
+import RuleDetail from "./pages/RuleDetail";
 
 function App() {
   
 
   return (
+    
+
+    //     <Route path="/create-new-rule" element={<CreateNewRule />} />
+    //     <Route path="/update-rule/:id" element={<UpdateRule />} />
+    //   </Routes>
+    //   <Footer />
+    // </BrowserRouter>
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <BrowserRouter>
@@ -50,9 +61,13 @@ function App() {
             <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian"]}><HomePage /></ProtectedRoute>} />
             <Route path="/advanced-search" element={<ProtectedRoute roles={["borrower", "librarian"]}><AdvancedSearch /></ProtectedRoute>} />
             <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
-            <Route path="/news/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
             <Route path="/book-detail" element={<ProtectedRoute roles={["borrower", "librarian"]}><BookDetail /></ProtectedRoute>} />
             <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><UserProfile /></ProtectedRoute>} />
+            <Route path="/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
+            <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
+            
+
+
 
             {/* Routes dành cho Borrower */}
             <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
@@ -75,6 +90,10 @@ function App() {
             <Route path="/create-book" element={<ProtectedRoute roles={["admin"]}><CreateBook /></ProtectedRoute>} />
             <Route path="/list-book-set" element={<ProtectedRoute roles={["admin"]}><ListBookSet /></ProtectedRoute>} />
             <Route path="/update-bookset/:id" element={<ProtectedRoute roles={["admin"]}><UpdateBookSet /></ProtectedRoute>} />
+            <Route path="/list-rule" element={<ProtectedRoute roles={["admin"]}><ListRule /></ProtectedRoute>} />
+            <Route path="/create-new-rule" element={<ProtectedRoute roles={["admin"]}><CreateNewRule /></ProtectedRoute>} />
+            <Route path="/update-rule/:id" element={<ProtectedRoute roles={["admin"]}><UpdateRule /></ProtectedRoute>} />
+
 
             {/* Đường dẫn cho các trang khác */}
             <Route path="/unauthorized" element={<Unauthorized />} />
