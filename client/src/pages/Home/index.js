@@ -1,6 +1,7 @@
 import React from 'react';
 import Search from '../../components/Search'; // Đảm bảo đường dẫn đúng đến component Search
 import News from '../../components/News';
+import './Home.scss'
 
 function Home() {
   return (
