@@ -74,8 +74,6 @@ async function createNews(req, res, next) {
           title: title,
           content: content,
           thumbnail: `/uploads/${uploadStream.id}`,
-          //   createdBy: req.user.id,
-          //   updatedBy: req.user.id,
           createdBy: createdBy,
           updatedBy: updatedBy,
         });
