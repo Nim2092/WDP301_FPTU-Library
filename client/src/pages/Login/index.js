@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import AuthContext from "../../contexts/UserContext";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify'; // Import toast
+import 'react-toastify/dist/ReactToastify.css'; // Import CSS cho toast
 import "./Login.scss";
 
 function LoginPage() {
@@ -20,9 +22,10 @@ function LoginPage() {
       });
       login(response.data.accessToken); 
       console.log("chuyển trang /");
-      
       navigate("/");
     } catch (error) {
+      const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
+      toast.error(errorMessage); // Hiển thị thông báo lỗi
       console.error("Login error", error);
     }
   };
@@ -35,12 +38,15 @@ function LoginPage() {
       login(res.data.accessToken); 
       navigate("/");
     } catch (error) {
+      const errorMessage = error.response?.data?.message || "Google login failed. Please try again.";
+      toast.error(errorMessage); // Hiển thị thông báo lỗi
       console.error("Google login error", error);
     }
   };
 
   return (
     <div className="login-page-container">
+      <ToastContainer /> {/* Thêm ToastContainer */}
       <div className="image-section">
         <img
           src="https://daihoc.fpt.edu.vn/en/wp-content/uploads/2022/09/thu-vien-can-tho-6.jpg"

@@ -63,9 +63,7 @@ function Header() {
                             )}
                         </div>
                     </div>
-                ) : (
-                    <button className="custom-login-button" onClick={() => navigate('/login')}>Login</button>
-                )}
+                ) : null}
             </div>
         </header>
     );

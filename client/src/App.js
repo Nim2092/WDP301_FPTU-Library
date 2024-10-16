@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import React from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import AuthContext, { AuthProvider, isTokenExpired } from "./contexts/UserContext";
+import 'font-awesome/css/font-awesome.min.css';
 
 // Import các trang
 import LoginPage from "./pages/Login";
@@ -29,8 +30,11 @@ import CreateBook from "./pages/CreateBookSet";
 import ListBookSet from "./pages/ListBookSet";
 import UpdateBookSet from "./pages/UpdateBookSet";
 import ManageReturnBook from "./pages/ManageReturnBook";
+import Sidebar from "./components/SideBar/index";
 
 function App() {
+  
+
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <AuthProvider>
@@ -39,13 +43,15 @@ function App() {
           <Routes>
             {/* Route công khai */}
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian"]}><HomePage /></ProtectedRoute>} />
 
+            {/* Route chung của borrower và librarian */}
+            <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian"]}><HomePage /></ProtectedRoute>} />
+            <Route path="/advanced-search" element={<ProtectedRoute roles={["borrower", "librarian"]}><AdvancedSearch /></ProtectedRoute>} />
+            <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
+            <Route path="/news/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
+            <Route path="/book-detail" element={<ProtectedRoute roles={["borrower", "librarian"]}><BookDetail /></ProtectedRoute>} />
+            
             {/* Routes dành cho Borrower */}
-            <Route path="/advanced-search" element={<ProtectedRoute roles={["borrower"]}><AdvancedSearch /></ProtectedRoute>} />
-            <Route path="/news" element={<ProtectedRoute roles={["borrower"]}><NewsPage /></ProtectedRoute>} />
-            <Route path="/news/:id" element={<ProtectedRoute roles={["borrower"]}><NewsDetail /></ProtectedRoute>} />
-            <Route path="/book-detail" element={<ProtectedRoute roles={["borrower"]}><BookDetail /></ProtectedRoute>} />
             <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
             <Route path="/report-lost-book" element={<ProtectedRoute roles={["borrower"]}><ReportLostBook /></ProtectedRoute>} />
             <Route path="/renew-book" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
@@ -82,6 +88,25 @@ const ProtectedRoute = ({ roles, children }) => {
   const { user, token, login } = React.useContext(AuthContext);
   const [isLoading, setIsLoading] = React.useState(true);
 
+  const menuItems = {
+    borrower: [
+      { path: "/list-book-borrowed", label: "Danh sách sách đã mượn", icon: "fa fa-book" },
+      { path: "/report-lost-book", label: "Báo mất sách", icon: "fa fa-exclamation-circle" },
+      { path: "/renew-book", label: "Gia hạn sách", icon: "fa fa-refresh" },
+      { path: "/order-book", label: "Đặt sách", icon: "fa fa-shopping-cart" },
+    ],
+    librarian: [
+      { path: "/manage-order", label: "Quản lý đơn hàng", icon: "fa fa-list" },
+      { path: "/create-news", label: "Tạo tin tức", icon: "fa fa-pencil" },
+      // ... (các mục khác cho librarian)
+    ],
+    admin: [
+      { path: "/create-account", label: "Tạo tài khoản", icon: "fa fa-user-plus" },
+      { path: "/account-list", label: "Danh sách tài khoản", icon: "fa fa-users" },
+      // ... (các mục khác cho admin)
+    ],
+  };
+
   React.useEffect(() => {
     const storedToken = localStorage.getItem("accessToken");
     if (!user && storedToken && !isTokenExpired(storedToken)) {
@@ -103,7 +128,13 @@ const ProtectedRoute = ({ roles, children }) => {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  return children;
+  return (
+    <>
+      {/* Render Sidebar only after login */}
+      <Sidebar menuItems={menuItems[user.role?.name] || []} />
+      {children}
+    </>
+  );
 };
 
 export default App;
