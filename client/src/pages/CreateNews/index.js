@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Editor from "../../components/Editor";
+// import Editor from "../../components/Editor";
 function CreateNews() {
   const [data, setData] = useState({
     title: "",
@@ -81,7 +81,7 @@ function CreateNews() {
           Create News
         </button>
       </form>
-      <Editor />    
+      {/* <Editor />     */}
     </div>
   );
 }

@@ -107,7 +107,7 @@ const ListNews = () => {
         <tbody>
           {newsData.length > 0 ? (
             newsData.map((news, index) => (
-              <tr key={news.id}>
+              <tr key={news._id}>
                 <td>{index + 1}</td> {/* Sequential number starting from 1 */}
                 <td>
                   <img
@@ -121,19 +121,19 @@ const ListNews = () => {
                 <td className="d-flex justify-content-between">
                   <button
                     className="btn btn-success"
-                    onClick={() => handleUpdate(news.id)}
+                    onClick={() => handleUpdate(news._id)}
                   >
                     Update
                   </button>
                   <button
                     className="btn btn-primary"
-                    onClick={() => handleDetail(news.id)}
+                    onClick={() => handleDetail(news._id)}
                   >
                     Detail
                   </button>
                   <button
                     className="btn btn-danger"
-                    onClick={() => handleDelete(news.id)}
+                    onClick={() => handleDelete(news._id)}
                   >
                     Delete
                   </button>
