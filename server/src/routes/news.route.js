@@ -24,7 +24,7 @@ newsRouter.put(
 
 newsRouter.delete("/delete/:id", newsController.deleteNews);
 
-//get thumbnail by news id
-newsRouter.get("/thumbnail/:newsId", newsController.getThumbnailByNewsId);
+//get thumbnail by id
+newsRouter.get("/thumbnail/:id", newsController.getThumbnailById);
 
 module.exports = newsRouter;

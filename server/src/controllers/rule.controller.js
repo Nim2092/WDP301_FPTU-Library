@@ -57,8 +57,6 @@ async function createRule(req, res, next) {
     const rule = new Rule({
       title: title,
       content: title,
-      //   createdBy: req.user.id,
-      //   updatedBy: req.user.id,
       createdBy: createdBy,
       updatedBy: updatedBy,
     });
