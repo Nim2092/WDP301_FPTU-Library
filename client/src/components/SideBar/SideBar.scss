@@ -1,65 +1,67 @@
 nav {
-  width: 350px; // Width of the sidebar on larger screens
-  background-color: #f8f9fa; // Background color
-  padding: 20px; // Padding inside the sidebar
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); // Box shadow for the sidebar
-  height: auto; // Let height adjust based on content
-  margin-top: 60px; // Adjust depending on your header height
-  margin-bottom: 50px; // Adjust depending on your footer height
-  transition: all 0.3s ease-in-out; // Smooth transition for responsiveness
+  width: 350px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  height: auto;
+  margin-top: 60px;
+  margin-bottom: 50px;
+  transition: all 0.3s ease-in-out;
 
   ul {
-    list-style: none; // Remove bullet points
-    padding: 0; // No padding for the list
+    list-style: none;
+    padding: 0;
 
     li {
-      margin: 15px 0; // Spacing between list items
+      margin: 15px 0;
 
       a {
-        text-decoration: none; // Remove underline
-        color: #333; // Text color
-        font-weight: 500; // Font weight
-        display: flex; // Display as flexbox for icons
-        align-items: center; // Align items vertically
-        padding: 10px; // Padding around the links
-        border-radius: 4px; // Rounded corners
-        transition: background-color 0.3s; // Smooth hover effect
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
 
         &:hover {
-          background-color: #e2e6ea; // Background on hover
+          background-color: #e2e6ea;
+        }
+
+        &.active {
+          background-color: #007bff; // Change background color when active
+          color: #fff; // Change text color to white
         }
 
         svg {
-          margin-right: 10px; // Space between icon and text
+          margin-right: 10px;
         }
       }
     }
   }
 
-  // Media query for smaller devices
   @media (max-width: 768px) {
-    width: 100%; // Full width on smaller screens
-    position: absolute; // Absolute positioning for overlay effect
-    top: 0; // Align to the top of the screen
-    left: -100%; // Hide offscreen initially
-    z-index: 1000; // High z-index to overlay on content
-    margin: 0; // Remove margin on smaller devices
-    height: 100vh; // Full viewport height for sidebar
-    transition: transform 0.3s ease-in-out; // Smooth sliding in effect
-  }
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: -100%;
+    z-index: 1000;
+    margin: 0;
+    height: 100vh;
+    transition: transform 0.3s ease-in-out;
 
-  // When the sidebar is active (opened), it slides in
-  &.active {
-    transform: translateX(0); // Bring the sidebar into view
+    &.active {
+      transform: translateX(0);
+    }
   }
 }
 
-// Toggler button styles
 .sidebar-toggler {
-  display: none; // Hide by default
+  display: none;
 
   @media (max-width: 768px) {
-    display: block; // Show on smaller screens
+    display: block;
     position: absolute;
     top: 10px;
     right: 20px;

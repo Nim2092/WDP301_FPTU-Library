@@ -22,8 +22,6 @@ export const AuthProvider = ({ children }) => {
         const decodedToken = jwtDecode(token);
         setUser({ ...decodedToken });
         setToken(token);
-        console.log("user day", user);
-        
       } catch (error) {
         console.error("Error decoding token", error);
         logout();
@@ -52,6 +50,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("accessToken");
+  
   };
 
   return (

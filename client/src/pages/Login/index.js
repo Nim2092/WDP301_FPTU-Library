@@ -25,7 +25,7 @@ function LoginPage() {
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
-      toast.error(errorMessage); // Hiển thị thông báo lỗi
+      toast.error(errorMessage); 
       console.error("Login error", error);
     }
   };
@@ -39,14 +39,14 @@ function LoginPage() {
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Google login failed. Please try again.";
-      toast.error(errorMessage); // Hiển thị thông báo lỗi
+      toast.error(errorMessage); 
       console.error("Google login error", error);
     }
   };
 
   return (
     <div className="login-page-container">
-      <ToastContainer /> {/* Thêm ToastContainer */}
+      <ToastContainer /> 
       <div className="image-section">
         <img
           src="https://daihoc.fpt.edu.vn/en/wp-content/uploads/2022/09/thu-vien-can-tho-6.jpg"
