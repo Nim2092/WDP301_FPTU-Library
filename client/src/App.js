@@ -6,9 +6,11 @@ import 'font-awesome/css/font-awesome.min.css';
 
 // Import các trang
 import LoginPage from "./pages/Login";
-import AdvancedSearch from "./pages/AdvancedSearch";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import Sidebar from "./components/SideBar/index";
+
+import AdvancedSearch from "./pages/AdvancedSearch";
 import HomePage from "./pages/Home";
 import NewsPage from "./pages/News";
 import NewsDetail from "./pages/NewsDetail";
@@ -30,7 +32,7 @@ import CreateBook from "./pages/CreateBookSet";
 import ListBookSet from "./pages/ListBookSet";
 import UpdateBookSet from "./pages/UpdateBookSet";
 import ManageReturnBook from "./pages/ManageReturnBook";
-import Sidebar from "./components/SideBar/index";
+import UserProfile from "./pages/UserProfile";
 
 function App() {
   
@@ -50,7 +52,8 @@ function App() {
             <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
             <Route path="/news/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
             <Route path="/book-detail" element={<ProtectedRoute roles={["borrower", "librarian"]}><BookDetail /></ProtectedRoute>} />
-            
+            <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><UserProfile /></ProtectedRoute>} />
+
             {/* Routes dành cho Borrower */}
             <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
             <Route path="/report-lost-book" element={<ProtectedRoute roles={["borrower"]}><ReportLostBook /></ProtectedRoute>} />
@@ -90,22 +93,36 @@ const ProtectedRoute = ({ roles, children }) => {
 
   const menuItems = {
     borrower: [
-      { path: "/list-book-borrowed", label: "Danh sách sách đã mượn", icon: "fa fa-book" },
-      { path: "/report-lost-book", label: "Báo mất sách", icon: "fa fa-exclamation-circle" },
-      { path: "/renew-book", label: "Gia hạn sách", icon: "fa fa-refresh" },
-      { path: "/order-book", label: "Đặt sách", icon: "fa fa-shopping-cart" },
+      { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
+      { path: "/advanced-search", label: "Tra cứu sách", icon: "fa fa-search" }, 
+      { path: "/list-book-borrowed", label: "Danh sách đã mượn", icon: "fa fa-book" }, 
+      { path: "/report-lost-book", label: "Báo mất sách", icon: "fa fa-exclamation-triangle" }, 
+      { path: "/renew-book", label: "Gia hạn sách", icon: "fa fa-sync-alt" }, 
+      { path: "/fines", label: "Tiền phạt", icon: "fa fa-money-bill-wave" }, 
+      { path: "/rules", label: "Quy định", icon: "fa fa-newspaper" }, 
+      { path: "/news", label: "Tin tức", icon: "fa fa-newspaper" }, 
+      { path: "/notification", label: "Thông báo", icon: "fa fa-bell" }, 
+      { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
     ],
     librarian: [
-      { path: "/manage-order", label: "Quản lý đơn hàng", icon: "fa fa-list" },
-      { path: "/create-news", label: "Tạo tin tức", icon: "fa fa-pencil" },
-      // ... (các mục khác cho librarian)
+      { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
+      { path: "/manage-order", label: "Quản lý mượn sách", icon: "fa fa-tasks" }, 
+      { path: "/manage-return-book", label: "Quản lý trả sách", icon: "fa fa-undo" }, 
+      { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper" }, 
+      { path: "/rules", label: "Quy định", icon: "fa fa-newspaper" }, 
+      { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
     ],
     admin: [
-      { path: "/create-account", label: "Tạo tài khoản", icon: "fa fa-user-plus" },
-      { path: "/account-list", label: "Danh sách tài khoản", icon: "fa fa-users" },
-      // ... (các mục khác cho admin)
+      { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
+      { path: "/account-list", label: "Quản lý tài khoản", icon: "fa fa-users-cog" },  
+      { path: "/list-catalog", label: "Quản lý danh mục", icon: "fa fa-folder" },  
+      { path: "/list-book-set", label: "Quản lý lô sách", icon: "fa fa-boxes" }, 
+      { path: "/rules", label: "Quản lý quy định", icon: "fa fa-newspaper" }, 
+      { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
     ],
   };
+  
+  
 
   React.useEffect(() => {
     const storedToken = localStorage.getItem("accessToken");

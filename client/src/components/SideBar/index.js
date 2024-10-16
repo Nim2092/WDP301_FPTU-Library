@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "./SideBar.scss"; // Import SCSS
 
 const Sidebar = ({ menuItems }) => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const location = useLocation(); // Get the current route
 
   // Function to toggle sidebar visibility
   const toggleSidebar = () => {
@@ -22,7 +23,11 @@ const Sidebar = ({ menuItems }) => {
         <ul>
           {menuItems.map((item) => (
             <li key={item.path}>
-              <Link to={item.path} onClick={() => setIsSidebarVisible(false)}>
+              <Link 
+                to={item.path} 
+                onClick={() => setIsSidebarVisible(false)}
+                className={location.pathname === item.path ? "active" : ""} // Add 'active' class if the path matches
+              >
                 <i className={item.icon}></i> {item.label}
               </Link>
             </li>
