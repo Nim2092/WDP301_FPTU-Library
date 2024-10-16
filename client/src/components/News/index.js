@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Button from '../Button/Button';
 
 function News() {
   const [newsItems, setNewsItems] = useState([]);
@@ -23,6 +24,7 @@ function News() {
 
   return (
     <div className="news container my-5">
+      <h2>News</h2>
       <div className="row">
         {Array.isArray(newsItems) && newsItems.length > 0 ? (
           newsItems.slice(0, 3).map((item) => (
@@ -48,9 +50,7 @@ function News() {
       </div>
       {newsItems.length > 3 && (
         <div className="text-end mt-4">
-          <a href="/news" className="btn btn-primary">
-            Xem thêm
-          </a>
+          <Button text="Xem thêm" link="/news"/>
         </div>
       )}
     </div>

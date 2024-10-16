@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 const bcrypt = require("bcrypt");
 const db = require("../models");
 const { user: User, role: Role, order: Order } = db;
+const { GridFSBucket } = require("mongodb");
 
 //Get all user
 const getAllUser = async (req, res, next) => {
@@ -98,6 +99,7 @@ async function deleteUserById(req, res, next) {
 const addNewUser = async (req, res, next) => {
   try {
     const { role_id, code, fullName, email, password, phoneNumber } = req.body;
+    const image = req.file;
 
     if (!role_id || !code || !email || !password) {
       return res.status(400).json({
@@ -107,7 +109,7 @@ const addNewUser = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new User({
+    const user = new User({
       role_id,
       code,
       fullName,
@@ -117,12 +119,28 @@ const addNewUser = async (req, res, next) => {
       isActive: true,
     });
 
-    const savedUser = await newUser.save();
+    if (image) {
+      // Sử dụng GridFS để lưu ảnh
+      const bucket = new GridFSBucket(mongoose.connection.db, {
+        bucketName: "uploads",
+      });
 
-    res.status(201).json({
-      message: "User created successfully",
-      data: savedUser,
-    });
+      const uploadStream = bucket.openUploadStream(image.originalname);
+      uploadStream.end(image.buffer);
+
+      uploadStream.on("finish", async () => {
+        user.image = `/user/image/${uploadStream.id}`; // Lưu đường dẫn ảnh
+        await user.save();
+        res.status(201).json({ message: "User created successfully", user });
+      });
+
+      uploadStream.on("error", (err) => {
+        res.status(500).json({ message: "Error uploading image", error: err });
+      });
+    } else {
+      await user.save();
+      res.status(201).json({ message: "User created successfully", user });
+    }
   } catch (error) {
     if (error.code === 11000) {
       const duplicateField = Object.keys(error.keyPattern)[0];
@@ -137,6 +155,57 @@ const addNewUser = async (req, res, next) => {
       .status(500)
       .json({ message: "An error occurred", error: error.message });
     next(error);
+  }
+};
+
+//Update user by id
+const updateUserByAdmin = async (req, res) => {
+  const { id } = req.params;
+  const { role_id, fullName, email, phoneNumber, isActive } = req.body;
+  const image = req.file;
+
+  try {
+    let user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (role_id) user.role_id = role_id;
+    if (fullName) user.fullName = fullName;
+    if (email) user.email = email;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (isActive !== undefined) user.isActive = isActive;
+
+    if (image) {
+      const bucket = new GridFSBucket(mongoose.connection.db, {
+        bucketName: "uploads",
+      });
+
+      // Upload ảnh đại diện mới vào GridFS
+      const uploadStream = bucket.openUploadStream(image.originalname);
+      uploadStream.end(image.buffer);
+
+      uploadStream.on("finish", async () => {
+        user.image = `/user/image/${uploadStream.id}`; // Cập nhật đường dẫn ảnh
+        await user.save();
+        res.status(200).json({
+          message: "User updated successfully",
+          user,
+        });
+      });
+
+      uploadStream.on("error", (err) => {
+        res.status(500).json({ message: "Error uploading image", error: err });
+      });
+    } else {
+      await user.save();
+      res.status(200).json({
+        message: "User updated successfully",
+        user,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error updating user", error });
   }
 };
 
@@ -167,24 +236,38 @@ const viewProfile = async (req, res, next) => {
 const editProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updatedData = {
-      fullName: req.body.fullName,
-      phoneNumber: req.body.phoneNumber,
-    };
-    const updatedUser = await User.findByIdAndUpdate(id, updatedData, {
-      new: true,
-    });
-    if (!updatedUser) {
-      return res.status(404).json({
-        message: "User not found",
-        data: null,
-      });
+    const { fullName, phoneNumber } = req.body;
+    const image = req.file;
+
+    let user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({
-      message: "Update user profile successfully",
-      data: updatedUser,
-    });
+    if (fullName) user.fullName = fullName;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+
+    if (image) {
+      const bucket = new GridFSBucket(mongoose.connection.db, {
+        bucketName: "uploads",
+      });
+
+      const uploadStream = bucket.openUploadStream(image.originalname);
+      uploadStream.end(image.buffer);
+
+      uploadStream.on("finish", async () => {
+        user.image = `/user/image/${uploadStream.id}`; // Cập nhật đường dẫn ảnh
+        await user.save();
+        res.status(200).json({ message: "User updated successfully", user });
+      });
+
+      uploadStream.on("error", (err) => {
+        res.status(500).json({ message: "Error uploading image", error: err });
+      });
+    } else {
+      await user.save();
+      res.status(200).json({ message: "User updated successfully", user });
+    }
   } catch (error) {
     console.error("Error updating user profile", error);
     res.status(500).send({ message: error.message });
@@ -311,6 +394,29 @@ const assignRole = async (req, res, next) => {
   }
 };
 
+//get image by id
+const getImageById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const bucket = new GridFSBucket(mongoose.connection.db, {
+      bucketName: "uploads",
+    });
+
+    const downloadStream = bucket.openDownloadStream(
+      new mongoose.Types.ObjectId(id)
+    );
+
+    downloadStream.on("error", (err) => {
+      res.status(404).json({ message: "Image not found", error: err });
+    });
+
+    downloadStream.pipe(res);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving image", error });
+  }
+};
+
 const UserController = {
   viewProfile,
   editProfile,
@@ -323,5 +429,7 @@ const UserController = {
   activateDeactivateUser,
   searchUser,
   assignRole,
+  updateUserByAdmin,
+  getImageById,
 };
 module.exports = UserController;
