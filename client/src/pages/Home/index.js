@@ -1,7 +1,8 @@
-import React from 'react';
-import Search from '../../components/Search'; // Đảm bảo đường dẫn đúng đến component Search
-import News from '../../components/News';
-import './Home.scss'
+import React from "react";
+import Search from "../../components/Search"; // Đảm bảo đường dẫn đúng đến component Search
+import News from "../../components/News";
+import "./Home.scss";
+import Button from '../../components/Button/Button'
 
 function Home() {
   return (
@@ -26,8 +27,18 @@ function Home() {
             </div>
           </div>
           <div className="col-md-6">
-            <h4>Hướng dẫn sử dụng thư viện FPT</h4>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
+            <div class="library-guide">
+              <h2>Hướng dẫn sử dụng thư viện FPT</h2>
+              <p>
+                Chào mừng bạn đến với thư viện Đại học FPT! Dưới đây là hướng
+                dẫn chi tiết về cách sử dụng các dịch vụ của thư viện.
+              </p>
+              {/* <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                Quisquam, quos.
+              </p> */}
+               <Button text="Xem thêm" link="/rules"/>
+            </div>
           </div>
         </div>
       </div>

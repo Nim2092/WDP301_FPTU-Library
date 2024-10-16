@@ -1,42 +1,36 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // Nếu bạn sử dụng react-router-dom
-import "./SideBar.scss"; // Tùy chọn: CSS cho Sidebar
+import { Link } from "react-router-dom";
+import "./SideBar.scss"; // Import SCSS
 
-function Sidebar() {
-  const [isVisible, setIsVisible] = useState(true); // Trạng thái để kiểm soát sidebar
+const Sidebar = ({ menuItems }) => {
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
+  // Function to toggle sidebar visibility
   const toggleSidebar = () => {
-    setIsVisible(!isVisible); // Đảo ngược trạng thái hiển thị của sidebar
+    setIsSidebarVisible(!isSidebarVisible);
   };
 
   return (
-    <div>
-      <button onClick={toggleSidebar} className="btn btn-secondary">
-        {isVisible ? 'Hide Sidebar' : 'Show Sidebar'}
-      </button>
-      {isVisible && (
-        <nav className="sidebar">
-          <ul className="list-unstyled">
-            <li>
-              <Link to="/home" className="sidebar-link">Home</Link>
+    <>
+      {/* Sidebar Toggler Button */}
+      <div className="sidebar-toggler" onClick={toggleSidebar}>
+        <i className="fa fa-bars"></i>
+      </div>
+
+      {/* Sidebar Navigation */}
+      <nav className={`sidebar ${isSidebarVisible ? "" : "sidebar-hidden"}`}>
+        <ul>
+          {menuItems.map((item) => (
+            <li key={item.path}>
+              <Link to={item.path} onClick={() => setIsSidebarVisible(false)}>
+                <i className={item.icon}></i> {item.label}
+              </Link>
             </li>
-            <li>
-              <Link to="/news" className="sidebar-link">News</Link>
-            </li>
-            <li>
-              <Link to="/borrowed-books" className="sidebar-link">Borrowed Books</Link>
-            </li>
-            <li>
-              <Link to="/renew" className="sidebar-link">Renew Book</Link>
-            </li>
-            <li>
-              <Link to="/contact" className="sidebar-link">Contact</Link>
-            </li>
-          </ul>
-        </nav>
-      )}
-    </div>
+          ))}
+        </ul>
+      </nav>
+    </>
   );
-}
+};
 
 export default Sidebar;

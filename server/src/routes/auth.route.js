@@ -1,7 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const authController = require("../controllers/authController");
-const { verifyToken } = require("../controllers/verifyToken");
 
 const authRouter = express.Router();
 authRouter.use(bodyParser.json()); 

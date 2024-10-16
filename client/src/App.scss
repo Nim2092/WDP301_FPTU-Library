@@ -2,21 +2,20 @@
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Make sure the app takes full height */
-  overflow: hidden;
+  min-height: 100vh; /* Full viewport height */
 }
 
-/* Fixed Header Styling */
+/* Header Styling */
 .fixed-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  background-color: #ff7f00; /* Adjust the color to match your header in the screenshot */
+  background-color: #ff7f00; /* Match header color */
   color: white;
   text-align: center;
   padding: 10px 0;
-  z-index: 1000; /* Ensure the header stays on top */
+  z-index: 1000; /* Ensure header stays on top */
 }
 
 /* Footer Styling */
@@ -29,43 +28,63 @@
   margin-top: auto; /* Push footer to the bottom */
 }
 
+/* Main Content Container with Flexbox */
+.content-container {
+  display: flex;
+  flex-grow: 1; /* Allow content to grow and fill space */
+  margin-top: 60px; /* Adjust for header height */
+  padding: 20px;
+}
+
 /* Sidebar Styling */
 .sidebar {
-  width: 250px;
-  height: 100vh; /* Full height of the viewport */
+  width: 250px; /* Sidebar width */
+  background-color: #f7f7f7; /* Light background */
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Shadow for sidebar */
+  height: calc(100vh - 60px); /* Full height minus the header height */
   position: fixed;
-  top: 60px; /* Adjust for header height */
+  top: 60px; /* Position just below the header */
   left: 0;
-  background-color: #f7f7f7;
-  z-index: 999; /* Make sure sidebar is below the header but above content */
-  padding-top: 20px;
+  z-index: 999; /* Ensure sidebar stays on top */
 }
 
 /* Main content styling */
-.content {
-  flex: 1;
-  margin-top: 60px; /* Adjust based on header height */
-  margin-left: 250px; /* Account for the width of the sidebar */
+.main-content {
+  flex: 1; /* Main content takes up remaining space */
+  margin-left: 270px; /* Space for sidebar */
   padding: 20px;
   overflow-y: auto;
-  background-color: #f9f9f9;
-}
-
-/* Footer should stay at the bottom */
-.footer {
-  margin-top: auto;
+  background-color: #f9f9f9; /* Background color for main content */
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 100%; /* Make sidebar full width on small screens */
-    height: auto;
-    position: relative;
+  .content-container {
+    flex-direction: column; /* Stack sidebar and content vertically */
   }
 
-  .content {
-    margin-left: 0; /* No margin for sidebar on small screens */
-    margin-top: 60px; /* Keep margin for header */
+  .sidebar {
+    width: 100%; /* Sidebar takes full width on small screens */
+    height: auto; /* Let height adjust based on content */
+    position: relative;
+    margin-bottom: 20px; /* Add space below sidebar */
+  }
+
+  .main-content {
+    margin-left: 0; /* Remove margin for main content on small screens */
+  }
+
+  .sidebar-toggler {
+    display: block; /* Show sidebar toggler on small screens */
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    z-index: 1001;
+    background-color: #ff7f00; /* Match the header color */
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: white;
   }
 }
