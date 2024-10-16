@@ -30,12 +30,49 @@ import CreateBook from "./pages/CreateBookSet";
 import ListBookSet from "./pages/ListBookSet";
 import UpdateBookSet from "./pages/UpdateBookSet";
 import ManageReturnBook from "./pages/ManageReturnBook";
+import ListRule from "./pages/ListRule";
+import CreateNewRule from "./pages/CreateNewRule";
+import UpdateRule from "./pages/UpdateRule";
+import RuleDetail from "./pages/RuleDetail";
 import Sidebar from "./components/SideBar/index";
 
 function App() {
   
 
   return (
+    // <BrowserRouter>
+    //   <Header />
+    //   <Routes>
+    //     <Route path="/" element={<HomePage />} />
+    //     <Route path="/login" element={<LoginPage />} />
+    //     <Route path="/advanced-search" element={<AdvancedSearch />} />
+    //     <Route path="/news" element={<NewsPage />} />
+    //     <Route path="/news/:id" element={<NewsDetail />} />
+    //     <Route path="/book-detail" element={<BookDetail />} />
+    //     <Route path="/list-book-borrowed" element={<ListBookBorrowed />} />
+    //     <Route path="/report-lost-book" element={<ReportLostBook />} />
+    //     <Route path="/renew-book" element={<RenewBook />} />
+    //     <Route path="/order-book" element={<OrderBook />} />
+    //     <Route path="/manage-order" element={<ManageOrder />} />
+    //     <Route path="/create-news" element={<CreateNews />} />
+    //     <Route path="/list-news-admin" element={<ListNews />} />
+    //     <Route path="/update-news/:id" element={<UpdateNews />} />
+    //     <Route path="/create-account" element={<CreateAccount />} />
+    //     <Route path="/list-catalog" element={<CatalogList />} />
+    //     <Route path="/account-list" element={<AccountList />} />
+    //     <Route path="/update-account/:id" element={<UpdateAccount />} />
+    //     <Route path="/create-book" element={<CreateBook />} />
+    //     <Route path="/list-book-set" element={<ListBookSet />} />
+    //     <Route path="/update-bookset/:id" element={<UpdateBookSet />} />
+    //     <Route path="/manage-return-book" element={<ManageReturnBook />} />
+    //     <Route path="/list-rule" element={<ListRule />} />
+    //     <Route path="/create-new-rule" element={<CreateNewRule />} />
+    //     <Route path="/update-rule/:id" element={<UpdateRule />} />
+    //     <Route path="/rule-detail/:id" element={<RuleDetail />} />
+    //     <Route path="/news-detail/:id" element={<NewsDetail />} />
+    //   </Routes>
+    //   <Footer />
+    // </BrowserRouter>
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <BrowserRouter>

@@ -1,160 +1,95 @@
-import React, { useState } from "react";
-import { Editor } from "react-draft-wysiwyg";
-import { EditorState } from "draft-js";
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const UpdateNews = () => {
-  const [image, setImage] = useState(null);
-  const [name, setName] = useState("");
-  const [date, setDate] = useState("");
-  const [editorState, setEditorState] = useState(EditorState.createEmpty()); // Initialize editor state
+function UpdateNews() {
+  const { id } = useParams(); // Get the news ID from the URL
+  const navigate = useNavigate(); // Hook to navigate to another route
+  const [data, setData] = useState({ title: "", content: "", thumbnail: "" }); // Initialize state with empty values
+  const [loading, setLoading] = useState(true); // Loading state
 
-  const handleImageChange = (e) => {
-    setImage(URL.createObjectURL(e.target.files[0]));
-  };
+  useEffect(() => {
+    // Fetch news detail
+    const fetchNewsDetail = async () => {
+      try {
+        const res = await axios.get(`http://localhost:9999/api/news/get/${id}`);
+        setData(res.data.data); // Assuming `data` is the nested object with news information
+        setLoading(false); // Set loading to false once data is fetched
+      } catch (error) {
+        console.error("Error fetching news:", error);
+        alert("Error fetching news details");
+      }
+    };
 
-  const handleSubmit = (e) => {
+    fetchNewsDetail();
+  }, [id]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const content = editorState.getCurrentContent().getPlainText(); // Get the editor's text content
-    console.log({ image, name, date, content }); // Use content instead of detail
+    try {
+      const response = await axios.put(`http://localhost:9999/api/news/update/${id}`, {
+        title: data.title,
+        content: data.content,
+        thumbnail: data.thumbnail,
+      });
+
+      if (response.status === 200) {
+        alert("News updated successfully");
+        navigate("/list-news-admin"); // Navigate back to the news list page
+      } else {
+        alert("Failed to update news");
+      }
+    } catch (error) {
+      console.error("Error updating news:", error);
+      alert("Error updating news");
+    }
   };
 
-  // This is the callback that handles image upload
-  const uploadImageCallBack = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve({ data: { link: reader.result } });
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="container mt-4">
+      <h1>Update News</h1>
       <form onSubmit={handleSubmit}>
-        <div className="row">
-          {/* Image Upload Section */}
-          <div className="col-md-3">
-            <div className="form-group">
-              {image ? (
-                <img src={image} alt="Selected" className="img-thumbnail" />
-              ) : (
-                <div
-                  className="img-thumbnail d-flex justify-content-center align-items-center"
-                  style={{
-                    height: "200px",
-                    width: "100%",
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  Add img
-                </div>
-              )}
-              <input
-                type="file"
-                className="form-control mt-2"
-                onChange={handleImageChange}
-              />
-            </div>
-          </div>
-
-          {/* Form Input Fields */}
-          <div className="col-md-9">
-            <div className="form-group">
-              <label htmlFor="name">Name:</label>
-              <input
-                type="text"
-                className="form-control"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter name"
-              />
-            </div>
-            <div className="form-group mt-3">
-              <label htmlFor="date">Date:</label>
-              <input
-                type="date"
-                className="form-control"
-                id="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-            <div className="form-group mt-3">
-              <label htmlFor="detail">Detail:</label>
-              <Editor
-                editorState={editorState}
-                toolbarClassName="toolbarClassName"
-                wrapperClassName="wrapperClassName"
-                editorClassName="editorClassName"
-                editorStyle={{
-                  height: "300px",
-                  border: "1px solid #F1F1F1",
-                  padding: "10px",
-                }}
-                onEditorStateChange={setEditorState}
-                toolbar={{
-                  options: [
-                    "inline",
-                    "blockType",
-                    "fontSize",
-                    "fontFamily",
-                    "list",
-                    "textAlign",
-                    "link",
-                    "emoji",
-                    "image",
-                    "remove",
-                    "history",
-                  ],
-                  inline: {
-                    inDropdown: false,
-                    options: [
-                      "bold",
-                      "italic",
-                      "underline",
-                      "strikethrough",
-                      "monospace",
-                    ],
-                  },
-                  fontSize: {
-                    options: [
-                      8, 9, 10, 11, 12, 14, 16, 18, 24, 30, 36, 48, 60, 72, 96,
-                    ],
-                  },
-                  fontFamily: {
-                    options: [
-                      "Arial",
-                      "Georgia",
-                      "Impact",
-                      "Tahoma",
-                      "Times New Roman",
-                      "Verdana",
-                    ],
-                  },
-                  image: {
-                    uploadEnabled: true,
-                    uploadCallback: uploadImageCallBack, // Image upload callback function
-                    previewImage: true,
-                    alt: { present: true, mandatory: false },
-                  },
-                }}
-              />
-            </div>
-          </div>
+        <div className="form-group">
+          <label htmlFor="title">Title</label>
+          <input
+            type="text"
+            className="form-control"
+            id="title"
+            value={data.title}
+            onChange={(e) => setData({ ...data, title: e.target.value })}
+            required
+          />
         </div>
-
-        {/* Save Button */}
-        <div className="d-flex justify-content-center mt-4">
-          <button type="submit" className="btn btn-primary btn-lg">
-            Save
-          </button>
+        <div className="form-group mt-3">
+          <label htmlFor="content">Content</label>
+          <textarea
+            className="form-control"
+            id="content"
+            value={data.content}
+            onChange={(e) => setData({ ...data, content: e.target.value })}
+            required
+          />
         </div>
+        <div className="form-group mt-3">
+          <label htmlFor="thumbnail">Thumbnail URL</label>
+          <input
+            type="text"
+            className="form-control"
+            id="thumbnail"
+            value={data.thumbnail}
+            onChange={(e) => setData({ ...data, thumbnail: e.target.value })}
+          />
+        </div>
+        <button type="submit" className="btn btn-primary mt-3">
+          Update
+        </button>
       </form>
     </div>
   );
-};
-    
+}
+
 export default UpdateNews;

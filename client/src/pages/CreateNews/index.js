@@ -1,201 +1,89 @@
-import React, { useState, useEffect } from "react";
-import { Editor } from "react-draft-wysiwyg";
-import { EditorState, convertToRaw } from "draft-js";
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import draftToHtml from "draftjs-to-html";
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import Editor from "../../components/Editor";
+function CreateNews() {
+  const [data, setData] = useState({
+    title: "",
+    content: "",
+    thumbnail: "",
+  }); // Initialize state with empty strings for the form fields
 
-const CreateNews = () => {
-  const [image, setImage] = useState(null);
-  const [name, setName] = useState("");
-  const [date, setDate] = useState(""); // Initialize date state
-  const [editorState, setEditorState] = useState(EditorState.createEmpty()); // Initialize editor state
+  const navigate = useNavigate();
 
-  // Function to format date as yyyy-mm-dd (HTML date input format)
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const month = `${d.getMonth() + 1}`.padStart(2, "0");
-    const day = `${d.getDate()}`.padStart(2, "0");
-    const year = d.getFullYear();
-    return `${year}-${month}-${day}`;
-  };
-
-  // Set current date as default
-  useEffect(() => {
-    const currentDate = formatDate(new Date());
-    setDate(currentDate); // Set the date to current date on component mount
-  }, []);
-
-  const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
-  };
-
+  // Handle form submission to create a new news item
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const content = draftToHtml(convertToRaw(editorState.getCurrentContent())); // Get HTML content from editor
-
-    // Prepare the form data
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("date", date);
-    formData.append("detail", content); 
-    if (image) {
-      formData.append("image", image); 
-    }
 
     try {
-      const response = await fetch("http://localhost:9999/api/news/create", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await axios.post(
+        "http://localhost:9999/api/news/create",
+        {
+          title: data.title,
+          content: data.content,
+          thumbnail: data.thumbnail,
+          createdBy: "60c72b2f9b1e8a5b5c8f1a2e", // Static user ID for createdBy
+          updatedBy: "60c72b2f9b1e8a5b5c8f1a2e", // Static user ID for updatedBy
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error("Failed to create news");
+      if (response.status === 201) {
+        alert("News created successfully");
+        navigate("/news"); // Navigate to the news list page after successful creation
+      } else {
+        alert("Failed to create news");
       }
-
-      const result = await response.json();
-      console.log("News created:", result);
     } catch (error) {
       console.error("Error creating news:", error);
+      alert("Error creating news");
     }
-  };
-
-  // Image upload callback for the editor (if needed)
-  const uploadImageCallBack = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve({ data: { link: reader.result } });
-      };
-      reader.readAsDataURL(file);
-    });
   };
 
   return (
     <div className="container mt-4">
+      <h1>Create News</h1>
       <form onSubmit={handleSubmit}>
-        <div className="row">
-          {/* Image Upload Section */}
-          <div className="col-md-3">
-            <div className="form-group">
-              {image ? (
-                <img src={URL.createObjectURL(image)} alt="Selected" className="img-thumbnail" />
-              ) : (
-                <div
-                  className="img-thumbnail d-flex justify-content-center align-items-center"
-                  style={{
-                    height: "200px",
-                    width: "100%",
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  Add img
-                </div>
-              )}
-              <input
-                type="file"
-                className="form-control mt-2"
-                onChange={handleImageChange}
-              />
-            </div>
-          </div>
-
-          {/* Form Input Fields */}
-          <div className="col-md-9">
-            <div className="form-group">
-              <label htmlFor="name">Name:</label>
-              <input
-                type="text"
-                className="form-control"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter name"
-              />
-            </div>
-            <div className="form-group mt-3">
-              <label htmlFor="date">Date:</label>
-              <input
-                type="date"
-                className="form-control"
-                id="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)} // Allow manual changes to date
-              />
-            </div>
-            <div className="form-group mt-3">
-              <label htmlFor="detail">Detail:</label>
-              <Editor
-                editorState={editorState}
-                toolbarClassName="toolbarClassName"
-                wrapperClassName="wrapperClassName"
-                editorClassName="editorClassName"
-                editorStyle={{
-                  height: "300px",
-                  border: "1px solid #F1F1F1",
-                  padding: "10px",
-                }}
-                onEditorStateChange={setEditorState}
-                toolbar={{
-                  options: [
-                    "inline",
-                    "blockType",
-                    "fontSize",
-                    "fontFamily",
-                    "list",
-                    "textAlign",
-                    "link",
-                    "emoji",
-                    "image",
-                    "remove",
-                    "history",
-                  ],
-                  inline: {
-                    inDropdown: false,
-                    options: [
-                      "bold",
-                      "italic",
-                      "underline",
-                      "strikethrough",
-                      "monospace",
-                    ],
-                  },
-                  fontSize: {
-                    options: [
-                      8, 9, 10, 11, 12, 14, 16, 18, 24, 30, 36, 48, 60, 72, 96,
-                    ],
-                  },
-                  fontFamily: {
-                    options: [
-                      "Arial",
-                      "Georgia",
-                      "Impact",
-                      "Tahoma",
-                      "Times New Roman",
-                      "Verdana",
-                    ],
-                  },
-                  image: {
-                    uploadEnabled: true,
-                    uploadCallback: uploadImageCallBack, // Image upload callback function
-                    previewImage: true,
-                    alt: { present: true, mandatory: false },
-                  },
-                }}
-              />
-            </div>
-          </div>
+        <div className="form-group">
+          <label htmlFor="title">Title</label>
+          <input
+            type="text"
+            className="form-control"
+            id="title"
+            value={data.title}
+            onChange={(e) => setData({ ...data, title: e.target.value })}
+            placeholder="Enter title"
+            required
+          />
         </div>
-
-        {/* Save Button */}
-        <div className="d-flex justify-content-center mt-4">
-          <button type="submit" className="btn btn-primary btn-lg">
-            Save
-          </button>
+        <div className="form-group mt-3">
+          <label htmlFor="content">Content</label>
+          <textarea
+            className="form-control"
+            id="content"
+            value={data.content}
+            onChange={(e) => setData({ ...data, content: e.target.value })}
+            placeholder="Enter content"
+            required
+          />
         </div>
+        <div className="form-group mt-3">
+          <label htmlFor="thumbnail">Thumbnail URL</label>
+          <input
+            type="text"
+            className="form-control"
+            id="thumbnail"
+            value={data.thumbnail}
+            onChange={(e) => setData({ ...data, thumbnail: e.target.value })}
+            placeholder="Enter thumbnail URL"
+          />
+        </div>
+        <button type="submit" className="btn btn-primary mt-3">
+          Create News
+        </button>
       </form>
+      <Editor />    
     </div>
   );
-};
+}
 
 export default CreateNews;
