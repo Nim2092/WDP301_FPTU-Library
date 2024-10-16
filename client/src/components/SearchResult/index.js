@@ -59,7 +59,9 @@ function SearchResults() {
                 <p className="card-text">
                   <strong>ISBN:</strong> {book.isbn}
                 </p>
-                <button className="btn btn-primary">Borrow this book</button>
+                <button className="btn btn-primary float-end">
+                  Borrow this book
+                </button>
               </div>
             </div>
           </div>

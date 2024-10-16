@@ -23,6 +23,10 @@ import CreateBook from "./pages/CreateBookSet";
 import ListBookSet from "./pages/ListBookSet";
 import UpdateBookSet from "./pages/UpdateBookSet";
 import ManageReturnBook from "./pages/ManageReturnBook";
+import ListRule from "./pages/ListRule";
+import CreateNewRule from "./pages/CreateNewRule";
+import UpdateRule from "./pages/UpdateRule";
+import RuleDetail from "./pages/RuleDetail";
 function App() {
   return (
     <BrowserRouter>
@@ -50,6 +54,11 @@ function App() {
         <Route path="/list-book-set" element={<ListBookSet />} />
         <Route path="/update-bookset/:id" element={<UpdateBookSet />} />
         <Route path="/manage-return-book" element={<ManageReturnBook />} />
+        <Route path="/list-rule" element={<ListRule />} />
+        <Route path="/create-new-rule" element={<CreateNewRule />} />
+        <Route path="/update-rule/:id" element={<UpdateRule />} />
+        <Route path="/rule-detail/:id" element={<RuleDetail />} />
+        <Route path="/news-detail/:id" element={<NewsDetail />} />
       </Routes>
       <Footer />
     </BrowserRouter>
