@@ -142,33 +142,29 @@ async function listBookSet(req, res, next) {
     try {
         const { page = 1, limit = 10, title, author, pubYear, publisher } = req.query;
 
-        // Kiểm tra nếu không có tham số nào được nhập
         if (!title && !author && !pubYear && !publisher) {
             return res.status(400).json({
                 message: "At least one query parameter (title, author, pubYear, publisher) must be provided.",
             });
         }
 
-        // Tạo đối tượng điều kiện truy vấn
         const query = {};
 
-        // Thêm các điều kiện truy vấn nếu có tham số
         if (title) {
-            query.title = { $regex: new RegExp(title, 'i') }; // Tìm kiếm theo tiêu đề, không phân biệt hoa thường
+            query.title = { $regex: new RegExp(title, 'i') };
         }
         if (author) {
-            query.author = { $regex: new RegExp(author, 'i') }; // Tìm kiếm theo tác giả, không phân biệt hoa thường
+            query.author = { $regex: new RegExp(author, 'i') };
         }
         if (pubYear) {
-            query.publishedYear = new Date(pubYear); // Tìm kiếm theo năm xuất bản
+            query.publishedYear = new Date(pubYear);
         }
         if (publisher) {
-            query.publisher = { $regex: new RegExp(publisher, 'i') }; // Tìm kiếm theo nhà xuất bản, không phân biệt hoa thường
+            query.publisher = { $regex: new RegExp(publisher, 'i') };
         }
 
         const skip = (page - 1) * limit;
 
-        // Thực hiện truy vấn theo điều kiện
         const bookSets = await BookSet.find(query)
             .populate('catalog_id')
             .skip(skip)
