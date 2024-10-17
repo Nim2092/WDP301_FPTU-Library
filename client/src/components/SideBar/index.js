@@ -12,7 +12,7 @@ const Sidebar = ({ menuItems }) => {
   };
 
   return (
-    <>
+    <div className="sidebar-container">
       {/* Sidebar Toggler Button */}
       <div className="sidebar-toggler" onClick={toggleSidebar}>
         <i className="fa fa-bars"></i>
@@ -34,7 +34,7 @@ const Sidebar = ({ menuItems }) => {
           ))}
         </ul>
       </nav>
-    </>
+    </div>
   );
 };
 

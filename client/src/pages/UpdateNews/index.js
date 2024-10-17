@@ -40,7 +40,7 @@ function UpdateNews() {
         alert("Failed to update news");
       }
     } catch (error) {
-      console.error("Error updating news:", error);
+      console.error("Error updating news:", error.response ? error.response.data : error.message);
       alert("Error updating news");
     }
   };
