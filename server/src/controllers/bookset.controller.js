@@ -142,12 +142,6 @@ async function listBookSet(req, res, next) {
     try {
         const { page = 1, limit = 10, title, author, pubYear, publisher } = req.query;
 
-        if (!title && !author && !pubYear && !publisher) {
-            return res.status(400).json({
-                message: "At least one query parameter (title, author, pubYear, publisher) must be provided.",
-            });
-        }
-
         const query = {};
 
         if (title) {
