@@ -1,21 +1,28 @@
-import React from "react";
+import Axios from "axios";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 const AccountList = () => {
-  const accountData = [
-    { id: 1, fullName: "John Doe", email: "john@example.com", phone: "123-456-7890", role: "Admin" },
-    { id: 2, fullName: "Jane Smith", email: "jane@example.com", phone: "987-654-3210", role: "Librarian" },
-    { id: 3, fullName: "Mike Johnson", email: "mike@example.com", phone: "555-666-7777", role: "Admin" }
-  ];
+  const [accountData, setAccountData] = useState([]);
+
+  const navigate = useNavigate();
 
   const handleEdit = (id) => {
     navigate(`/update-account/${id}`);
     console.log(`Edit account with ID: ${id}`);
   };
-  const navigate = useNavigate();
+
   const handleDelete = (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this account?");
     if (confirmDelete) {
-      console.log(`Delete account with ID: ${id}`);
+      Axios.delete(`http://localhost:9999/api/user/delete/${id}`)
+        .then(() => {
+          console.log(`Account with ID: ${id} deleted successfully`);
+          setAccountData(accountData.filter((account) => account._id !== id));
+        })
+        .catch((error) => {
+          console.error("Error deleting account:", error);
+        });
     }
   };
 
@@ -24,14 +31,22 @@ const AccountList = () => {
     navigate("/create-account");
   };
 
+  useEffect(() => {
+    Axios.get("http://localhost:9999/api/user/getAll")
+      .then((response) => {
+        setAccountData(response.data.data);
+        console.log(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching account list:", error);
+      });
+  }, []);
+
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between">
         <h2>Account List</h2>
-        <button
-          className="btn btn-primary"
-          onClick={handleCreateNewAccount}
-        >
+        <button className="btn btn-primary" onClick={handleCreateNewAccount}>
           Create new account
         </button>
       </div>
@@ -44,29 +59,21 @@ const AccountList = () => {
             <th>Phone</th>
             <th>Role</th>
             <th>Action</th>
-            
           </tr>
         </thead>
         <tbody>
-          {accountData.map((account) => (
-            <tr key={account.id}>
-              <td>{account.id}</td>
+          {accountData.map((account, index) => (
+            <tr key={account._id}>
+              <td>{index + 1}</td>
               <td>{account.fullName}</td>
               <td>{account.email}</td>
-              <td>{account.phone}</td>
-              <td>{account.role}</td>
+              <td>{account.phoneNumber}</td>
+              <td>{account.role_id}</td>
               <td className="d-flex justify-content-between">
-                <button
-                  className="btn btn-warning"
-                  onClick={() => handleEdit(account.id)}
-                >
+                <button className="btn btn-warning" onClick={() => handleEdit(account._id)}>
                   Edit
                 </button>
-              
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleDelete(account.id)}
-                >
+                <button className="btn btn-danger" onClick={() => handleDelete(account._id)}>
                   Delete
                 </button>
               </td>

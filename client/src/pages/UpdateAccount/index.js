@@ -1,46 +1,103 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
 const UpdateAccount = () => {
+  const { id } = useParams();
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [fullName, setFullName] = useState(""); // fullName từ API
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [roleId, setRoleId] = useState(""); // role_id từ API
   const [image, setImage] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    address: "",
-    phoneNumber: "",
-    cccdCmt: "",
-    role: "ADMIN",
-    dateOfBirth: "",
-    accountName: "",
-    password: "",
-  });
+  const [imagePreview, setImagePreview] = useState(null);
+
+  // Lấy dữ liệu từ API
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:9999/api/user/get/${id}`);
+        const { fullName, email, phoneNumber, role_id, image } = response.data.data;
+        setFullName(fullName || "");
+        setEmail(email || "");
+        setPhoneNumber(phoneNumber || "");
+        setRoleId(role_id || "");
+        setImagePreview(image ? `http://localhost:9999${image}` : null);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setMessage("Failed to load user data.");
+      }
+    };
+
+    fetchUserData();
+  }, [id]);
 
   const handleImageChange = (e) => {
-    setImage(URL.createObjectURL(e.target.files[0]));
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file); // Lưu trữ file hình ảnh
+      setImagePreview(URL.createObjectURL(file)); // Hiển thị ảnh đã chọn
+    }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    if (name === "fullName") setFullName(value);
+    else if (name === "email") setEmail(value);
+    else if (name === "phoneNumber") setPhoneNumber(value);
+    else if (name === "roleId") setRoleId(value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data Submitted:", formData);
-    // Add form submission logic here
+    setLoading(true);
+    setMessage("");
+
+    const data = new FormData();
+    data.append("fullName", fullName);
+    data.append("email", email);
+    data.append("phoneNumber", phoneNumber);
+    data.append("role_id", roleId);
+
+    if (image) {
+      data.append("image", image); // Thêm hình ảnh nếu có
+    }
+
+    try {
+      const response = await axios.put(`http://localhost:9999/api/user/update/${id}`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status !== 200) {
+        throw new Error("Network response was not ok");
+      }
+
+      setMessage("Cập nhật thành công!");
+    } catch (error) {
+      setMessage("Đã xảy ra lỗi trong quá trình cập nhật.");
+      console.error("Error updating account:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="update-account-container mt-4" style={{ margin: "100px 100px" }}>
+    <div
+      className="update-account-container mt-4"
+      style={{ margin: "100px 100px" }}
+    >
       <h2 className="text-center">Update Account</h2>
+      {message && <p className="text-center">{message}</p>}
       <form onSubmit={handleSubmit}>
         <div className="row">
           {/* Image Upload Section */}
           <div className="col-md-3">
             <div className="update-account-image-upload form-group">
-              {image ? (
-                <img src={image} alt="Selected" className="img-thumbnail" />
+              {imagePreview ? (
+                <img src={imagePreview} alt="Selected" className="img-thumbnail" />
               ) : (
                 <div
                   className="img-thumbnail d-flex justify-content-center align-items-center"
@@ -61,30 +118,29 @@ const UpdateAccount = () => {
             </div>
           </div>
 
-          {/* Form Input Fields */}
           <div className="col-md-9">
             <div className="update-account-form-group form-group">
-              <label htmlFor="name">Name</label>
+              <label htmlFor="fullName">Full Name</label>
               <input
                 type="text"
                 className="form-control"
-                id="name"
-                name="name"
-                value={formData.name}
+                id="fullName"
+                name="fullName"
+                value={fullName}
                 onChange={handleChange}
-                placeholder="Enter name"
+                placeholder="Enter full name"
               />
             </div>
             <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="address">Address</label>
+              <label htmlFor="email">Email address</label>
               <input
                 type="text"
                 className="form-control"
-                id="address"
-                name="address"
-                value={formData.address}
+                id="email"
+                name="email"
+                value={email}
                 onChange={handleChange}
-                placeholder="Enter address"
+                placeholder="Enter email"
               />
             </div>
             <div className="update-account-form-group form-group mt-3">
@@ -94,81 +150,21 @@ const UpdateAccount = () => {
                 className="form-control"
                 id="phoneNumber"
                 name="phoneNumber"
-                value={formData.phoneNumber}
+                value={phoneNumber}
                 onChange={handleChange}
                 placeholder="Enter phone number"
               />
             </div>
             <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="cccdCmt">CCCD/CMT</label>
+              <label htmlFor="roleId">Role ID</label>
               <input
                 type="text"
                 className="form-control"
-                id="cccdCmt"
-                name="cccdCmt"
-                value={formData.cccdCmt}
+                id="roleId"
+                name="roleId"
+                value={roleId}
                 onChange={handleChange}
-                placeholder="Enter CCCD/CMT"
-              />
-            </div>
-            <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="role">Role</label>
-              <div>
-                <input
-                  type="radio"
-                  id="admin"
-                  name="role"
-                  value="ADMIN"
-                  checked={formData.role === "ADMIN"}
-                  onChange={handleChange}
-                />
-                <label htmlFor="admin" className="mr-3" style={{ marginRight: "10px" }}>
-                  ADMIN
-                </label>
-                <input
-                  type="radio"
-                  id="librarian"
-                  name="role"
-                  value="Librarian"
-                  checked={formData.role === "Librarian"}
-                  onChange={handleChange}
-                />
-                <label htmlFor="librarian">Librarian</label>
-              </div>
-            </div>
-            <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="dateOfBirth">Date of Birth</label>
-              <input
-                type="date"
-                className="form-control"
-                id="dateOfBirth"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="accountName">Account Name</label>
-              <input
-                type="text"
-                className="form-control"
-                id="accountName"
-                name="accountName"
-                value={formData.accountName}
-                onChange={handleChange}
-                placeholder="Enter account name"
-              />
-            </div>
-            <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter password"
+                placeholder="Enter role ID"
               />
             </div>
           </div>
@@ -176,8 +172,12 @@ const UpdateAccount = () => {
 
         {/* Save Button */}
         <div className="d-flex justify-content-center mt-4">
-          <button type="submit" className="btn btn-primary btn-lg">
-            Save
+          <button
+            type="submit"
+            className="btn btn-primary btn-lg"
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save"}
           </button>
         </div>
       </form>

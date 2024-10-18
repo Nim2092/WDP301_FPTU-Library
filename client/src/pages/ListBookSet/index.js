@@ -11,6 +11,7 @@ function ListBookSet() {
     axios
       .get("http://localhost:9999/api/book-sets/list")
       .then((response) => {
+        console.log(response.data.data);
         setBookSetData(response.data.data);
         setFilteredBookSetData(response.data.data); // Set the initial filtered data to all data
       })

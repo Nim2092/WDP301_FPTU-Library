@@ -3,6 +3,7 @@ import React from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import AuthContext, { AuthProvider, isTokenExpired } from "./contexts/UserContext";
 import 'font-awesome/css/font-awesome.min.css';
+import './App.scss'; // Import the overall CSS
 
 // Import các trang
 import LoginPage from "./pages/Login";
@@ -39,65 +40,58 @@ import UpdateRule from "./pages/UpdateRule";
 import RuleDetail from "./pages/RuleDetail";
 
 function App() {
-  
-
   return (
-    
-
-    //     <Route path="/create-new-rule" element={<CreateNewRule />} />
-    //     <Route path="/update-rule/:id" element={<UpdateRule />} />
-    //   </Routes>
-    //   <Footer />
-    // </BrowserRouter>
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <BrowserRouter>
           <Header />
-          <Routes>
-            {/* Route công khai */}
-            <Route path="/login" element={<LoginPage />} />
+          <div className="app-container">
+            <div className="main-layout row">
+              <Routes>
+                {/* Public route */}
+                <Route path="/login" element={<LoginPage />} />
 
-            {/* Route chung của borrower và librarian */}
-            <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian"]}><HomePage /></ProtectedRoute>} />
-            <Route path="/advanced-search" element={<ProtectedRoute roles={["borrower", "librarian"]}><AdvancedSearch /></ProtectedRoute>} />
-            <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
-            <Route path="/book-detail" element={<ProtectedRoute roles={["borrower", "librarian"]}><BookDetail /></ProtectedRoute>} />
-            <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><UserProfile /></ProtectedRoute>} />
-            <Route path="/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
-            <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
+                {/* Shared routes for borrower and librarian */}
+                <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian"]}><HomePage /></ProtectedRoute>} />
+                <Route path="/advanced-search" element={<ProtectedRoute roles={["borrower", "librarian"]}><AdvancedSearch /></ProtectedRoute>} />
+                <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
+                <Route path="/book-detail" element={<ProtectedRoute roles={["borrower", "librarian"]}><BookDetail /></ProtectedRoute>} />
+                <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><UserProfile /></ProtectedRoute>} />
+                <Route path="/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
+                <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
+
+                {/* Borrower Routes */}
+                <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
+                <Route path="/report-lost-book" element={<ProtectedRoute roles={["borrower"]}><ReportLostBook /></ProtectedRoute>} />
+                <Route path="/renew-book" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
+                <Route path="/order-book" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
+
+                {/* Librarian Routes */}
+                <Route path="/manage-order" element={<ProtectedRoute roles={["librarian"]}><ManageOrder /></ProtectedRoute>} />
+                <Route path="/create-news" element={<ProtectedRoute roles={["librarian"]}><CreateNews /></ProtectedRoute>} />
+                <Route path="/list-news-admin" element={<ProtectedRoute roles={["librarian"]}><ListNews /></ProtectedRoute>} />
+                <Route path="/update-news/:id" element={<ProtectedRoute roles={["librarian"]}><UpdateNews /></ProtectedRoute>} />
+                <Route path="/manage-return-book" element={<ProtectedRoute roles={["librarian"]}><ManageReturnBook /></ProtectedRoute>} />
+                <Route path="/list-rule" element={<ProtectedRoute roles={["admin"]}><ListRule /></ProtectedRoute>} />
+
+                {/* Admin Routes */}
+                <Route path="/create-account" element={<ProtectedRoute roles={["admin"]}><CreateAccount /></ProtectedRoute>} />
+                <Route path="/list-catalog" element={<ProtectedRoute roles={["admin"]}><CatalogList /></ProtectedRoute>} />
+                <Route path="/account-list" element={<ProtectedRoute roles={["admin"]}><AccountList /></ProtectedRoute>} />
+                <Route path="/update-account/:id" element={<ProtectedRoute roles={["admin"]}><UpdateAccount /></ProtectedRoute>} />
+                <Route path="/create-book" element={<ProtectedRoute roles={["admin"]}><CreateBook /></ProtectedRoute>} />
+                <Route path="/list-book-set" element={<ProtectedRoute roles={["admin"]}><ListBookSet /></ProtectedRoute>} />
+                <Route path="/update-bookset/:id" element={<ProtectedRoute roles={["admin"]}><UpdateBookSet /></ProtectedRoute>} />
+                <Route path="/list-rule" element={<ProtectedRoute roles={["admin"]}><ListRule /></ProtectedRoute>} />
+                <Route path="/create-new-rule" element={<ProtectedRoute roles={["admin"]}><CreateNewRule /></ProtectedRoute>} />
+                <Route path="/update-rule/:id" element={<ProtectedRoute roles={["admin"]}><UpdateRule /></ProtectedRoute>} />
+
+                {/* Unauthorized and other routes */}
+                <Route path="/unauthorized" element={<Unauthorized />} />
+              </Routes>
+            </div>
             
-
-
-
-            {/* Routes dành cho Borrower */}
-            <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
-            <Route path="/report-lost-book" element={<ProtectedRoute roles={["borrower"]}><ReportLostBook /></ProtectedRoute>} />
-            <Route path="/renew-book" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
-            <Route path="/order-book" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
-
-            {/* Routes dành cho Librarian */}
-            <Route path="/manage-order" element={<ProtectedRoute roles={["librarian"]}><ManageOrder /></ProtectedRoute>} />
-            <Route path="/create-news" element={<ProtectedRoute roles={["librarian"]}><CreateNews /></ProtectedRoute>} />
-            <Route path="/list-news-admin" element={<ProtectedRoute roles={["librarian"]}><ListNews /></ProtectedRoute>} />
-            <Route path="/update-news/:id" element={<ProtectedRoute roles={["librarian"]}><UpdateNews /></ProtectedRoute>} />
-            <Route path="/manage-return-book" element={<ProtectedRoute roles={["librarian"]}><ManageReturnBook /></ProtectedRoute>} />
-
-            {/* Routes dành cho Admin */}
-            <Route path="/create-account" element={<ProtectedRoute roles={["admin"]}><CreateAccount /></ProtectedRoute>} />
-            <Route path="/list-catalog" element={<ProtectedRoute roles={["admin"]}><CatalogList /></ProtectedRoute>} />
-            <Route path="/account-list" element={<ProtectedRoute roles={["admin"]}><AccountList /></ProtectedRoute>} />
-            <Route path="/update-account/:id" element={<ProtectedRoute roles={["admin"]}><UpdateAccount /></ProtectedRoute>} />
-            <Route path="/create-book" element={<ProtectedRoute roles={["admin"]}><CreateBook /></ProtectedRoute>} />
-            <Route path="/list-book-set" element={<ProtectedRoute roles={["admin"]}><ListBookSet /></ProtectedRoute>} />
-            <Route path="/update-bookset/:id" element={<ProtectedRoute roles={["admin"]}><UpdateBookSet /></ProtectedRoute>} />
-            <Route path="/list-rule" element={<ProtectedRoute roles={["admin"]}><ListRule /></ProtectedRoute>} />
-            <Route path="/create-new-rule" element={<ProtectedRoute roles={["admin"]}><CreateNewRule /></ProtectedRoute>} />
-            <Route path="/update-rule/:id" element={<ProtectedRoute roles={["admin"]}><UpdateRule /></ProtectedRoute>} />
-
-
-            {/* Đường dẫn cho các trang khác */}
-            <Route path="/unauthorized" element={<Unauthorized />} />
-          </Routes>
+          </div>
           <Footer />
         </BrowserRouter>
       </AuthProvider>
@@ -107,7 +101,7 @@ function App() {
 
 // ProtectedRoute component
 const ProtectedRoute = ({ roles, children }) => {
-  const { user, token, login } = React.useContext(AuthContext);
+  const { user, login } = React.useContext(AuthContext);
   const [isLoading, setIsLoading] = React.useState(true);
 
   const menuItems = {
@@ -128,7 +122,7 @@ const ProtectedRoute = ({ roles, children }) => {
       { path: "/manage-order", label: "Quản lý mượn sách", icon: "fa fa-tasks" }, 
       { path: "/manage-return-book", label: "Quản lý trả sách", icon: "fa fa-undo" }, 
       { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper" }, 
-      { path: "/rules", label: "Quy định", icon: "fa fa-newspaper" }, 
+      { path: "/list-rule", label: "Quy định", icon: "fa fa-newspaper" }, 
       { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
     ],
     admin: [
@@ -141,8 +135,6 @@ const ProtectedRoute = ({ roles, children }) => {
     ],
   };
   
-  
-
   React.useEffect(() => {
     const storedToken = localStorage.getItem("accessToken");
     if (!user && storedToken && !isTokenExpired(storedToken)) {
@@ -168,7 +160,9 @@ const ProtectedRoute = ({ roles, children }) => {
     <>
       {/* Render Sidebar only after login */}
       <Sidebar menuItems={menuItems[user.role?.name] || []} />
-      {children}
+      <div className="content-area col-10">
+        {children}
+      </div>
     </>
   );
 };
