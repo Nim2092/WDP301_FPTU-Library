@@ -1,12 +1,12 @@
 import React from "react";
-import Search from "../../components/Search"; // Đảm bảo đường dẫn đúng đến component Search
+import Search from "../../components/Search"; 
 import News from "../../components/News";
 import "./Home.scss";
 import Button from '../../components/Button/Button'
 
 function Home() {
   return (
-    <section className="home">
+    <div className="container home">
       <Search />
       <News />
       {/* Các phần khác của trang chủ */}
@@ -27,7 +27,7 @@ function Home() {
             </div>
           </div>
           <div className="col-md-6">
-            <div class="library-guide">
+            <div className="library-guide">
               <h2>Hướng dẫn sử dụng thư viện FPT</h2>
               <p>
                 Chào mừng bạn đến với thư viện Đại học FPT! Dưới đây là hướng
@@ -42,7 +42,7 @@ function Home() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 

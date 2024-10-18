@@ -1,74 +1,51 @@
-nav {
-  width: 350px;
-  background-color: #f8f9fa;
-  padding: 20px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  height: auto;
-  margin-top: 60px;
-  margin-bottom: 50px;
-  transition: all 0.3s ease-in-out;
-
-  ul {
-    list-style: none;
-    padding: 0;
-
-    li {
-      margin: 15px 0;
-
-      a {
-        text-decoration: none;
-        color: #333;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        border-radius: 4px;
-        transition: background-color 0.3s;
-
-        &:hover {
-          background-color: #e2e6ea;
-        }
-
-        &.active {
-          background-color: #007bff; // Change background color when active
-          color: #fff; // Change text color to white
-        }
-
-        svg {
-          margin-right: 10px;
+.sidebar-container {
+    background-color: #f8f9fa; // Sidebar background color
+   
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); // Add a shadow for depth
+  
+    .sidebar {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto; // Allow scrolling if content is too long
+  
+      .sidebar-content {
+        padding: 20px; // Add padding to the content inside sidebar
+  
+        ul {
+          list-style: none;
+          padding: 0;
+  
+          li {
+            margin-bottom: 10px;
+  
+            a {
+              display: flex;
+              align-items: center;
+              padding: 10px;
+              color: #333; // Text color
+              font-size: 16px;
+              text-decoration: none; // Remove underline
+              transition: background-color 0.3s ease; // Smooth transition for hover
+  
+              &:hover {
+                background-color: #e9ecef; // Background on hover
+                color: #007bff; // Change text color on hover
+              }
+  
+              &.active {
+                background-color: #db7d10; // Active link background color
+                color: white; // Active link text color
+              }
+  
+              i {
+                margin-right: 10px; // Space between icon and label
+              }
+            }
+          }
         }
       }
     }
   }
-
-  @media (max-width: 768px) {
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: -100%;
-    z-index: 1000;
-    margin: 0;
-    height: 100vh;
-    transition: transform 0.3s ease-in-out;
-
-    &.active {
-      transform: translateX(0);
-    }
-  }
-}
-
-.sidebar-toggler {
-  display: none;
-
-  @media (max-width: 768px) {
-    display: block;
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    z-index: 1001;
-  }
-}
+  
