@@ -100,8 +100,8 @@ const createBorrowOrder = async (req, res, next) => {
       borrowDate,
       dueDate,
       returnDate: null,
-      reason_order: "Borrowing",
-      renewalCount: 0,
+      reason_order: "",
+      renewalCount: 1,
       renewalDate: null,
     });
 
@@ -117,10 +117,81 @@ const createBorrowOrder = async (req, res, next) => {
   }
 };
 
+async function changeOrderStatus(req, res, next) {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    if (typeof status !== 'number') {
+      return res.status(400).json({ message: "Status must be a number." });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    order.status = status;
+    await order.save();
+
+    return res.status(200).json({ message: "Order status updated successfully", data: order });
+  } catch (error) {
+    console.error("Error changing order status", error);
+    return res.status(500).json({ message: "An error occurred", error: error.message });
+  }
+}
+
+
+async function renewOrder(req, res, next) {
+  try {
+    const { orderId } = req.params;
+    const { dueDate } = req.body;
+
+    if (!dueDate) {
+      return res.status(400).json({
+        message: "Please provide a new due date."
+      });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found."
+      });
+    }
+
+    if (order.renewalCount >= 3) {
+      return res.status(400).json({
+        message: "Order cannot be renewed more than 3 times."
+      });
+    }
+
+    order.dueDate = dueDate;
+    order.renewalCount += 1;
+    order.renewalDate = new Date();
+
+    await order.save();
+
+    return res.status(200).json({
+      message: "Order renewed successfully.",
+      data: order
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message
+    });
+  }
+}
+
+
+
 const OrderController = {
   getOrderByUserId,
   getAllOrder,
   getOrderById,
   createBorrowOrder,
+  changeOrderStatus,
+  renewOrder
 };
 module.exports = OrderController;

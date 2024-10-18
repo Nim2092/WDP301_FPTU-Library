@@ -15,6 +15,7 @@ const updateBook = async (req, res, next) => {
         book.condition = condition || book.condition;
 
         const updatedBook = await book.save();
+        // Nếu status = Lost hoac hỏng thì -1 ở availableCopies của bookset
 
         return res.status(200).json({ message: "Book updated successfully", updatedBook });
     } catch (error) {

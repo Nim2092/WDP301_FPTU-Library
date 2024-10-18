@@ -141,17 +141,38 @@ async function updateBookSet(req, res, next) {
 
 async function listBookSet(req, res, next) {
     try {
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, title, author, pubYear, publisher } = req.query;
+
+        if (!title && !author && !pubYear && !publisher) {
+            return res.status(400).json({
+                message: "At least one query parameter (title, author, pubYear, publisher) must be provided.",
+            });
+        }
+
+        const query = {};
+
+        if (title) {
+            query.title = { $regex: new RegExp(title, 'i') };
+        }
+        if (author) {
+            query.author = { $regex: new RegExp(author, 'i') };
+        }
+        if (pubYear) {
+            query.publishedYear = new Date(pubYear);
+        }
+        if (publisher) {
+            query.publisher = { $regex: new RegExp(publisher, 'i') };
+        }
 
         const skip = (page - 1) * limit;
 
-        const bookSets = await BookSet.find()
+        const bookSets = await BookSet.find(query)
             .populate('catalog_id')
             .skip(skip)
             .limit(parseInt(limit))
             .sort({ createdAt: -1 });
 
-        const totalBookSets = await BookSet.countDocuments();
+        const totalBookSets = await BookSet.countDocuments(query);
 
         return res.status(200).json({
             message: "BookSets fetched successfully",
@@ -164,6 +185,7 @@ async function listBookSet(req, res, next) {
         return res.status(500).json({ message: "An error occurred", error: error.message });
     }
 }
+
 
 async function getBookSetDetail(req, res, next) {
     try {
@@ -242,11 +264,16 @@ const addBooks = async (req, res, next) => {
         return res.status(500).json({ message: "An error occurred", error: error.message });
     }
 };
+
+async function searchBookSet(req, res, next) {
+
+}
 const BookSetController = {
     createBookSet,
     updateBookSet,
     listBookSet,
-    getBookSetDetail, addBooks
+    getBookSetDetail,
+    addBooks
 };
 
 module.exports = BookSetController;

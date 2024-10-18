@@ -6,7 +6,7 @@ Our team is developing a comprehensive library management system for FPT Univers
 
 ## Table of Contents
 
-- [Movie Theater Management](#movie-theater-management)
+- [FPTU-Library management](#WDP301_FPTU-Library)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
