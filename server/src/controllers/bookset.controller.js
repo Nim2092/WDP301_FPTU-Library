@@ -17,7 +17,7 @@ async function createBookSet(req, res, next) {
         } = req.body;
         console.log(req.body);
 
-        if (!catalog_id || !isbn ||!code|| !title || !author || !publishedYear || !publisher || !physicalDescription || !shelfLocationCode || !totalCopies || !availableCopies) {
+        if (!catalog_id || !code || !isbn || !title || !author || !publishedYear || !publisher || !physicalDescription || !shelfLocationCode || !totalCopies || !availableCopies) 
             return res.status(400).json({ message: "All fields are required." });
         }
 
