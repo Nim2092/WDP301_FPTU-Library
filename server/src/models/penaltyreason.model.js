@@ -6,6 +6,6 @@ const penaltyReasonSchema = new Schema({
   penaltyAmount: { type: Number, required: true },
 });
 
-const PenaltyReason = mongoose.model("penaltyReason", penaltyReasonSchema);
+const PenaltyReason = mongoose.model("PenaltyReason", penaltyReasonSchema);
 
 module.exports = PenaltyReason;

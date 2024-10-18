@@ -1,6 +1,7 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 import "./Search.scss";
+import Button from "../Button/Button";
 
 function BookSearch() {
   const handleSearch = () => {
@@ -26,9 +27,7 @@ function BookSearch() {
             </a>
           </div>
           <div className="row search__button">
-            <button className="btn btn-primary" onClick={handleSearch}>
-              Search
-            </button>
+            <Button text="Search" clName = "btn btn-primary"  onClick={handleSearch}/>
           </div>
         </div>
       </div>

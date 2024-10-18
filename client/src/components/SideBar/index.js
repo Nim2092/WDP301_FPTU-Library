@@ -1,42 +1,31 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // Nếu bạn sử dụng react-router-dom
-import "./SideBar.scss"; // Tùy chọn: CSS cho Sidebar
+import { Link, useLocation } from "react-router-dom";
+import "./SideBar.scss"; // Import SCSS
 
-function Sidebar() {
-  const [isVisible, setIsVisible] = useState(true); // Trạng thái để kiểm soát sidebar
+const Sidebar = ({ menuItems }) => {
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true); // Default sidebar is visible
+  const location = useLocation(); // Get the current route
 
-  const toggleSidebar = () => {
-    setIsVisible(!isVisible); // Đảo ngược trạng thái hiển thị của sidebar
-  };
-
+  // Function to toggle sidebar visibility
   return (
-    <div>
-      <button onClick={toggleSidebar} className="btn btn-secondary">
-        {isVisible ? 'Hide Sidebar' : 'Show Sidebar'}
-      </button>
-      {isVisible && (
-        <nav className="sidebar">
-          <ul className="list-unstyled">
-            <li>
-              <Link to="/home" className="sidebar-link">Home</Link>
-            </li>
-            <li>
-              <Link to="/news" className="sidebar-link">News</Link>
-            </li>
-            <li>
-              <Link to="/borrowed-books" className="sidebar-link">Borrowed Books</Link>
-            </li>
-            <li>
-              <Link to="/renew" className="sidebar-link">Renew Book</Link>
-            </li>
-            <li>
-              <Link to="/contact" className="sidebar-link">Contact</Link>
-            </li>
+    <div className={`sidebar-container col-2`}>
+      <nav className={`sidebar`}>
+        <div className="sidebar-content">
+          <ul>
+            {menuItems.map((item) => (
+              <li key={item.path}>
+                <Link
+                  to={item.path}
+                  className={location.pathname === item.path ? "active" : ""}>
+                  <i className={item.icon}></i> {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
-        </nav>
-      )}
+        </div>
+      </nav>
     </div>
   );
-}
+};
 
 export default Sidebar;

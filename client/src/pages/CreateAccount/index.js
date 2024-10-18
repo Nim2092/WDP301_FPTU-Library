@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 const CreateAccount = () => {
   const [image, setImage] = useState(null);
   const [name, setName] = useState("");
@@ -33,13 +32,13 @@ const CreateAccount = () => {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="create-account-container mt-4" style={{ margin: "100px 100px" }}>
       <h2 className="text-center">Create Account</h2>
       <form onSubmit={handleSubmit}>
         <div className="row">
           {/* Image Upload Section */}
           <div className="col-md-3">
-            <div className="form-group">
+            <div className="create-account-image-upload form-group">
               {image ? (
                 <img src={image} alt="Selected" className="img-thumbnail" />
               ) : (
@@ -64,7 +63,7 @@ const CreateAccount = () => {
 
           {/* Form Input Fields */}
           <div className="col-md-9">
-            <div className="form-group">
+            <div className="create-account-form-group form-group">
               <label htmlFor="name">Name</label>
               <input
                 type="text"
@@ -75,7 +74,7 @@ const CreateAccount = () => {
                 placeholder="Enter name"
               />
             </div>
-            <div className="form-group mt-3">
+            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="address">Address</label>
               <input
                 type="text"
@@ -86,7 +85,7 @@ const CreateAccount = () => {
                 placeholder="Enter address"
               />
             </div>
-            <div className="form-group mt-3">
+            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="phoneNumber">Phone number</label>
               <input
                 type="text"
@@ -97,7 +96,7 @@ const CreateAccount = () => {
                 placeholder="Enter phone number"
               />
             </div>
-            <div className="form-group mt-3">
+            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="cccd">CCCD/CMT</label>
               <input
                 type="text"
@@ -108,7 +107,7 @@ const CreateAccount = () => {
                 placeholder="Enter CCCD/CMT"
               />
             </div>
-            <div className="form-group mt-3">
+            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="role">Role</label>
               <div>
                 <input
@@ -119,7 +118,7 @@ const CreateAccount = () => {
                   checked={role === "ADMIN"}
                   onChange={(e) => setRole(e.target.value)}
                 />
-                <label htmlFor="admin" className="mr-3">
+                <label htmlFor="admin" className="mr-3" style={{ marginRight: "10px" }}>
                   ADMIN
                 </label>
                 <input
@@ -133,7 +132,7 @@ const CreateAccount = () => {
                 <label htmlFor="librarian">Librarian</label>
               </div>
             </div>
-            <div className="form-group mt-3">
+            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="dateOfBirth">Date of Birth</label>
               <input
                 type="date"
@@ -143,7 +142,7 @@ const CreateAccount = () => {
                 onChange={(e) => setDateOfBirth(e.target.value)}
               />
             </div>
-            <div className="form-group mt-3">
+            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="accountName">Account Name</label>
               <input
                 type="text"
@@ -154,7 +153,7 @@ const CreateAccount = () => {
                 placeholder="Enter account name"
               />
             </div>
-            <div className="form-group mt-3">
+            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="password">Password</label>
               <input
                 type="password"

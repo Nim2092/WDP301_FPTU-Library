@@ -64,7 +64,7 @@ function NewsPage() {
                 <h5 className="card-title">{item.title}</h5>
                 <p className="card-text">{item.content}</p>
                 <div className="text-end">
-                  <Link to={`/news/${item.id}`} className="btn btn-primary">
+                  <Link to={`/news-detail/${item._id}`} className="btn btn-primary">
                     Xem chi tiết
                   </Link>
                 </div>

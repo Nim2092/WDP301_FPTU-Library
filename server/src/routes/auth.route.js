@@ -1,27 +1,23 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const authController = require("../controllers/auth.controller");
-const VerifySignUp = require("../middlewares/verifySignUp");
+const authController = require("../controllers/authController");
 
 const authRouter = express.Router();
-authRouter.use(bodyParser.json());
+authRouter.use(bodyParser.json()); 
 
-// Register route
-authRouter.post('/signup',[VerifySignUp.checkExistUser, VerifySignUp.checkExistRoles], authController.register);
+// REGISTER (Librarian/Admin Registration)
+// authRouter.post("/auth/register", verifyToken, authController.registerUser);
 
-// Login route
-authRouter.post('/signin', authController.login);
+// REFRESH TOKEN
+authRouter.post("/refresh", authController.requestRefreshToken);
 
-// Logout route
-authRouter.post('/logout', authController.logout);
+// LOGIN (Librarian/Admin Login)
+authRouter.post("/login", authController.loginUser);
 
-// Refresh token route
-authRouter.post('/refresh-token', authController.refreshToken);
+// GOOGLE LOGIN
+authRouter.post("/google-login", authController.loginWithGoogle);
 
-// Forgot password route
-authRouter.post('/forgot-password', authController.forgotPassword);
-
-// Reset password route
-authRouter.post('/reset-password', authController.resetPassword);
+// LOG OUT
+authRouter.post("/logout", authController.logOut);
 
 module.exports = authRouter;
