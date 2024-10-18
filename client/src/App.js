@@ -112,7 +112,7 @@ const ProtectedRoute = ({ roles, children }) => {
       { path: "/report-lost-book", label: "Báo mất sách", icon: "fa fa-exclamation-triangle" }, 
       { path: "/renew-book", label: "Gia hạn sách", icon: "fa fa-sync-alt" }, 
       { path: "/fines", label: "Tiền phạt", icon: "fa fa-money-bill-wave" }, 
-      { path: "/rules", label: "Quy định", icon: "fa fa-newspaper" }, 
+      { path: "/list-rule-user", label: "Quy định", icon: "fa fa-newspaper" }, 
       { path: "/news", label: "Tin tức", icon: "fa fa-newspaper" }, 
       { path: "/notification", label: "Thông báo", icon: "fa fa-bell" }, 
       { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
@@ -130,7 +130,7 @@ const ProtectedRoute = ({ roles, children }) => {
       { path: "/account-list", label: "Quản lý tài khoản", icon: "fa fa-users-cog" },  
       { path: "/list-catalog", label: "Quản lý danh mục", icon: "fa fa-folder" },  
       { path: "/list-book-set", label: "Quản lý lô sách", icon: "fa fa-boxes" }, 
-      { path: "/rules", label: "Quản lý quy định", icon: "fa fa-newspaper" }, 
+      { path: "/list-rule", label: "Quản lý quy định", icon: "fa fa-newspaper" }, 
       { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
     ],
   };
