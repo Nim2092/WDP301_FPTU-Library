@@ -2,7 +2,7 @@ const { catalog: Catalog } = require("../models");
 
 async function createCatalog(req, res, next) {
     try {
-        const { name, code, major, semester } = req.body;
+        const { name, code, major, semester, isTextbook } = req.body;
 
         if (!name || !code) {
             return res.status(400).json({ message: "Name and code are required." });
@@ -13,6 +13,7 @@ async function createCatalog(req, res, next) {
             code,
             major,
             semester,
+            isTextbook
         });
 
         const savedCatalog = await newCatalog.save();
@@ -39,11 +40,11 @@ async function listCatalogs(req, res, next) {
 async function updateCatalog(req, res, next) {
     try {
         const { id } = req.params;
-        const { name, code, major, semester } = req.body;
+        const { name, code, major, semester, isTextbook } = req.body;
 
         const updatedCatalog = await Catalog.findByIdAndUpdate(
             id,
-            { name, code, major, semester },
+            { name, code, major, semester, isTextbook },
             { new: true, runValidators: true }
         );
 
