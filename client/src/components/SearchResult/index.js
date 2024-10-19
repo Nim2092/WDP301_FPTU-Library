@@ -1,7 +1,15 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function SearchResults({ books }) {
+  const navigate = useNavigate(); 
+
+  
+  const handleBorrowClick = (bookId) => {
+    navigate(`/order-book/${bookId}`); 
+  };
+
   return (
     <div className="container mt-4">
       {books.length === 0 ? (
@@ -32,7 +40,10 @@ function SearchResults({ books }) {
                   <p className="card-text">
                     <strong>ISBN:</strong> {book.isbn}
                   </p>
-                  <button className="btn btn-primary float-end">
+                  <button
+                    className="btn btn-primary float-end"
+                    onClick={() => handleBorrowClick(book._id)} // Gọi hàm khi nhấn nút
+                  >
                     Borrow this book
                   </button>
                 </div>
