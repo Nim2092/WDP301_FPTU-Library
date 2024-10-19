@@ -38,6 +38,39 @@ function ListBookBorrowed() {
     fetchBorrowedBooks();
   }, [user, token]);
 
+  // Function to handle the "Report lost book" action
+  const handleReportLostBook = async (orderId) => {
+    const confirmLost = window.confirm("Are you sure you want to report this book as lost?");
+    if (confirmLost) {
+      try {
+        // API call to update the order status to 'lost'
+        await axios.put(
+          `http://localhost:9999/api/orders/change-status/${orderId}`, // Adjust the API endpoint as per your backend
+          { status: 'lost' }, // You might need to adjust the payload depending on your API
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        alert("The book has been successfully reported as lost.");
+        // Optionally, refetch the data to update the UI
+        const response = await axios.get(
+          `http://localhost:9999/api/orders/by-user/${user.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setBorrowedBooks(response.data.data); // Update the borrowed books list
+      } catch (err) {
+        console.error(err);
+        alert("Failed to report the book as lost. Please try again.");
+      }
+    }
+  };
+
   // Show loading indicator while fetching data
   if (loading) {
     return <p>Loading borrowed books...</p>;
@@ -63,6 +96,7 @@ function ListBookBorrowed() {
               <th>Book</th>
               <th>Borrow date</th>
               <th>Due date</th>
+              <th>Status</th> {/* Add a header for the status column */}
               <th>Action</th>
             </tr>
           </thead>
@@ -73,14 +107,18 @@ function ListBookBorrowed() {
                 <td>{order.book_id?.bookSet_id?.title || "Unknown Title"}</td> {/* Displaying the book title from the nested bookSet */}
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
+                <td>{order.status || "Unknown Status"}</td> {/* Display the order status */}
                 <td>
-                  <Link
-                    to="/report-lost-book"
+                  <button
+                    onClick={() => handleReportLostBook(order._id)} // Call the handleReportLostBook function with order ID
                     className="btn btn-outline-primary me-2"
                   >
                     Report lost book
-                  </Link>
-                  <Link to="/renew-book" className="btn btn-outline-primary">
+                  </button>
+                  <Link
+                    to={`/renew-book/${order._id}`}
+                    className="btn btn-outline-primary"
+                  >
                     Renew Book
                   </Link>
                 </td>
