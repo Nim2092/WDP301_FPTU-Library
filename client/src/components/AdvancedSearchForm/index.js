@@ -1,16 +1,31 @@
 import React, { useState } from "react";
+import axios from "axios"; // Use axios for API calls
 
-const AdvancedBookForm = () => {
+const AdvancedBookForm = ({ setSearchResults }) => {
   const [catalog, setCatalog] = useState("catalog1");
+  const [bookName, setBookName] = useState("");
+  const [author, setAuthor] = useState("");
+  const [publisher, setPublisher] = useState("");
+  const [publicationYear, setPublicationYear] = useState("");
 
-  const handleCatalogChange = (event) => {
-    setCatalog(event.target.value);
-  };
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Here you can handle form submission logic, such as API call
-    alert("Form submitted!");
+
+    try {
+      const response = await axios.get("http://localhost:9999/api/book-sets/list", {
+        params: {
+          title: bookName,
+          author,
+          publisher,
+          pubYear: publicationYear,
+        },
+      });
+
+      // Update search results with the response data
+      setSearchResults(response.data.data);
+    } catch (error) {
+      console.error("Error fetching book sets", error);
+    }
   };
 
   return (
@@ -22,7 +37,7 @@ const AdvancedBookForm = () => {
             id="catalog"
             name="catalog"
             value={catalog}
-            onChange={handleCatalogChange}
+            onChange={(e) => setCatalog(e.target.value)}
             className="form-control"
           >
             <option value="catalog1">Catalog 1</option>
@@ -34,6 +49,8 @@ const AdvancedBookForm = () => {
             type="text"
             id="book-name"
             name="book-name"
+            value={bookName}
+            onChange={(e) => setBookName(e.target.value)}
             className="form-control"
           />
 
@@ -42,6 +59,8 @@ const AdvancedBookForm = () => {
             type="text"
             id="author"
             name="author"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
             className="form-control"
           />
 
@@ -52,6 +71,8 @@ const AdvancedBookForm = () => {
                 type="text"
                 id="publisher"
                 name="publisher"
+                value={publisher}
+                onChange={(e) => setPublisher(e.target.value)}
                 className="form-control"
               />
             </div>
@@ -61,6 +82,8 @@ const AdvancedBookForm = () => {
                 type="date"
                 id="publication-year"
                 name="publication-year"
+                value={publicationYear}
+                onChange={(e) => setPublicationYear(e.target.value)}
                 className="form-control"
               />
             </div>

@@ -40,7 +40,7 @@ import UpdateRule from "./pages/UpdateRule";
 import RuleDetail from "./pages/RuleDetail";
 import ListRuleUser from "./pages/ListRuleUser";
 import OrderDetail from "./pages/OrderDetail";
-
+import SearchResultsPage from "./pages/SearchResultsPage";
 
 function App() {
   return (
@@ -62,6 +62,8 @@ function App() {
                 <Route path="/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
                 <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
                 <Route path="/list-rule-user" element={<ProtectedRoute roles={["borrower", "librarian"]}><ListRuleUser /></ProtectedRoute>} />
+                <Route path="/search-results" element={<ProtectedRoute roles={["borrower", "librarian"]}><SearchResultsPage /></ProtectedRoute>} />
+
 
                 {/* Borrower Routes */}
                 <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
