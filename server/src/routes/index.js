@@ -9,6 +9,7 @@ const BookSetRouter = require("./bookset.route");
 const RuleRouter = require("./rule.route");
 const FinesRouter = require("./fines.route");
 const NewsRouter = require("./news.route");
+const NotificationRouter = require("./notification.route");
 
 router.use("/auth", AuthRouter);
 router.use("/user", UserRouter);
@@ -22,4 +23,6 @@ router.use("/fines", FinesRouter);
 
 router.use("/news", NewsRouter);
 router.use("/rules", RuleRouter);
+
+router.use("/notifications", NotificationRouter);
 module.exports = router;
