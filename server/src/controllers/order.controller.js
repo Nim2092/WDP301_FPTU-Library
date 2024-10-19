@@ -27,24 +27,41 @@ const getAllOrder = async (req, res, next) => {
 //Get order by id
 const getOrderById = async (req, res, next) => {
   try {
-    const { orderId } = req.params;
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).json({
-        message: "Order not found",
-        data: null,
-      });
+    const { orderId } = req.params; // Extract orderId from request params
+
+    // Check if orderId is valid before proceeding
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ message: "Invalid Order ID" });
     }
 
+    // Find the order by ID and populate the related fields (book_id, created_by, updated_by)
+    const order = await Order.findById(orderId)
+      .populate({
+        path: 'book_id', // Populate the book reference
+        populate: {
+          path: 'bookSet_id', // Nested populate to get the book set details
+          model: 'BookSet',   // Reference to the BookSet model
+        },
+      })
+      .populate('created_by', 'fullName') // Populate the creator's full name
+      .populate('updated_by', 'fullName'); // Populate the updater's full name
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Return the order with the populated data
     res.status(200).json({
       message: "Get order successfully",
       data: order,
     });
   } catch (error) {
-    console.error("Error getting a order", error);
+    console.error("Error getting the order", error);
     res.status(500).send({ message: error.message });
   }
 };
+
+
 
 //Get orders by user id
 const getOrderByUserId = async (req, res, next) => {

@@ -78,9 +78,9 @@ function ListBookBorrowed() {
 
   return (
     <div className="container mt-5">
-      <div className="d-flex justify-content-end mb-3">
+      {/* <div className="d-flex justify-content-end mb-3">
         <button className="btn btn-primary">Order</button>
-      </div>
+      </div> */}
 
       {error && <p className="text-danger">{error}</p>}
 
@@ -117,9 +117,15 @@ function ListBookBorrowed() {
                   </button>
                   <Link
                     to={`/renew-book/${order._id}`}
-                    className="btn btn-outline-primary"
+                    className="btn btn-outline-primary me-2"
                   >
                     Renew Book
+                  </Link>
+                  <Link
+                    to={`/order-book-detail/${order._id}`}
+                    className="btn btn-outline-primary"
+                  >
+                    detail
                   </Link>
                 </td>
               </tr>
