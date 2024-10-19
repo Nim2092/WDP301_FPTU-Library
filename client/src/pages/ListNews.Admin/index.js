@@ -37,7 +37,7 @@ const ListNews = () => {
         if (response.ok) {
           // Remove the deleted news from the state
           setNewsData((prevNewsData) =>
-            prevNewsData.filter((news) => news.id !== id)
+            prevNewsData.filter((news) => news._id !== id)
           ); // Ensure you're using the correct 'id'
           setMessage("News deleted successfully");
         } else {
@@ -111,9 +111,11 @@ const ListNews = () => {
                 <td>{index + 1}</td> {/* Sequential number starting from 1 */}
                 <td>
                   <img
-                    src={news.image || "https://via.placeholder.com/150"}
+                    src={`http://localhost:9999/api/news/thumbnail/${news.thumbnail
+                      .split("/")
+                      .pop()}`}
+                    style={{ width: "120px", height: "120px" }}
                     alt={news.title}
-                    style={{ width: "100px", height: "100px" }}
                   />
                 </td>
                 <td>{news.title}</td>
