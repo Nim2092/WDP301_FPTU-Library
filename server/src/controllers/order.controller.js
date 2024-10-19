@@ -159,11 +159,17 @@ async function changeOrderStatus(req, res, next) {
 async function renewOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { dueDate } = req.body;
+    const { dueDate, renew_reason } = req.body;  // Extract renew_reason from the request body
 
     if (!dueDate) {
       return res.status(400).json({
         message: "Please provide a new due date."
+      });
+    }
+
+    if (!renew_reason) {
+      return res.status(400).json({
+        message: "Please provide a reason for renewal."
       });
     }
 
@@ -183,6 +189,7 @@ async function renewOrder(req, res, next) {
     order.dueDate = dueDate;
     order.renewalCount += 1;
     order.renewalDate = new Date();
+    order.renew_reason = renew_reason;  // Update the renew_reason field
 
     await order.save();
 
@@ -197,6 +204,7 @@ async function renewOrder(req, res, next) {
     });
   }
 }
+
 
 
 
