@@ -33,11 +33,7 @@ function Home() {
                 Chào mừng bạn đến với thư viện Đại học FPT! Dưới đây là hướng
                 dẫn chi tiết về cách sử dụng các dịch vụ của thư viện.
               </p>
-              {/* <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Quisquam, quos.
-              </p> */}
-               <Button text="Xem thêm" link="/rules"/>
+               <Button text="Xem thêm" link="/list-rule-user"/>
             </div>
           </div>
         </div>

@@ -50,6 +50,8 @@ const getOrderById = async (req, res, next) => {
 const getOrderByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
+
+    // Find the user first to check if the user exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -58,8 +60,18 @@ const getOrderByUserId = async (req, res, next) => {
       });
     }
 
-    const orders = await Order.find({ created_by: userId });
-    console.log(orders);
+    // Find the orders for this user and populate the book and user details
+    const orders = await Order.find({ created_by: userId })
+      .populate({
+        path: 'book_id', // Populate the book reference
+        populate: {
+          path: 'bookSet_id', // Nested populate to get the book set details
+          model: 'BookSet',   // Reference to the BookSet model
+        },
+      })
+      .populate('created_by', 'fullName')
+      .populate('updated_by', 'fullName'); // Populate the user's full name
+
     if (!orders || orders.length === 0) {
       return res.status(404).json({
         message: "Order not found",
@@ -67,6 +79,7 @@ const getOrderByUserId = async (req, res, next) => {
       });
     }
 
+    // Return the orders along with populated data
     res.status(200).json({
       message: "Get order successfully",
       data: orders,
@@ -76,6 +89,7 @@ const getOrderByUserId = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+
 
 //create borrow order with book id
 const createBorrowOrder = async (req, res, next) => {

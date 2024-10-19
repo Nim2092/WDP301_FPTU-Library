@@ -52,7 +52,9 @@ function NewsPage() {
             {/* Cột hình ảnh */}
             <div className="col-md-4">
               <img
-                src={item.thumbnail}
+                src={`http://localhost:9999/api/news/thumbnail/${item.thumbnail
+                  .split("/")
+                  .pop()}`}
                 className="img-fluid"
                 alt={item.title}
               />
@@ -64,7 +66,10 @@ function NewsPage() {
                 <h5 className="card-title">{item.title}</h5>
                 <p className="card-text">{item.content}</p>
                 <div className="text-end">
-                  <Link to={`/news-detail/${item._id}`} className="btn btn-primary">
+                  <Link
+                    to={`/news-detail/${item._id}`}
+                    className="btn btn-primary"
+                  >
                     Xem chi tiết
                   </Link>
                 </div>

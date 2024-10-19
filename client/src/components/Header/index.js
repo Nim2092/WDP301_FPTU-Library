@@ -19,11 +19,7 @@ function Header() {
     };
 
     const handleProfileClick = () => {
-        navigate('/profile'); // Navigate to profile page
-    };
-
-    const handleNotificationsClick = () => {
-        navigate('/notifications'); // Navigate to notifications page
+        navigate('/profile/:id'); // Navigate to profile page
     };
 
     const toggleDropdown = () => {
@@ -55,7 +51,6 @@ function Header() {
                             {isDropdownVisible && ( // Conditionally render dropdown
                                 <div className="dropdown-content">
                                     <button onClick={handleProfileClick}>Profile</button>
-                                    {/* <button onClick={handleNotificationsClick}>Notifications</button> */}
                                     <button onClick={handleLogout}>Logout</button>
                                 </div>
                             )}
