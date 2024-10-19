@@ -69,7 +69,7 @@ function App() {
                 <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
                 <Route path="/report-lost-book" element={<ProtectedRoute roles={["borrower"]}><ReportLostBook /></ProtectedRoute>} />
                 <Route path="/renew-book/:orderId" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
-                <Route path="/order-book" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
+                <Route path="/order-book/:bookId" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
                 <Route path="/order-book-detail/:orderId" element={<ProtectedRoute roles={["borrower"]}><OrderDetail /></ProtectedRoute>} />
 
                 {/* Librarian Routes */}
