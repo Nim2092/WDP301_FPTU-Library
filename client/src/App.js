@@ -39,6 +39,8 @@ import CreateNewRule from "./pages/CreateNewRule";
 import UpdateRule from "./pages/UpdateRule";
 import RuleDetail from "./pages/RuleDetail";
 import ListRuleUser from "./pages/ListRuleUser";
+import OrderDetail from "./pages/OrderDetail";
+
 
 function App() {
   return (
@@ -66,6 +68,7 @@ function App() {
                 <Route path="/report-lost-book" element={<ProtectedRoute roles={["borrower"]}><ReportLostBook /></ProtectedRoute>} />
                 <Route path="/renew-book/:orderId" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
                 <Route path="/order-book" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
+                <Route path="/order-book-detail/:orderId" element={<ProtectedRoute roles={["borrower"]}><OrderDetail /></ProtectedRoute>} />
 
                 {/* Librarian Routes */}
                 <Route path="/manage-order" element={<ProtectedRoute roles={["librarian"]}><ManageOrder /></ProtectedRoute>} />
