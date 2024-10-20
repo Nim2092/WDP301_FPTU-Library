@@ -6,6 +6,9 @@ const {
   fines: Fines,
   order: Order,
   penaltyreason: PenaltyReason,
+  book: Book,
+  notification: Notification,
+  bookset: BookSet,
 } = db;
 
 //get All fines
@@ -127,32 +130,57 @@ const getFinesByOrderId = async (req, res, next) => {
 //create fines
 const createFines = async (req, res, next) => {
   try {
-    const { user_id, book_id, order_id, fineReason_id } = req.body;
+    const { user_id, order_id, fineReason_id, createBy, updateBy } = req.body;
 
-    const createBy = req.user.id;
-    const updateBy = req.user.id;
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const order = await Order.findById(order_id).populate(
+      "book_id",
+      "identifier_code condition"
+    );
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
     const penaltyReason = await PenaltyReason.findById(fineReason_id);
     if (!penaltyReason) {
       return res.status(404).json({ message: "Penalty reason not found" });
     }
 
+    const existingFines = await Fines.findOne({
+      order_id,
+    });
+
+    if (existingFines) {
+      return res.status(400).json({
+        message: "Fines for this order already exists.",
+        data: null,
+      });
+    }
+
     const fines = new Fines({
       user_id,
-      book_id,
       order_id,
       fineReason_id,
       createBy,
       updateBy,
       totalFinesAmount: penaltyReason.penaltyAmount,
-      status: 0,
+      status: "Pending",
       paymentMethod: null,
       paymentDate: null,
     });
 
     const newFines = await fines.save();
 
-    await Order.findByIdAndUpdate(order_id, { status: 6 });
+    const notification = new Notification({
+      userId: user_id,
+      type: "Fines",
+      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount}k cho sách #${order.book_id.identifier_code}. Vui lòng thanh toán để tránh thêm phí.`,
+    });
+    await notification.save();
 
     res.status(201).json({
       message: "Create fines successfully",
@@ -168,15 +196,21 @@ const createFines = async (req, res, next) => {
 const filterFinesByStatus = async (req, res, next) => {
   try {
     const { status } = req.params;
+
+    if (!["pending", "paid", "overdue"].includes(status)) {
+      return res.status(400).json({
+        message: "Invalid status",
+        data: null,
+      });
+    }
     const fines = await Fines.find({ status }).populate("user_id");
 
     if (!fines || fines.length === 0) {
       return res.status(404).json({
-        message: "Fines not found",
+        message: "No fines found for the given status",
         data: null,
       });
     }
-
     res.status(200).json({
       message: "Get fines successfully",
       data: fines,
