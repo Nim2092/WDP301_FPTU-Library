@@ -6,10 +6,8 @@ function SearchByStudentId({ onNextStep }) {
   // This function handles searching by student ID
   const handleSearch = () => {
     if (studentId.trim()) {
-      // Implement search logic here, like API call or local data lookup
       console.log(`Searching for Student ID: ${studentId}`);
       
-      // If successful, proceed to the next step
       onNextStep();
     } else {
       alert("Please enter a valid Student ID.");

@@ -1,45 +1,48 @@
-import React, { useState } from "react";
-import { Modal, Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Modal, Button, Container } from "react-bootstrap";
+import axios from "axios";
 
 const BorrowBookList = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [reason, setReason] = useState("");
+  const [borrowBooks, setBorrowBooks] = useState([]); // Initialize as an array
+  const [status, setStatus] = useState(""); // To filter by status
 
-  const borrowBooks = [
-    {
-      id: 1,
-      book: "Kinh te...",
-      borrowDate: "10/08/2024",
-      dueDate: "10/09/2024",
-      studentId: "HE163676",
-    },
-    {
-      id: 2,
-      book: "Kinh te...",
-      borrowDate: "10/08/2024",
-      dueDate: "10/09/2024",
-      studentId: "HE163676",
-    },
-    {
-      id: 3,
-      book: "Kinh te...",
-      borrowDate: "10/08/2024",
-      dueDate: "10/09/2024",
-      studentId: "HE163676",
-    },
-    {
-      id: 4,
-      book: "Kinh te...",
-      borrowDate: "10/08/2024",
-      dueDate: "10/09/2024",
-      studentId: "HE163676",
-    },
-    // Add more data as needed
-  ];
+  // Fetch books based on the selected status filter
+  useEffect(() => {
+    if (status === "") {
+      // If no status is selected, fetch all books
+      axios
+        .get(`http://localhost:9999/api/orders/getAll`)
+        .then((response) => {
+          const books = response.data.data || [];
+          setBorrowBooks(books);
+          console.log(books);
+        })
+        .catch((error) => {
+          console.error("Error fetching borrow books:", error);
+        });
+
+    } else {
+      // Fetch books filtered by status
+      // status is the status of the book that we want to filter by
+      // api ???
+      axios
+        .get(`http://localhost:9999/api/orders/filter-by-status/${status}`)
+        .then((response) => {
+          const books = response.data.data || [];
+          setBorrowBooks(books);
+          console.log(books);
+        })
+        .catch((error) => {
+          console.error("Error fetching books by status:", error);
+        });
+    }
+  }, [status]);
 
   const handleRejectClick = (book) => {
-    setSelectedBook(book);
+    setSelectedBook(book._id);
     setShowModal(true);
   };
 
@@ -55,38 +58,65 @@ const BorrowBookList = () => {
   };
 
   return (
-    <div className="container mt-4">
-      <h2>List Borrow Book</h2>
+    <Container className="mt-4">
+      <h2 className="mb-4">List of Borrowed Books</h2>
+      
+      {/* Status Filter Dropdown */}
+      <select
+        className="form-select mb-4 w-25 float-end"
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+      >
+        <option value="">Select Status</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+
+      {/* Borrowed Books Table */}
       <table className="table table-bordered">
         <thead>
           <tr>
             <th>ID</th>
-            <th>Book</th>
-            <th>Borrow date</th>
-            <th>Due date</th>
-            <th>StudentID</th>
-            <th>Action</th>
+            <th>Book Title</th>
+            <th>Borrow Date</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {borrowBooks.map((book, index) => (
-            <tr key={index}>
-              <td>{book.id}</td>
-              <td>{book.book}</td>
-              <td>{book.borrowDate}</td>
-              <td>{book.dueDate}</td>
-              <td>{book.studentId}</td>
-              <td className="d-flex justify-content-between">
-                <button className="btn btn-success">Approve</button>{" "}
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleRejectClick(book)}
-                >
-                  Reject
-                </button>
-              </td>
+          {Array.isArray(borrowBooks) && borrowBooks.length > 0 ? (
+            borrowBooks.map((book, index) => (
+              <tr key={book._id}>
+                <td>{index + 1}</td>
+                <td>{book.book_id}</td>
+                <td>{new Date(book.borrowDate).toLocaleDateString()}</td>
+                <td>{new Date(book.dueDate).toLocaleDateString()}</td>
+                <td>
+                  {book.status === "Pending" ? (
+                    <span className="text-warning">Pending</span>
+                  ) : book.status === "Approved" ? (
+                    <span className="text-success">Approved</span>
+                  ) : (
+                    <span className="text-danger">Rejected</span>
+                  )}
+                </td>
+                <td className="d-flex justify-content-center">
+                  <Button variant="success" className="me-2">
+                    Approve
+                  </Button>
+                  <Button variant="danger" onClick={() => handleRejectClick(book)}>
+                    Reject
+                  </Button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6">No books found</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
 
@@ -117,7 +147,7 @@ const BorrowBookList = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 };
 

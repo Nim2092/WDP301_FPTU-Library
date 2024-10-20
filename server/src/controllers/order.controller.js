@@ -12,7 +12,13 @@ const {
 //Get all order
 const getAllOrder = async (req, res, next) => {
   try {
-    const order = await Order.find({});
+    const order = await Order.find({}).populate({
+      path: 'book_id', // Populate the book reference
+      populate: {
+        path: 'bookSet_id', // Nested populate to get the book set details
+        model: 'BookSet',   // Reference to the BookSet model
+      },
+    });
 
     if (!order || order.length === 0) {
       return res.status(404).json({

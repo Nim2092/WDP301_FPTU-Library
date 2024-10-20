@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Button from "../Button/Button";
-
+import { useNavigate } from "react-router-dom";
 function News() {
   const [newsItems, setNewsItems] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     // Fetch news items from the API
     const fetchNews = async () => {
@@ -22,6 +22,10 @@ function News() {
     fetchNews();
   }, []);
 
+  const handleClick = (id) => {
+    navigate(`/news-detail/${id}`);
+  };
+
   return (
     <div className="news container my-5">
       <h2>News</h2>
@@ -39,7 +43,7 @@ function News() {
                 />
 
                 <div className="card-body">
-                  <h5 className="card-title">{item.title}</h5>
+                  <h5 className="card-title" onClick={() => handleClick(item._id)}>{item.title}</h5>
                   <p className="card-text">{item.content}</p>
                 </div>
               </div>
