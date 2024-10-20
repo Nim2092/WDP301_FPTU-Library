@@ -261,15 +261,33 @@ const addBooks = async (req, res, next) => {
     }
 };
 
-async function searchBookSet(req, res, next) {
+async function deleteBookSet(req, res, next) {
+    try {
+        const { id } = req.params;
 
+        const bookSet = await BookSet.findById(id);
+        if (!bookSet) {
+            return res.status(404).json({ message: "BookSet not found." });
+        }
+
+        await Book.deleteMany({ bookSet_id: id });
+
+        await BookSet.findByIdAndDelete(id);
+
+        return res.status(200).json({ message: "BookSet and related Books deleted successfully." });
+    } catch (error) {
+        return res.status(500).json({ message: "An error occurred", error: error.message });
+    }
 }
+
+
 const BookSetController = {
     createBookSet,
     updateBookSet,
     listBookSet,
     getBookSetDetail,
-    addBooks
+    addBooks,
+    deleteBookSet
 };
 
 module.exports = BookSetController;
