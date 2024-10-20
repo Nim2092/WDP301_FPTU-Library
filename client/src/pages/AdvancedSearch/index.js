@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import SearchResults from "../../components/SearchResult";
-import AdvancedSearchForm from "../../components/AdvancedSearchForm";
+import AdvancedBookForm from "../../components/AdvancedSearchForm/index";
+
 function AdvancedSearch() {
+  const [searchResults, setSearchResults] = useState([]);
+
   return (
     <div className="advanced-search">
-      <AdvancedSearchForm />
-      <SearchResults />
+      <AdvancedBookForm setSearchResults={setSearchResults} />
+      <SearchResults books={searchResults} />
     </div>
   );
 }

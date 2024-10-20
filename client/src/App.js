@@ -38,6 +38,9 @@ import ListRule from "./pages/ListRule";
 import CreateNewRule from "./pages/CreateNewRule";
 import UpdateRule from "./pages/UpdateRule";
 import RuleDetail from "./pages/RuleDetail";
+import ListRuleUser from "./pages/ListRuleUser";
+import OrderDetail from "./pages/OrderDetail";
+import SearchResultsPage from "./pages/SearchResultsPage";
 
 function App() {
   return (
@@ -50,21 +53,24 @@ function App() {
               <Routes>
                 {/* Public route */}
                 <Route path="/login" element={<LoginPage />} />
-
                 {/* Shared routes for borrower and librarian */}
-                <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian"]}><HomePage /></ProtectedRoute>} />
+                <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><HomePage /></ProtectedRoute>} />
                 <Route path="/advanced-search" element={<ProtectedRoute roles={["borrower", "librarian"]}><AdvancedSearch /></ProtectedRoute>} />
                 <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
                 <Route path="/book-detail" element={<ProtectedRoute roles={["borrower", "librarian"]}><BookDetail /></ProtectedRoute>} />
-                <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><UserProfile /></ProtectedRoute>} />
+                <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><UserProfile /></ProtectedRoute>} />
                 <Route path="/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
                 <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
+                <Route path="/list-rule-user" element={<ProtectedRoute roles={["borrower", "librarian"]}><ListRuleUser /></ProtectedRoute>} />
+                <Route path="/search-results" element={<ProtectedRoute roles={["borrower", "librarian"]}><SearchResultsPage /></ProtectedRoute>} />
+
 
                 {/* Borrower Routes */}
                 <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
                 <Route path="/report-lost-book" element={<ProtectedRoute roles={["borrower"]}><ReportLostBook /></ProtectedRoute>} />
-                <Route path="/renew-book" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
-                <Route path="/order-book" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
+                <Route path="/renew-book/:orderId" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
+                <Route path="/order-book/:bookId" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
+                <Route path="/order-book-detail/:orderId" element={<ProtectedRoute roles={["borrower"]}><OrderDetail /></ProtectedRoute>} />
 
                 {/* Librarian Routes */}
                 <Route path="/manage-order" element={<ProtectedRoute roles={["librarian"]}><ManageOrder /></ProtectedRoute>} />
@@ -72,7 +78,7 @@ function App() {
                 <Route path="/list-news-admin" element={<ProtectedRoute roles={["librarian"]}><ListNews /></ProtectedRoute>} />
                 <Route path="/update-news/:id" element={<ProtectedRoute roles={["librarian"]}><UpdateNews /></ProtectedRoute>} />
                 <Route path="/manage-return-book" element={<ProtectedRoute roles={["librarian"]}><ManageReturnBook /></ProtectedRoute>} />
-                <Route path="/list-rule" element={<ProtectedRoute roles={["admin"]}><ListRule /></ProtectedRoute>} />
+
 
                 {/* Admin Routes */}
                 <Route path="/create-account" element={<ProtectedRoute roles={["admin"]}><CreateAccount /></ProtectedRoute>} />
@@ -109,29 +115,24 @@ const ProtectedRoute = ({ roles, children }) => {
       { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
       { path: "/advanced-search", label: "Tra cứu sách", icon: "fa fa-search" }, 
       { path: "/list-book-borrowed", label: "Danh sách đã mượn", icon: "fa fa-book" }, 
-      { path: "/report-lost-book", label: "Báo mất sách", icon: "fa fa-exclamation-triangle" }, 
-      { path: "/renew-book", label: "Gia hạn sách", icon: "fa fa-sync-alt" }, 
-      { path: "/fines", label: "Tiền phạt", icon: "fa fa-money-bill-wave" }, 
-      { path: "/list-rule-user", label: "Quy định", icon: "fa fa-newspaper" }, 
-      { path: "/news", label: "Tin tức", icon: "fa fa-newspaper" }, 
+      { path: "/fines", label: "Tiền phạt", icon: "fa fa-money" }, 
+      { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" }, 
+      { path: "/news", label: "Tin tức", icon: "fa fa-newspaper-o" }, 
       { path: "/notification", label: "Thông báo", icon: "fa fa-bell" }, 
-      { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
     ],
     librarian: [
       { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
       { path: "/manage-order", label: "Quản lý mượn sách", icon: "fa fa-tasks" }, 
       { path: "/manage-return-book", label: "Quản lý trả sách", icon: "fa fa-undo" }, 
-      { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper" }, 
-      { path: "/list-rule", label: "Quy định", icon: "fa fa-newspaper" }, 
-      { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
+      { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper-o" }, 
+      { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" }, 
     ],
     admin: [
       { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
-      { path: "/account-list", label: "Quản lý tài khoản", icon: "fa fa-users-cog" },  
+      { path: "/account-list", label: "Quản lý tài khoản", icon: "fa fa-user-circle-o" },  
       { path: "/list-catalog", label: "Quản lý danh mục", icon: "fa fa-folder" },  
-      { path: "/list-book-set", label: "Quản lý lô sách", icon: "fa fa-boxes" }, 
-      { path: "/list-rule", label: "Quản lý quy định", icon: "fa fa-newspaper" }, 
-      { path: `/profile/${user?.id}`, label: "User Profile", icon: "fa fa-user" }, 
+      { path: "/list-book-set", label: "Quản lý lô sách", icon: "fa fa-book" }, 
+      { path: "/list-rule", label: "Quản lý quy định", icon: "fa fa-list" }, 
     ],
   };
   

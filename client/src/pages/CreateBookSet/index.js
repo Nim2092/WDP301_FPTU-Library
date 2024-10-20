@@ -44,19 +44,14 @@ const CreateBook = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const formDataToSend = new FormData();
-    for (let key in formData) {
-      formDataToSend.append(key, formData[key] || ""); // Ensure no undefined values
-    }
 
     try {
       const response = await axios.post(
         "http://localhost:9999/api/book-sets/create",
-        formDataToSend,
+        formData,  
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",  
           }
         }
       );

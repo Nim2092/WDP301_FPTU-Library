@@ -1,104 +1,77 @@
-import React, { useState } from "react";
-import "./OrderBook.scss"; // Nếu bạn có file CSS để tạo kiểu
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-function Order() {
-  // Giả lập dữ liệu sách
-  const book = {
-    title: "Python for Beginner",
-    author: "Nguyen Ngoc Tan",
-    isbn: "9786044749494",
-    publication: "Updating",
-    ratingCode: "005.133",
-    publisher: "Dan Tri",
-    year: "2023",
-    physicalDescription: "196 pages: illustrations; 27 cm",
-  };
+function BookSetDetail() {
+  const { bookId } = useParams(); // Lấy bookSetId từ URL
+  const navigate = useNavigate(); // Dùng để điều hướng đến trang mượn sách
+  const [bookSet, setBookSet] = useState(null); // Lưu trữ thông tin bộ sách
+  const [books, setBooks] = useState([]); // Lưu trữ danh sách các quyển sách
 
-  const [borrowDate, setBorrowDate] = useState("");
-  const [returnDate, setReturnDate] = useState("");
+  // Lấy dữ liệu chi tiết của bộ sách từ API
+  useEffect(() => {
+    const fetchBookSetDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:9999/api/book-sets/${bookId}`);
+        setBookSet(response.data.bookSet); // Lưu thông tin bộ sách
+        setBooks(response.data.books); // Lưu danh sách các quyển sách
+      } catch (error) {
+        console.error("Error fetching book set details:", error);
+      }
+    };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Xử lý gửi yêu cầu đặt sách tại đây
-    console.log("Order submitted with borrow date:", borrowDate, "and return date:", returnDate);
+    fetchBookSetDetails();
+  }, [bookId]);
+
+  // Hàm xử lý khi người dùng nhấn "Borrow this book"
+  const handleBorrowClick = () => {
+    if (books.length > 0) {
+      const firstBook = books[0]; // Lấy quyển sách đầu tiên trong danh sách
+      navigate(`/order/${firstBook._id}`); // Điều hướng đến trang mượn sách với bookId
+    }
   };
 
   return (
-    <div className="order container my-5">
-      <div className="row">
-        <div className="col-md-4">
-          <img
-            src="https://via.placeholder.com/150" 
-            alt="Book cover"
-            className="img-fluid"
-          />
-        </div>
-        <div className="col-md-8">
-          <h3>{book.title}</h3>
-          <table className="table table-borderless">
-            <tbody>
-                <tr>
-                    <td><strong>Author</strong></td>
-                    <td>{book.author}</td>
-                </tr>
-              <tr>
-                <td><strong>ISBN</strong></td>
-                <td>{book.isbn}</td>
-              </tr>
-              <tr>
-                <td><strong>Publication</strong></td>
-                <td>{book.publication}</td>
-              </tr>
-              <tr>
-                <td><strong>Rating code</strong></td>
-                <td>{book.ratingCode}</td>
-              </tr>
-              <tr>
-                <td><strong>Publisher</strong></td>
-                <td>{book.publisher}</td>
-              </tr>
-              <tr>
-                <td><strong>Publishing year</strong></td>
-                <td>{book.year}</td>
-              </tr>
-              <tr>
-                <td><strong>Physical description</strong></td>
-                <td>{book.physicalDescription}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="container my-5">
+      {bookSet ? (
+        <>
+          {/* Hiển thị thông tin bộ sách */}
+          <h3>{bookSet.title}</h3>
+          <p><strong>Author:</strong> {bookSet.author}</p>
+          <p><strong>Publisher:</strong> {bookSet.publisher}</p>
+          <p><strong>Published Year:</strong> {new Date(bookSet.publishedYear).getFullYear()}</p>
+          <p><strong>Physical Description:</strong> {bookSet.physicalDescription}</p>
+          <p><strong>Total Copies:</strong> {bookSet.totalCopies}</p>
+          <p><strong>Available Copies:</strong> {bookSet.availableCopies}</p>
 
-      <form onSubmit={handleSubmit} className="row mt-4">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="borrowDate" className="form-label">Borrow date</label>
-          <input
-            type="date"
-            className="form-control"
-            id="borrowDate"
-            value={borrowDate}
-            onChange={(e) => setBorrowDate(e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-md-6 mb-3">
-          <label htmlFor="returnDate" className="form-label">Return date</label>
-          <input
-            type="date"
-            className="form-control"
-            id="returnDate"
-            value={returnDate}
-            onChange={(e) => setReturnDate(e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-md-12 d-flex justify-content-center">
-          <button type="submit" className="btn btn-danger">Submit</button>
-        </div>
-      </form>
+          {/* Hiển thị danh sách các quyển sách */}
+          <h4>Books in this set:</h4>
+          {books.length > 0 ? (
+            <ul className="list-group">
+              {books.map((book, index) => (
+                <li key={book._id} className="list-group-item">
+                  <p><strong>Book Identifier Code:</strong> {book.identifier_code}</p>
+                  <p><strong>Condition:</strong> {book.condition}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No books available.</p>
+          )}
+
+          {/* Nút mượn quyển sách đầu tiên */}
+          {books.length > 0 && (
+            <button className="btn btn-primary mt-3" onClick={handleBorrowClick}>
+              Borrow this book
+            </button>
+          )}
+        </>
+      ) : (
+        <p>Loading book set details...</p>
+      )}
     </div>
   );
 }
 
-export default Order;
+export default BookSetDetail;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Button from '../Button/Button';
+import Button from "../Button/Button";
 
 function News() {
   const [newsItems, setNewsItems] = useState([]);
@@ -31,10 +31,13 @@ function News() {
             <div key={item.id} className="col-md-4 mb-4">
               <div className="card h-100">
                 <img
-                  src={item.thumbnail}
+                  src={`http://localhost:9999/api/news/thumbnail/${item.thumbnail
+                    .split("/")
+                    .pop()}`}
                   className="card-img-top"
                   alt={item.title}
                 />
+
                 <div className="card-body">
                   <h5 className="card-title">{item.title}</h5>
                   <p className="card-text">{item.content}</p>
@@ -50,7 +53,7 @@ function News() {
       </div>
       {newsItems.length > 3 && (
         <div className="text-end mt-4">
-          <Button text="Xem thêm" link="/news"/>
+          <Button text="Xem thêm" link="/news" />
         </div>
       )}
     </div>
