@@ -1,6 +1,12 @@
 const { default: mongoose } = require("mongoose");
 const db = require("../models");
-const { user: User, role: Role, order: Order, book: Book } = db;
+const {
+  user: User,
+  role: Role,
+  order: Order,
+  book: Book,
+  notification: Notification,
+} = db;
 
 //Get all order
 const getAllOrder = async (req, res, next) => {
@@ -37,14 +43,14 @@ const getOrderById = async (req, res, next) => {
     // Find the order by ID and populate the related fields (book_id, created_by, updated_by)
     const order = await Order.findById(orderId)
       .populate({
-        path: 'book_id', // Populate the book reference
+        path: "book_id", // Populate the book reference
         populate: {
-          path: 'bookSet_id', // Nested populate to get the book set details
-          model: 'BookSet',   // Reference to the BookSet model
+          path: "bookSet_id", // Nested populate to get the book set details
+          model: "BookSet", // Reference to the BookSet model
         },
       })
-      .populate('created_by', 'fullName') // Populate the creator's full name
-      .populate('updated_by', 'fullName'); // Populate the updater's full name
+      .populate("created_by", "fullName") // Populate the creator's full name
+      .populate("updated_by", "fullName"); // Populate the updater's full name
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -60,8 +66,6 @@ const getOrderById = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
-
-
 
 //Get orders by user id
 const getOrderByUserId = async (req, res, next) => {
@@ -80,14 +84,14 @@ const getOrderByUserId = async (req, res, next) => {
     // Find the orders for this user and populate the book and user details
     const orders = await Order.find({ created_by: userId })
       .populate({
-        path: 'book_id', // Populate the book reference
+        path: "book_id", // Populate the book reference
         populate: {
-          path: 'bookSet_id', // Nested populate to get the book set details
-          model: 'BookSet',   // Reference to the BookSet model
+          path: "bookSet_id", // Nested populate to get the book set details
+          model: "BookSet", // Reference to the BookSet model
         },
       })
-      .populate('created_by', 'fullName')
-      .populate('updated_by', 'fullName'); // Populate the user's full name
+      .populate("created_by", "fullName")
+      .populate("updated_by", "fullName"); // Populate the user's full name
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({
@@ -106,7 +110,6 @@ const getOrderByUserId = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
-
 
 //create borrow order with book id
 const createBorrowOrder = async (req, res, next) => {
@@ -138,6 +141,14 @@ const createBorrowOrder = async (req, res, next) => {
 
     const newOrder = await order.save();
 
+    const notification = new Notification({
+      userId: userId,
+      type: "Borrow",
+      message: `Bạn đã mượn sách thành công. Ngày đáo hạn là ${dueDate}.`,
+    });
+
+    await notification.save();
+
     res.status(201).json({
       message: "Order created successfully",
       data: newOrder,
@@ -148,12 +159,13 @@ const createBorrowOrder = async (req, res, next) => {
   }
 };
 
+// change order status
 async function changeOrderStatus(req, res, next) {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    if (typeof status !== 'number') {
+    if (typeof status !== "number") {
       return res.status(400).json({ message: "Status must be a number." });
     }
 
@@ -165,65 +177,121 @@ async function changeOrderStatus(req, res, next) {
     order.status = status;
     await order.save();
 
-    return res.status(200).json({ message: "Order status updated successfully", data: order });
+    return res
+      .status(200)
+      .json({ message: "Order status updated successfully", data: order });
   } catch (error) {
     console.error("Error changing order status", error);
-    return res.status(500).json({ message: "An error occurred", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "An error occurred", error: error.message });
   }
 }
 
-
+// Renew order
 async function renewOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { dueDate, renew_reason } = req.body;  // Extract renew_reason from the request body
+    const { dueDate, renew_reason } = req.body; // Extract renew_reason from the request body
 
     if (!dueDate) {
       return res.status(400).json({
-        message: "Please provide a new due date."
+        message: "Please provide a new due date.",
       });
     }
 
     if (!renew_reason) {
       return res.status(400).json({
-        message: "Please provide a reason for renewal."
+        message: "Please provide a reason for renewal.",
       });
     }
 
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({
-        message: "Order not found."
+        message: "Order not found.",
       });
     }
 
     if (order.renewalCount >= 3) {
       return res.status(400).json({
-        message: "Order cannot be renewed more than 3 times."
+        message: "Order cannot be renewed more than 3 times.",
       });
     }
 
     order.dueDate = dueDate;
     order.renewalCount += 1;
     order.renewalDate = new Date();
-    order.renew_reason = renew_reason;  // Update the renew_reason field
+    order.renew_reason = renew_reason; // Update the renew_reason field
 
     await order.save();
 
+    const notification = new Notification({
+      userId: userId,
+      type: "Renewal",
+      message: `Bạn đã gia hạn thành công sách #${order.book_id}. Ngày trả mới là ${dueDate}.`,
+    });
+
+    await notification.save();
+
     return res.status(200).json({
       message: "Order renewed successfully.",
-      data: order
+      data: order,
     });
   } catch (error) {
     return res.status(500).json({
       message: "An error occurred",
-      error: error.message
+      error: error.message,
     });
   }
 }
 
+// Return order
+async function returnOrder(req, res, next) {
+  try {
+    const { orderId } = req.params;
+    const { userId } = req.body;
 
+    const order = await Order.findById(orderId).populate(
+      "book_id",
+      "identifier_code condition"
+    );
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found.",
+      });
+    }
 
+    if (order.returnDate) {
+      return res.status(400).json({
+        message: "Book has already been returned.",
+      });
+    }
+
+    order.status = 2;
+    order.returnDate = new Date();
+
+    await order.save();
+
+    const notification = new Notification({
+      userId: userId,
+      type: "Return",
+      message: `Bạn đã trả thành công sách #${order.book_id.identifier_code}. Tình trạng sách là: ${order.book_id.condition}. Cảm ơn!`,
+    });
+
+    await notification.save();
+
+    return res.status(200).json({
+      message: "Order returned successfully.",
+      data: order,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
+  }
+}
 
 const OrderController = {
   getOrderByUserId,
@@ -231,6 +299,7 @@ const OrderController = {
   getOrderById,
   createBorrowOrder,
   changeOrderStatus,
-  renewOrder
+  renewOrder,
+  returnOrder,
 };
 module.exports = OrderController;
