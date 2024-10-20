@@ -63,6 +63,7 @@ async function createBookSet(req, res, next) {
                 bookSet_id: savedBookSet._id,
                 identifier_code: identifierCode,
                 condition: "Good",
+                status: "Available",
             });
 
             books.push(newBook.save());
@@ -242,6 +243,7 @@ const addBooks = async (req, res, next) => {
                 bookSet_id: bookSet._id,
                 identifier_code: identifierCode,
                 condition: "Good",
+                status: "Available",
             });
 
             books.push(newBook.save());
