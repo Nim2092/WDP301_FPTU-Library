@@ -6,6 +6,11 @@ const bookSchema = new Schema(
     bookSet_id: { type: Schema.Types.ObjectId, ref: "BookSet", required: true },
     identifier_code: { type: String, required: true, unique: true },
     condition: { type: String, required: true },
+      status: {
+          type: String,
+          enum: ["Available", "Borrowed"],
+          required: true,
+      },
   },
   { timestamps: true }
 );

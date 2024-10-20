@@ -5,6 +5,7 @@ const {
   role: Role,
   order: Order,
   book: Book,
+  bookset: BookSet,
   notification: Notification,
 } = db;
 
@@ -125,21 +126,35 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
+    const bookSet = await BookSet.findById(book.bookSet_id);
+    if (!bookSet || bookSet.availableCopies < 1) {
+      return res.status(400).json({
+        message: "No available copies left for this book set",
+        data: null,
+      });
+    }
+
     const order = new Order({
       book_id: bookId,
-      created_by: userId /* req.user.id */,
-      updated_by: userId /* req.user.id */,
-      status: 1,
+      created_by: userId,
+      updated_by: userId,
+      status: "Pending",
       requestDate: new Date(),
       borrowDate,
       dueDate,
       returnDate: null,
       reason_order: "",
-      renewalCount: 1,
+      renewalCount: 0,
       renewalDate: null,
     });
 
     const newOrder = await order.save();
+
+    book.status = "Borrowed";
+    await book.save();
+
+    bookSet.availableCopies -= 1;
+    await bookSet.save();
 
     const notification = new Notification({
       userId: userId,
@@ -159,15 +174,12 @@ const createBorrowOrder = async (req, res, next) => {
   }
 };
 
+
 // change order status
 async function changeOrderStatus(req, res, next) {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-
-    if (typeof status !== "number") {
-      return res.status(400).json({ message: "Status must be a number." });
-    }
 
     const order = await Order.findById(orderId);
     if (!order) {
@@ -268,7 +280,7 @@ async function returnOrder(req, res, next) {
       });
     }
 
-    order.status = 2;
+    order.status = "Returned";
     order.returnDate = new Date();
 
     await order.save();

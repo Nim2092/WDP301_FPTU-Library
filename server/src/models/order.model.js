@@ -6,7 +6,11 @@ const orderSchema = new Schema(
     book_id: { type: Schema.Types.ObjectId, ref: "Book", required: true },
     created_by: { type: Schema.Types.ObjectId, ref: "User", required: true },
     updated_by: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    status: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ["Pending", "Approved", "Rejected", "Received", "Canceled", "Returned", "Overdue", "Lost", "Renew Pending"],
+      required: true,
+    },
     requestDate: { type: Date, required: true },
     borrowDate: { type: Date, required: true },
     dueDate: { type: Date, required: true },
