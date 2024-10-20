@@ -124,6 +124,13 @@ const createBorrowOrder = async (req, res, next) => {
     const { borrowDate, dueDate, userId } = req.body;
     const { bookId } = req.params;
 
+    //check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    //check if book exists
     const book = await Book.findById(bookId);
     if (!book) {
       return res.status(404).json({
@@ -132,6 +139,7 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
+    //check if book set exists and has available copies
     const bookSet = await BookSet.findById(book.bookSet_id);
     if (!bookSet || bookSet.availableCopies < 1) {
       return res.status(400).json({
@@ -140,14 +148,55 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
+    //check if the book is already borrowed or reserved by another user
+    const existingOrder = await Order.findOne({
+      book_id: bookId,
+      status: {
+        $in: ["Pending", "Approved", "Received", "Overdue", "Renew Pending"],
+      },
+    });
+
+    if (existingOrder) {
+      return res.status(400).json({
+        message: "This book is already borrowed or reserved by another user",
+        data: null,
+      });
+    }
+
+    //check if borrow date and due date are valid
+    if (!borrowDate || !dueDate) {
+      return res.status(400).json({
+        message: "Borrow date and due date are required",
+        data: null,
+      });
+    }
+
+    const borrowDateObj = new Date(borrowDate);
+    const dueDateObj = new Date(dueDate);
+
+    if (isNaN(borrowDateObj.getTime()) || isNaN(dueDateObj.getTime())) {
+      return res.status(400).json({
+        message: "Invalid borrow date or due date",
+        data: null,
+      });
+    }
+
+    if (dueDateObj <= borrowDateObj) {
+      return res.status(400).json({
+        message: "Due date must be after borrow date",
+        data: null,
+      });
+    }
+
+    //create new order
     const order = new Order({
       book_id: bookId,
       created_by: userId,
       updated_by: userId,
       status: "Pending",
       requestDate: new Date(),
-      borrowDate,
-      dueDate,
+      borrowDate: borrowDateObj,
+      dueDate: dueDateObj,
       returnDate: null,
       reason_order: "",
       renewalCount: 0,
@@ -165,7 +214,7 @@ const createBorrowOrder = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Borrow",
-      message: `Bạn đã mượn sách thành công. Ngày đáo hạn là ${dueDate}.`,
+      message: `Bạn đã yêu cầu mượn sách thành công. Vui lòng đến lấy sách đúng ngày. Hạn trả là ngày ${dueDateObj.toDateString()}.`,
     });
 
     await notification.save();
@@ -179,7 +228,6 @@ const createBorrowOrder = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
-
 
 // change order status
 async function changeOrderStatus(req, res, next) {

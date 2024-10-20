@@ -13,7 +13,6 @@ finesRouter.get("/by-user/:userId", finesController.getFinesByUserId);
 
 finesRouter.get("/by-order/:orderId", finesController.getFinesByOrderId);
 
-// not ok
 finesRouter.post("/create", finesController.createFines);
 
 //filter fines by status

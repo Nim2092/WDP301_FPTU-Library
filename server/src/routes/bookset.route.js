@@ -10,4 +10,5 @@ bookSetRouter.post("/add-books", BookSetController.addBooks);
 bookSetRouter.put("/update/:id", BookSetController.updateBookSet);
 bookSetRouter.get("/list", BookSetController.listBookSet);
 bookSetRouter.get("/:id", BookSetController.getBookSetDetail);
+bookSetRouter.delete("/delete/:id", BookSetController.deleteBookSet);
 module.exports = bookSetRouter;
