@@ -13,10 +13,15 @@ const finesSchema = new Schema(
     },
     createBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     updateBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    totalFinesAmount: { type: Number, required: true },
-    status: { type: Number, required: true },
-    paymentMethod: String,
-    paymentDate: Date,
+    totalFinesAmount: { type: Number, required: true, min: 0 },
+    status: {
+      type: String,
+      enum: ["Pending", "Paid", "Overdue"],
+      required: true,
+      default: "Pending",
+    },
+    paymentMethod: { type: String, default: null },
+    paymentDate: { type: Date, default: null },
   },
   { timestamps: true }
 );
