@@ -40,4 +40,6 @@ userRouter.put("/assign-role/:id", userController.assignRole);
 
 userRouter.get("/image/:id", userController.getImageById);
 
+userRouter.get("/getByCode/:code", userController.getUserByCode);
+
 module.exports = userRouter;

@@ -417,6 +417,28 @@ const getImageById = async (req, res) => {
   }
 };
 
+const getUserByCode = async (req, res, next) => {
+  try {
+    const { code } = req.params;
+    const user = await User.findOne({ code });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      message: "Get user by code successfully",
+      data: { userID: user._id },
+    });
+  } catch (error) {
+    console.error("Error getting user by code", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
 const UserController = {
   viewProfile,
   editProfile,
@@ -431,5 +453,6 @@ const UserController = {
   assignRole,
   updateUserByAdmin,
   getImageById,
+  getUserByCode,
 };
 module.exports = UserController;

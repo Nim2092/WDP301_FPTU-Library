@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { Card, Container } from "react-bootstrap";
-
+import AuthContext from "../../contexts/UserContext";
 function Fines() {
+  const { user } = useContext(AuthContext);
   // const [userId, setUserId] = useState("");
   const [fines, setFines] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:9999/api/fines/by-user/670bda6de2f01f73e5ef392b`)
+    axios.get(`http://localhost:9999/api/fines/by-user/${user.id}`)
       .then((response) => {
         setFines(response.data.data); // Set fines data
         console.log(response.data);

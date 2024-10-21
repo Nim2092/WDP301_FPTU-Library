@@ -1,15 +1,17 @@
-import React from "react";
-import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
-
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 function ListManageReturnBookByStudentId({ onNextStep }) {
-  // Sample data for books - you may replace this with props or fetched data
-  const bookList = [
-    { id: 1, title: "Kinh tế học đại cương", borrowDate: "10/09/2024", dueDate: "15/09/2024", studentId: "HE163676" },
-    { id: 2, title: "C/C++", borrowDate: "10/09/2024", dueDate: "15/09/2024", studentId: "HE163676" },
-    { id: 3, title: "Java", borrowDate: "10/09/2024", dueDate: "15/09/2024", studentId: "HE163676" },
-    { id: 4, title: "Python", borrowDate: "10/09/2024", dueDate: "15/09/2024", studentId: "HE163676" },
-    { id: 5, title: "Human Resources", borrowDate: "10/09/2024", dueDate: "15/09/2024", studentId: "HE163676" },
-  ];
+  const [studentId, setStudentId] = useState("");
+  const [bookList, setBookList] = useState([]);
+  useEffect(() => {
+    axios.get(`http://localhost:9999/api/orders/by-user/${studentId}`)
+      .then(response => {
+        setBookList(response.data.data);
+      })
+      .catch(error => {
+        console.error("Error fetching orders:", error);
+      });
+  }, [studentId]);
 
   const handleConfirm = (id) => {
     // Handle confirm action here (e.g., show popup or move to the next step)
