@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
-
+import AuthContext from "../../contexts/UserContext";
 function BookSetDetail() {
   const { bookId } = useParams(); // Lấy bookSetId từ URL
   const navigate = useNavigate(); // Dùng để điều hướng đến trang mượn sách
+  const { user } = useContext(AuthContext);
   const [bookSet, setBookSet] = useState(null); // Lưu trữ thông tin bộ sách
   const [books, setBooks] = useState([]); // Lưu trữ danh sách các quyển sách
 
@@ -25,10 +25,21 @@ function BookSetDetail() {
   }, [bookId]);
 
   // Hàm xử lý khi người dùng nhấn "Borrow this book"
-  const handleBorrowClick = () => {
+  const handleBorrowClick = async () => {
     if (books.length > 0) {
       const firstBook = books[0]; // Lấy quyển sách đầu tiên trong danh sách
-      navigate(`/order/${firstBook._id}`); // Điều hướng đến trang mượn sách với bookId
+      try {
+        await axios.post(`http://localhost:9999/api/orders/create-borrow/${firstBook._id}`, {
+          book_id: firstBook._id,
+          userId: user.id,
+          borrowDate: new Date().toISOString(),
+          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 ngày từ ngày hiện tại
+        });
+        // Điều hướng đến trang danh sách sách đã mượn sau khi hoàn thành
+        navigate(`/list-book-borrowed`);
+      } catch (error) {
+        console.error("Error borrowing the book:", error);
+      }
     }
   };
 
@@ -60,7 +71,6 @@ function BookSetDetail() {
             <p>No books available.</p>
           )}
 
-          {/* Nút mượn quyển sách đầu tiên */}
           {books.length > 0 && (
             <button className="btn btn-primary mt-3" onClick={handleBorrowClick}>
               Borrow this book

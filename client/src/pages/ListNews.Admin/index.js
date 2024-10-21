@@ -108,7 +108,7 @@ const ListNews = () => {
           {newsData.length > 0 ? (
             newsData.map((news, index) => (
               <tr key={news._id}>
-                <td>{index + 1}</td> {/* Sequential number starting from 1 */}
+                <td>{index + 1}</td> 
                 <td>
                   <img
                     src={`http://localhost:9999/api/news/thumbnail/${news.thumbnail
@@ -118,8 +118,8 @@ const ListNews = () => {
                     alt={news.title}
                   />
                 </td>
-                <td>{news.title}</td>
-                <td>{getLimitedContent(news.content, 50)}</td>
+                <td className="text-start w-25">{news.title}</td>
+                <td className="text-start w-25">{getLimitedContent(news.content, 50)}</td>
                 <td className="d-flex justify-content-between">
                   <button
                     className="btn btn-success"

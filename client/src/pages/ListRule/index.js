@@ -55,6 +55,13 @@ function ListRule() {
     console.log(id);
   };
 
+  const getLimitedContent = (content, lineLimit = 3) => {
+    const lines = content.split("\n");
+    if (lines.length > lineLimit) {
+      return lines.slice(0, lineLimit).join("\n") + "...";
+    }
+    return content;
+  };
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between mb-3">
@@ -82,11 +89,11 @@ function ListRule() {
         </thead>
         <tbody>
           {rules.length > 0 ? (
-            rules.map((rule) => (
+            rules.map((rule, index) => (
               <tr key={rule.id}>
-                <td>{rule.id}</td>
+                <td>{index + 1}</td>
                 <td onClick={() => handleClick(rule.id)} className="btn-link">{rule.title}</td>
-                <td>{rule.content}</td>
+                <td>{getLimitedContent(rule.content)  }</td>
                 <td className="d-flex justify-content-between">
                   <button className="btn btn-success" onClick={() => navigate(`/update-rule/${rule.id}`)}>
                     Update

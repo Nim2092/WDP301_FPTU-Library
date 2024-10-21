@@ -1,339 +1,254 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // To get the ID from the URL and navigate after submission
-import { json } from "react-router-dom";
+import axios from "axios";
+import { useParams } from "react-router-dom"; // For getting the book set ID from URL
+
 const UpdateBookSet = () => {
-  const { id } = useParams(); // Get the book set ID from the URL
-  const navigate = useNavigate(); // To navigate after successful update
-  const [image, setImage] = useState(null);
+  const { id } = useParams(); // Assuming you're passing the book set ID via URL params
+  const [catalogData, setCatalogData] = useState([]);
   const [formData, setFormData] = useState({
+    catalog_id: "",
+    isbn: "",
+    code: "",
+    shelfLocationCode: "",
     title: "",
     author: "",
     publishedYear: "",
-    isbn: "",
     publisher: "",
-    shelfLocationCode: "",
+    physicalDescription: "",
     totalCopies: "",
     availableCopies: "",
-    catalog: "", // String representing catalog ID
-    keywords: "",
-    subject: "",
   });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
-  // Fetch the existing book set data on component mount
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value ?? "", // Ensure empty string if undefined
+    });
+  };
+
+  // Fetch catalogs for the select dropdown
   useEffect(() => {
-    const fetchBookSet = async () => {
+    const fetchCatalogs = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:9999/api/book-sets/${id}`
-        );
+        const response = await fetch("http://localhost:9999/api/catalogs/list");
         if (!response.ok) {
-          throw new Error("Failed to fetch book set details.");
+          throw new Error("Failed to fetch catalog data");
         }
         const data = await response.json();
-
-        // Format date to YYYY-MM-DD
-        const formatDateToYMD = (date) => {
-          const d = new Date(date);
-          if (isNaN(d)) return ""; // Return an empty string if date is invalid
-          const year = d.getFullYear();
-          const month = `0${d.getMonth() + 1}`.slice(-2); // Add leading zero if needed
-          const day = `0${d.getDate()}`.slice(-2); // Add leading zero if needed
-          return `${year}-${month}-${day}`;
-        };
-        const catalogCode = data.bookSet.catalog_id?.code || "";
-        // Set the form data with values from the fetched data
-        setFormData({
-          title: data.bookSet.title || "",
-          author: data.bookSet.author || "",
-          publishedYear: data.bookSet.publishedYear
-            ? formatDateToYMD(data.bookSet.publishedYear)
-            : "",
-          isbn: data.bookSet.isbn || "",
-          publisher: data.bookSet.publisher || "",
-          shelfLocationCode: data.bookSet.shelfLocationCode || "",
-          totalCopies: data.bookSet.totalCopies || "",
-          availableCopies: data.bookSet.availableCopies || "",
-          catalog: catalogCode,
-          keywords: data.bookSet.keywords || "",
-          subject: data.bookSet.subject || "",
-        });
-        console.log(data.bookSet);
-        setIsLoading(false); // Set loading to false once data is loaded
+        setCatalogData(data);
       } catch (error) {
-        setErrorMessage(error.message);
-        console.error("Error fetching book set:", error);
-        setIsLoading(false);
+        console.error("Error fetching catalog data:", error);
       }
     };
 
-    fetchBookSet();
+    fetchCatalogs();
+  }, []);
+
+  // Fetch the existing book set data for editing
+  useEffect(() => {
+    const fetchBookSet = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:9999/api/book-sets/${id}`
+        );
+        if (response.data) {
+          setFormData({
+            catalog_id: response.data.bookSet.catalog_id || "",
+            isbn: response.data.bookSet.isbn || "",
+            code: response.data.bookSet.code || "",
+            shelfLocationCode: response.data.bookSet.shelfLocationCode || "",
+            title: response.data.bookSet.title || "",
+            author: response.data.bookSet.author || "",
+            publishedYear: response.data.bookSet.publishedYear ? new Date(response.data.bookSet.publishedYear).toISOString().split('T')[0] : "",
+            publisher: response.data.bookSet.publisher || "",
+            physicalDescription: response.data.bookSet.physicalDescription || "",
+            totalCopies: response.data.bookSet.totalCopies || "",
+            availableCopies: response.data.bookSet.availableCopies || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching book set data:", error);
+      }
+    };
+
+    if (id) {
+      fetchBookSet(); // Fetch data only if there's a bookSetId (for edit mode)
+    }
   }, [id]);
-
-  const handleImageChange = (e) => {
-    setImage(URL.createObjectURL(e.target.files[0]));
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage("");
-    setSuccessMessage("");
 
     try {
-      const response = await fetch(
+      const response = await axios.put(
         `http://localhost:9999/api/book-sets/update/${id}`,
+        formData,
         {
-          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData), // Send the updated form data as JSON
         }
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to update book set. Please try again.");
-      }
-
-      const result = await response.json();
-      setSuccessMessage("Book set updated successfully!");
-      console.log("API Response:", result);
-
-      // Navigate to the list page or any other route after success
-      navigate("/book-sets");
+      console.log("Book set updated successfully:", response.data);
     } catch (error) {
-      setErrorMessage(error.message);
       console.error("Error updating book set:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mt-4 text-center">
-        Loading book set details...
-      </div>
-    );
-  }
-
   return (
-    <div className="container mt-4">
-      <h2 className="text-center">Update Book Set</h2>
+    <div className="container">
+      <h1 className="my-4">Update Book Set</h1>
       <form onSubmit={handleSubmit}>
-        <div className="row">
-          {/* Image Upload Section */}
-          <div className="col-md-3">
-            <div className="form-group">
-              {image ? (
-                <img src={image} alt="Selected" className="img-thumbnail" />
-              ) : (
-                <div
-                  className="img-thumbnail d-flex justify-content-center align-items-center"
-                  style={{
-                    height: "200px",
-                    width: "100%",
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  Add img
-                </div>
-              )}
-              <input
-                type="file"
-                className="form-control mt-2"
-                onChange={handleImageChange}
-              />
-            </div>
-          </div>
 
-          {/* Form Input Fields */}
-          <div className="col-md-9">
-            <div className="form-group">
-              <label htmlFor="title">Name</label>
-              <input
-                type="text"
-                className="form-control"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Enter book title"
-                required
-              />
-            </div>
-
-            <div className="form-group mt-3">
-              <label htmlFor="author">Author</label>
-              <input
-                type="text"
-                className="form-control"
-                id="author"
-                name="author"
-                value={formData.author}
-                onChange={handleChange}
-                placeholder="Enter author name"
-                required
-              />
-            </div>
-
-            {/* Row with 2 Columns */}
-            <div className="row">
-              <div className="form-group mt-3 col-md-6">
-                <label htmlFor="publishedYear">Publication date</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  id="publishedYear"
-                  name="publishedYear"
-                  value={formData.publishedYear}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group mt-3 col-md-6">
-                <label htmlFor="isbn">ISBN</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="isbn"
-                  name="isbn"
-                  value={formData.isbn}
-                  onChange={handleChange}
-                  placeholder="Enter ISBN"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Row with 2 Columns */}
-            <div className="row">
-              <div className="form-group mt-3 col-md-6">
-                <label htmlFor="shelfLocationCode">Book sorting code</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="shelfLocationCode"
-                  name="shelfLocationCode"
-                  value={formData.shelfLocationCode}
-                  onChange={handleChange}
-                  placeholder="Enter book sorting code"
-                  required
-                />
-              </div>
-              <div className="form-group mt-3 col-md-6">
-                <label htmlFor="publisher">Publisher</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="publisher"
-                  name="publisher"
-                  value={formData.publisher}
-                  onChange={handleChange}
-                  placeholder="Enter publisher"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Row with 2 Columns */}
-            <div className="row">
-              <div className="form-group mt-3 col-md-6">
-                <label htmlFor="totalCopies">Total Copies</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  id="totalCopies"
-                  name="totalCopies"
-                  value={formData.totalCopies}
-                  onChange={handleChange}
-                  placeholder="Enter total copies"
-                  required
-                />
-              </div>
-              <div className="form-group mt-3 col-md-6">
-                <label htmlFor="availableCopies">Available Copies</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  id="availableCopies"
-                  name="availableCopies"
-                  value={formData.availableCopies}
-                  onChange={handleChange}
-                  placeholder="Enter available copies"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group mt-3">
-              <label htmlFor="catalog_id">Catalog</label>
-              <input
-                type="text"
-                className="form-control"
-                id="catalog_id"
-                name="catalog"
-                value={formData.catalog}
-                onChange={handleChange}
-                placeholder="Enter catalog ID"
-                required
-              />
-            </div>
-            <div className="form-group mt-3">
-              <label htmlFor="keywords">Keywords</label>
-              <input
-                type="text"
-                className="form-control"
-                id="keywords"
-                name="keywords"
-                value={formData.keywords}
-                onChange={handleChange}
-                placeholder="Enter keywords"
-              />
-            </div>
-            <div className="form-group mt-3">
-              <label htmlFor="subject">Subject</label>
-              <input
-                type="text"
-                className="form-control"
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                placeholder="Enter subject"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Feedback and Save Button */}
-        <div className="d-flex justify-content-center mt-4">
-          <button
-            type="submit"
-            className="btn btn-primary btn-lg"
-            disabled={isSubmitting}
+        {/* Catalog ID */}
+        <div className="mb-3">
+          <label htmlFor="catalog_id" className="form-label">Catalog ID:</label>
+          <select
+            className="form-select"
+            name="catalog_id"
+            value={formData.catalog_id || ""}  // Bind the selected catalog_id
+            onChange={handleInputChange}
           >
-            {isSubmitting ? "Updating..." : "Update"}
-          </button>
+            {catalogData.map((catalog) => (
+              <option key={catalog._id} value={catalog._id}>
+                {catalog.name}
+              </option>
+            ))}
+          </select>
         </div>
-        {errorMessage && (
-          <p className="text-danger text-center mt-3">{errorMessage}</p>
-        )}
-        {successMessage && (
-          <p className="text-success text-center mt-3">{successMessage}</p>
-        )}
+
+        {/* ISBN */}
+        <div className="mb-3">
+          <label htmlFor="isbn" className="form-label">ISBN:</label>
+          <input
+            type="text"
+            className="form-control"
+            id="isbn"
+            name="isbn"
+            value={formData.isbn || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Code */}
+        <div className="mb-3">
+          <label htmlFor="code" className="form-label">Code:</label>
+          <input
+            type="text"
+            className="form-control"
+            id="code"
+            name="code"
+            value={formData.code || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Title */}
+        <div className="mb-3">
+          <label htmlFor="title" className="form-label">Title:</label>
+          <input
+            type="text"
+            className="form-control"
+            id="title"
+            name="title"
+            value={formData.title || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Author */}
+        <div className="mb-3">
+          <label htmlFor="author" className="form-label">Author:</label>
+          <input
+            type="text"
+            className="form-control"
+            id="author"
+            name="author"
+            value={formData.author || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Published Year */}
+        <div className="mb-3">
+          <label htmlFor="publishedYear" className="form-label">Published Year:</label>
+          <input
+            type="date"
+            className="form-control"
+            id="publishedYear"
+            name="publishedYear"
+            value={formData.publishedYear || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Publisher */}
+        <div className="mb-3">
+          <label htmlFor="publisher" className="form-label">Publisher:</label>
+          <input
+            type="text"
+            className="form-control"
+            id="publisher"
+            name="publisher"
+            value={formData.publisher || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Physical Description */}
+        <div className="mb-3">
+          <label htmlFor="physicalDescription" className="form-label">Physical Description:</label>
+          <input
+            type="text"
+            className="form-control"
+            id="physicalDescription"
+            name="physicalDescription"
+            value={formData.physicalDescription || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Shelf Location Code */}
+        <div className="mb-3">
+          <label htmlFor="shelfLocationCode" className="form-label">Shelf Location Code:</label>
+          <input
+            type="text"
+            className="form-control"
+            id="shelfLocationCode"
+            name="shelfLocationCode"
+            value={formData.shelfLocationCode || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Total Copies */}
+        <div className="mb-3">
+          <label htmlFor="totalCopies" className="form-label">Total Copies:</label>
+          <input
+            type="number"
+            className="form-control"
+            id="totalCopies"
+            name="totalCopies"
+            value={formData.totalCopies || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Available Copies */}
+        <div className="mb-3">
+          <label htmlFor="availableCopies" className="form-label">Available Copies:</label>
+          <input
+            type="number"
+            className="form-control"
+            id="availableCopies"
+            name="availableCopies"
+            value={formData.availableCopies || ""} // Ensure value is always a string
+            onChange={handleInputChange}
+          />
+        </div>
+
+        <button type="submit" className="btn btn-primary">Update Book</button>
       </form>
     </div>
   );
