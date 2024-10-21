@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 const CreateBook = () => {
+  const navigate = useNavigate();
   const [catalogData, setCatalogData] = useState([]);
   const [formData, setFormData] = useState({
     catalog_id: "",
@@ -56,23 +57,28 @@ const CreateBook = () => {
         }
       );
       console.log("Book created successfully:", response.data);
+      navigate("/list-book-set");
     } catch (error) {
       console.error("Error creating book:", error);
     }
   };
 
+
   return (
-    <div className="container">
-      <h1>Create Book Set</h1>
+    <div className="container mt-5">
+      <h1 className="mb-4">Create Book Set</h1>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Catalog ID:</label>
+        
+        {/* Catalog ID */}
+        <div className="mb-3">
+          <label className="form-label">Catalog ID:</label>
           <select
+            className="form-select"
             name="catalog_id"
             value={formData.catalog_id}
             onChange={handleInputChange}
           >
-            <option value="">Select Catalog</option> {/* Provide a default option */}
+            <option value="">Select Catalog</option>
             {catalogData.map((catalog) => (
               <option key={catalog._id} value={catalog._id}>
                 {catalog.name}
@@ -80,98 +86,128 @@ const CreateBook = () => {
             ))}
           </select>
         </div>
-        <div>
-          <label>ISBN:</label>
+
+        {/* ISBN */}
+        <div className="mb-3">
+          <label className="form-label">ISBN:</label>
           <input
             type="text"
+            className="form-control"
             name="isbn"
             value={formData.isbn}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Code:</label>
+
+        {/* Code */}
+        <div className="mb-3">
+          <label className="form-label">Code:</label>
           <input
             type="text"
+            className="form-control"
             name="code"
             value={formData.code}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Title:</label>
+
+        {/* Title */}
+        <div className="mb-3">
+          <label className="form-label">Title:</label>
           <input
             type="text"
+            className="form-control"
             name="title"
             value={formData.title}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Author:</label>
+
+        {/* Author */}
+        <div className="mb-3">
+          <label className="form-label">Author:</label>
           <input
             type="text"
+            className="form-control"
             name="author"
             value={formData.author}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Published Year:</label>
+
+        {/* Published Year */}
+        <div className="mb-3">
+          <label className="form-label">Published Year:</label>
           <input
             type="date"
+            className="form-control"
             name="publishedYear"
             value={formData.publishedYear}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Publisher:</label>
+
+        {/* Publisher */}
+        <div className="mb-3">
+          <label className="form-label">Publisher:</label>
           <input
             type="text"
+            className="form-control"
             name="publisher"
             value={formData.publisher}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Physical Description:</label>
+
+        {/* Physical Description */}
+        <div className="mb-3">
+          <label className="form-label">Physical Description:</label>
           <input
             type="text"
+            className="form-control"
             name="physicalDescription"
             value={formData.physicalDescription}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Shelf Location Code:</label>
+
+        {/* Shelf Location Code */}
+        <div className="mb-3">
+          <label className="form-label">Shelf Location Code:</label>
           <input
             type="text"
+            className="form-control"
             name="shelfLocationCode"
             value={formData.shelfLocationCode}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Total Copies:</label>
+
+        {/* Total Copies */}
+        <div className="mb-3">
+          <label className="form-label">Total Copies:</label>
           <input
             type="number"
+            className="form-control"
             name="totalCopies"
             value={formData.totalCopies}
             onChange={handleInputChange}
           />
         </div>
-        <div>
-          <label>Available Copies:</label>
+
+        {/* Available Copies */}
+        <div className="mb-3">
+          <label className="form-label">Available Copies:</label>
           <input
             type="number"
+            className="form-control"
             name="availableCopies"
             value={formData.availableCopies}
             onChange={handleInputChange}
           />
         </div>
 
-        <button type="submit">Create Book</button>
+        <button type="submit" className="btn btn-primary" >Create Book</button>
       </form>
     </div>
   );

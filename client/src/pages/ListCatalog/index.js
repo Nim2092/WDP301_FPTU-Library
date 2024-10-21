@@ -13,8 +13,9 @@ const CatalogList = () => {
     name: "",
     code: "",
     major: "",
-    semester: ""
-  }); 
+    semester: "",
+    isTextbook: ""
+  });
 
   useEffect(() => {
     const fetchCatalogs = async () => {
@@ -43,6 +44,7 @@ const CatalogList = () => {
       code: catalogToUpdate.code,
       major: catalogToUpdate.major,
       semester: catalogToUpdate.semester,
+      isTextbook: catalogToUpdate.isTextbook
     });
     setCurrentCatalogId(id);
     setIsEditMode(true); // Set edit mode
@@ -73,11 +75,10 @@ const CatalogList = () => {
       }
     }
   };
-  
 
   // Open the Create Catalog Modal
   const handleCreateNewCatalog = () => {
-    setNewCatalog({ name: "", code: "", major: "", semester: "" }); // Clear the form
+    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false }); // Clear the form
     setIsEditMode(false); // Set create mode
     setShowModal(true); // Show modal
   };
@@ -120,7 +121,7 @@ const CatalogList = () => {
       }
 
       setShowModal(false); // Close modal after submission
-      setNewCatalog({ name: "", code: "", major: "", semester: "" }); // Reset form
+      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false }); // Reset form
     } catch (error) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} catalog:`, error);
     }
@@ -128,10 +129,10 @@ const CatalogList = () => {
 
   // Handle input change for the catalog form
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setNewCatalog((prevCatalog) => ({
       ...prevCatalog,
-      [name]: value,
+      [name]: type === "checkbox" ? (checked ? 1 : 0) : value,
     }));
   };
 
@@ -155,18 +156,20 @@ const CatalogList = () => {
               <th>Code</th>
               <th>Major</th>
               <th>Semester</th>
+              <th>Is Textbook</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {catalogData.length > 0 ? (
-              catalogData.map((catalog) => (
+              catalogData.map((catalog, index) => (
                 <tr key={catalog._id}>
-                  <td>{catalog._id}</td>
+                  <td>{index + 1}</td>
                   <td>{catalog.name}</td>
                   <td>{catalog.code}</td>
                   <td>{catalog.major}</td>
                   <td>{catalog.semester}</td>
+                  <td>{catalog.isTextbook ? "Yes" : "No"}</td>
                   <td className="d-flex justify-content-between">
                     <button className="btn btn-success mr-2" onClick={() => handleUpdate(catalog._id)}>
                       Update
@@ -238,6 +241,16 @@ const CatalogList = () => {
                 id="semester"
                 name="semester"
                 value={newCatalog.semester}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="form-group" style={{ display: "flex", alignItems: "center",  margin: "10px"}}>
+              <label htmlFor="isTextbook" style={{ marginRight: "10px" }}>Is Textbook</label>
+              <input
+                type="checkbox"
+                id="isTextbook"
+                name="isTextbook"
+                checked={newCatalog.isTextbook === 1} // Check the box if isTextbook is 1
                 onChange={handleInputChange}
               />
             </div>

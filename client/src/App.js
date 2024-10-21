@@ -41,6 +41,8 @@ import RuleDetail from "./pages/RuleDetail";
 import ListRuleUser from "./pages/ListRuleUser";
 import OrderDetail from "./pages/OrderDetail";
 import SearchResultsPage from "./pages/SearchResultsPage";
+import Notification from "./pages/Notification";
+import Fines from "./pages/Fines";
 
 function App() {
   return (
@@ -71,6 +73,8 @@ function App() {
                 <Route path="/renew-book/:orderId" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
                 <Route path="/order-book/:bookId" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
                 <Route path="/order-book-detail/:orderId" element={<ProtectedRoute roles={["borrower"]}><OrderDetail /></ProtectedRoute>} />
+                <Route path="/notification" element={<ProtectedRoute roles={["borrower"]}><Notification /></ProtectedRoute>} />
+                <Route path="/fines" element={<ProtectedRoute roles={["borrower"]}><Fines /></ProtectedRoute>} />
 
                 {/* Librarian Routes */}
                 <Route path="/manage-order" element={<ProtectedRoute roles={["librarian"]}><ManageOrder /></ProtectedRoute>} />

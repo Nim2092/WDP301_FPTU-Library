@@ -31,6 +31,14 @@ function ListBookSet() {
     setFilteredBookSetData(filteredData);
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const response = await axios.delete(`http://localhost:9999/api/book-sets/delete/${id}`);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error deleting book set:", error);
+    }
+  };
   return (
     <div className="container mt-4">
       {/* Search component */}
@@ -70,7 +78,7 @@ function ListBookSet() {
                   <td>{new Date(bookSet.publishedYear).toLocaleDateString()}</td>
                   <td className="d-flex justify-content-between">
                     <Link to={`/update-bookset/${bookSet._id}`} className="btn btn-primary">Edit</Link>
-                    <button className="btn btn-danger">Delete</button>
+                    <button className="btn btn-danger" onClick={() => handleDelete(bookSet._id)}>Delete</button>
                   </td>
                 </tr>
               ))}
