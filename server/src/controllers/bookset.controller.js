@@ -13,11 +13,10 @@ async function createBookSet(req, res, next) {
             publisher,
             physicalDescription,
             totalCopies,
-            availableCopies,
         } = req.body;
         console.log(req.body);
 
-        if (!catalog_id || !code || !isbn || !title || !author || !publishedYear || !publisher || !physicalDescription || !shelfLocationCode || !totalCopies || !availableCopies) {
+        if (!catalog_id || !code || !isbn || !title || !author || !publishedYear || !publisher || !physicalDescription || !shelfLocationCode || !totalCopies) {
             return res.status(400).json({ message: "All fields are required." });
         }
 
@@ -27,7 +26,7 @@ async function createBookSet(req, res, next) {
         }
 
         const catalogCode = catalog.code;
-
+        var availableCopies = totalCopies;
         const newBookSet = new BookSet({
             catalog_id,
             isbn,
@@ -97,7 +96,7 @@ async function updateBookSet(req, res, next) {
             availableCopies,
         } = req.body;
 
-        if (!catalog_id || !isbn || !title || !author || !publishedYear || !publisher || !physicalDescription || !shelfLocationCode || !totalCopies || !availableCopies) {
+        if (!catalog_id || !isbn || !title || !author || !publishedYear || !publisher || !physicalDescription || !shelfLocationCode) {
             return res.status(400).json({ message: "All fields are required." });
         }
 

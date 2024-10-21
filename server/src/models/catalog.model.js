@@ -7,7 +7,7 @@ const catalogSchema = new Schema(
     code: { type: Number, required: true, unique: true },
     major: String,
     semester: Number,
-      isTextbook: { type: Number, required: true },
+    isTextbook: { type: Number, required: true },
   },
   { timestamps: true }
 );

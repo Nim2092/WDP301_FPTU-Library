@@ -334,7 +334,7 @@ async function renewOrder(req, res, next) {
     order.dueDate = dueDate;
     order.renewalCount += 1;
     order.renewalDate = new Date();
-    order.renew_reason = renew_reason; // Update the renew_reason field
+    order.renew_reason = renew_reason;
 
     await order.save();
 
