@@ -278,7 +278,26 @@ async function deleteBookSet(req, res, next) {
         return res.status(500).json({ message: "An error occurred", error: error.message });
     }
 }
+async function getBookSetDetailAvailable(req, res, next) {
+    try {
+        const { id } = req.params;
 
+        // Fetch the BookSet by its ID
+        const bookSet = await BookSet.findById(id)
+            .populate({ path: 'catalog_id', model: 'Catalog', select: 'name code' });
+
+        if (!bookSet) {
+            return res.status(404).json({ message: "BookSet not found." });
+        }
+
+        // Fetch only the books with status 'Available' for this BookSet
+        const availableBooks = await Book.find({ bookSet_id: id, status: "Available" });
+
+        return res.status(200).json({ bookSet, availableBooks });
+    } catch (error) {
+        return res.status(500).json({ message: "An error occurred", error: error.message });
+    }
+}
 
 const BookSetController = {
     createBookSet,
@@ -286,7 +305,8 @@ const BookSetController = {
     listBookSet,
     getBookSetDetail,
     addBooks,
-    deleteBookSet
+    deleteBookSet,
+    getBookSetDetailAvailable
 };
 
 module.exports = BookSetController;

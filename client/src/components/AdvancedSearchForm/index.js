@@ -88,7 +88,6 @@ const AdvancedBookForm = ({ setSearchResults }) => {
               />
             </div>
           </div>
-
           <button type="submit" className="btn btn-primary mt-3">
             Search
           </button>

@@ -13,7 +13,7 @@ function BookSetDetail() {
   useEffect(() => {
     const fetchBookSetDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:9999/api/book-sets/${bookId}`);
+        const response = await axios.get(`http://localhost:9999/api/book-sets/available/${bookId}`);
         setBookSet(response.data.bookSet); // Lưu thông tin bộ sách
         setBooks(response.data.books); // Lưu danh sách các quyển sách
       } catch (error) {

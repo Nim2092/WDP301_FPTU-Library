@@ -101,9 +101,9 @@ const getOrderByUserId = async (req, res, next) => {
       .populate("updated_by", "fullName"); // Populate the user's full name
 
     if (!orders || orders.length === 0) {
-      return res.status(404).json({
+      return res.status(200).json({
         message: "Order not found",
-        data: null,
+        data: [],
       });
     }
 
@@ -119,6 +119,119 @@ const getOrderByUserId = async (req, res, next) => {
 };
 
 //create borrow order with book id
+// const createBorrowOrder = async (req, res, next) => {
+//   try {
+//     const { borrowDate, dueDate, userId } = req.body;
+//     const { bookId } = req.params;
+
+//     console.log(req.body);
+//     console.log(req.params);
+//     //check if user exists
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     //check if book exists
+//     const book = await Book.findById(bookId);
+//     if (!book) {
+//       return res.status(404).json({
+//         message: "Book not found",
+//         data: null,
+//       });
+//     }
+
+
+//     //check if book set exists and has available copies
+//     const bookSet = await BookSet.findById(book.bookSet_id);
+//     if (!bookSet || bookSet.availableCopies < 1) {
+//       return res.status(400).json({
+//         message: "No available copies left for this book set",
+//         data: null,
+//       });
+//     }
+
+//     //check if the book is already borrowed or reserved by another user
+//     const existingOrder = await Order.findOne({
+//       book_id: bookId,
+//       status: {
+//         $in: ["Pending", "Approved", "Received", "Overdue", "Renew Pending"],
+//       },
+//     });
+
+//     if (existingOrder) {
+//       return res.status(400).json({
+//         message: "This book is already borrowed or reserved by another user",
+//         data: null,
+//       });
+//     }
+
+//     //check if borrow date and due date are valid
+//     if (!borrowDate || !dueDate) {
+//       return res.status(400).json({
+//         message: "Borrow date and due date are required",
+//         data: null,
+//       });
+//     }
+
+//     const borrowDateObj = new Date(borrowDate);
+//     const dueDateObj = new Date(dueDate);
+
+//     if (isNaN(borrowDateObj.getTime()) || isNaN(dueDateObj.getTime())) {
+//       return res.status(400).json({
+//         message: "Invalid borrow date or due date",
+//         data: null,
+//       });
+//     }
+
+//     if (dueDateObj <= borrowDateObj) {
+//       return res.status(400).json({
+//         message: "Due date must be after borrow date",
+//         data: null,
+//       });
+//     }
+
+//     //create new order
+//     const order = new Order({
+//       book_id: bookId,
+//       created_by: userId,
+//       updated_by: userId,
+//       status: "Pending",
+//       requestDate: new Date(),
+//       borrowDate: borrowDateObj,
+//       dueDate: dueDateObj,
+//       returnDate: null,
+//       reason_order: "",
+//       renewalCount: 0,
+//       renewalDate: null,
+//     });
+
+//     const newOrder = await order.save();
+
+//     book.status = "Borrowed";
+//     await book.save();
+
+//     bookSet.availableCopies -= 1;
+//     await bookSet.save();
+
+//     const notification = new Notification({
+//       userId: userId,
+//       type: "Borrow",
+//       message: `Bạn đã yêu cầu mượn sách thành công. Vui lòng đến lấy sách đúng ngày. Hạn trả là ngày ${dueDateObj.toDateString()}.`,
+//     });
+
+//     await notification.save();
+
+//     res.status(201).json({
+//       message: "Order created successfully",
+//       data: newOrder,
+//     });
+//   } catch (error) {
+//     console.error("Error creating order", error);
+//     res.status(500).send({ message: error.message });
+//   }
+// };
+
 const createBorrowOrder = async (req, res, next) => {
   try {
     const { borrowDate, dueDate, userId } = req.body;
@@ -126,13 +239,14 @@ const createBorrowOrder = async (req, res, next) => {
 
     console.log(req.body);
     console.log(req.params);
-    //check if user exists
+    
+    // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    //check if book exists
+    // Check if book exists
     const book = await Book.findById(bookId);
     if (!book) {
       return res.status(404).json({
@@ -141,8 +255,7 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
-
-    //check if book set exists and has available copies
+    // Check if book set exists and has available copies
     const bookSet = await BookSet.findById(book.bookSet_id);
     if (!bookSet || bookSet.availableCopies < 1) {
       return res.status(400).json({
@@ -151,7 +264,7 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
-    //check if the book is already borrowed or reserved by another user
+    // Check if the book is already borrowed or reserved by another user
     const existingOrder = await Order.findOne({
       book_id: bookId,
       status: {
@@ -166,7 +279,7 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
-    //check if borrow date and due date are valid
+    // Check if borrow date and due date are valid
     if (!borrowDate || !dueDate) {
       return res.status(400).json({
         message: "Borrow date and due date are required",
@@ -191,7 +304,18 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
-    //create new order
+    // Check if due date is more than 14 days after borrow date
+    const maxDueDate = new Date(borrowDateObj);
+    maxDueDate.setDate(maxDueDate.getDate() + 14); // Add 14 days
+
+    if (dueDateObj > maxDueDate) {
+      return res.status(400).json({
+        message: "Due date must not be more than 14 days after the borrow date",
+        data: null,
+      });
+    }
+
+    // Create new order
     const order = new Order({
       book_id: bookId,
       created_by: userId,
@@ -231,6 +355,8 @@ const createBorrowOrder = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+
 
 // change order status
 async function changeOrderStatus(req, res, next) {

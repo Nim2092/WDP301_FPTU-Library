@@ -50,7 +50,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Header />
-          <div className="app-container">
+          <div className="app-container" >
             <div className="main-layout row">
               <Routes>
                 {/* Public route */}
