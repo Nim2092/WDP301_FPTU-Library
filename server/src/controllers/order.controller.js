@@ -7,16 +7,18 @@ const {
   book: Book,
   bookset: BookSet,
   notification: Notification,
+  penaltyreason: PenaltyReason,
+  fines: Fines,
 } = db;
 
 //Get all order
 const getAllOrder = async (req, res, next) => {
   try {
     const order = await Order.find({}).populate({
-      path: 'book_id', // Populate the book reference
+      path: "book_id", // Populate the book reference
       populate: {
-        path: 'bookSet_id', // Nested populate to get the book set details
-        model: 'BookSet',   // Reference to the BookSet model
+        path: "bookSet_id", // Nested populate to get the book set details
+        model: "BookSet", // Reference to the BookSet model
       },
     });
 
@@ -141,7 +143,6 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
-
     //check if book set exists and has available copies
     const bookSet = await BookSet.findById(book.bookSet_id);
     if (!bookSet || bookSet.availableCopies < 1) {
@@ -249,14 +250,27 @@ async function changeOrderStatus(req, res, next) {
     const { status, reason_order, updated_by } = req.body;
 
     // Find the order by ID
-    const order = await Order.findById(orderId).populate("created_by", "fullName email");
+    const order = await Order.findById(orderId).populate(
+      "created_by",
+      "fullName email"
+    );
 
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
     }
 
     // Validate status
-    const validStatuses = ["Pending", "Approved", "Rejected", "Received", "Canceled", "Returned", "Overdue", "Lost", "Renew Pending"];
+    const validStatuses = [
+      "Pending",
+      "Approved",
+      "Rejected",
+      "Received",
+      "Canceled",
+      "Returned",
+      "Overdue",
+      "Lost",
+      "Renew Pending",
+    ];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status update." });
     }
@@ -264,7 +278,9 @@ async function changeOrderStatus(req, res, next) {
     // Handle rejection with reason
     if (status === "Rejected") {
       if (!reason_order || reason_order.trim() === "") {
-        return res.status(400).json({ message: "Rejection reason is required." });
+        return res
+          .status(400)
+          .json({ message: "Rejection reason is required." });
       }
       order.reason_order = reason_order; // Set the reason for rejection
     }
@@ -314,7 +330,7 @@ async function changeOrderStatus(req, res, next) {
 async function renewOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { dueDate, renew_reason } = req.body; // Extract renew_reason from the request body
+    const { dueDate, renew_reason, userId } = req.body;
 
     if (!dueDate) {
       return res.status(400).json({
@@ -328,7 +344,10 @@ async function renewOrder(req, res, next) {
       });
     }
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate(
+      "book_id",
+      "identifier_code condition"
+    );
     if (!order) {
       return res.status(404).json({
         message: "Order not found.",
@@ -351,7 +370,7 @@ async function renewOrder(req, res, next) {
     const notification = new Notification({
       userId: userId,
       type: "Renewal",
-      message: `Bạn đã gia hạn thành công sách #${order.book_id}. Ngày trả mới là ${dueDate}.`,
+      message: `Bạn đã gia hạn thành công sách #${order.book_id.identifier_code}. Ngày trả mới là ${dueDate}.`,
     });
 
     await notification.save();
@@ -415,6 +434,205 @@ async function returnOrder(req, res, next) {
   }
 }
 
+//filter order by status
+const filterOrdersByStatus = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+
+    const validStatuses = [
+      "Pending",
+      "Approved",
+      "Rejected",
+      "Received",
+      "Canceled",
+      "Returned",
+      "Overdue",
+      "Lost",
+      "Renew Pending",
+    ];
+
+    // Check invalid status
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        message: "Invalid status. Please provide a valid order status.",
+      });
+    }
+
+    // Find orders by status and populate the related fields
+    const orders = await Order.find({ status })
+      .populate("book_id", "title")
+      .populate("created_by", "name email")
+      .populate("updated_by", "name email");
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({
+        message: "No orders found with the provided status.",
+        data: null,
+      });
+    }
+
+    return res.status(200).json({
+      message: `Orders with status '${status}' retrieved successfully.`,
+      data: orders,
+    });
+  } catch (error) {
+    console.error("Error filtering orders by status", error);
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
+  }
+};
+
+//Cancel order
+const cancelOrder = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const { userId } = req.body;
+
+    const order = await Order.findById(orderId).populate(
+      "book_id",
+      "identifier_code"
+    );
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    // Check if the order is in a cancelable state
+    if (order.status !== "Pending") {
+      return res.status(400).json({
+        message: `Order cannot be canceled. Current status: ${order.status}`,
+      });
+    }
+
+    order.status = "Canceled";
+    order.updated_by = userId;
+    await order.save();
+
+    //create notification
+    const notification = new Notification({
+      userId: userId,
+      type: "Canceled",
+      message: `Bạn đã hủy thành công sách #${order.book_id.identifier_code}.`,
+    });
+    await notification.save();
+
+    return res.status(200).json({
+      message: "Order canceled successfully.",
+      data: order,
+    });
+  } catch (error) {
+    console.error("Error canceling order", error);
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
+  }
+};
+
+//Report lost book
+const reportLostBook = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const { userId } = req.body;
+
+    const order = await Order.findById(orderId).populate(
+      "book_id",
+      "identifier_code condition"
+    );
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    order.status = "Lost";
+    await order.save();
+
+    // Create notification
+    const notification = new Notification({
+      userId: userId,
+      type: "Lost",
+      message: `Sách ${order.book_id.identifier_code} đã được báo cáo là bị mất.`,
+    });
+    await notification.save();
+
+    return res.status(200).json({
+      message: `Báo cáo sách bị mất thành công.`,
+      data: order,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
+  }
+};
+
+//Approve fines for lost book
+const applyFinesForLostBook = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const { userId, fineReasonId, createBy, updateBy } = req.body;
+
+    const order = await Order.findById(orderId).populate(
+      "book_id",
+      "identifier_code"
+    );
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    // Check status of the order
+    if (order.status !== "Lost") {
+      return res.status(400).json({
+        message: "This order is not reported as lost.",
+      });
+    }
+
+    //check penalty reason
+    const penaltyReason = await PenaltyReason.findById(fineReasonId).populate(
+      "reasonName"
+    );
+    if (!penaltyReason) {
+      return res.status(404).json({ message: "Penalty reason not found" });
+    }
+
+    // Create new fine record for lost book
+    const fines = new Fines({
+      user_id: userId,
+      order_id: orderId,
+      fineReason_id: fineReasonId,
+      createBy: createBy,
+      updateBy: updateBy,
+      totalFineAmount: penaltyReason.penaltyAmount,
+      status: "Pending",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      paymentMethod: null,
+      paymentDate: null,
+    });
+
+    await fines.save();
+
+    // Create notification for the user
+    const notification = new Notification({
+      userId: userId,
+      type: "Fines",
+      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount}k cho sách ${order.book_id.identifier_code} vì bị mất.`,
+    });
+    await notification.save();
+
+    return res.status(200).json({
+      message: `Applied fines for lost book successfully.`,
+      data: fines,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
+  }
+};
+
 const OrderController = {
   getOrderByUserId,
   getAllOrder,
@@ -423,5 +641,9 @@ const OrderController = {
   changeOrderStatus,
   renewOrder,
   returnOrder,
+  filterOrdersByStatus,
+  cancelOrder,
+  reportLostBook,
+  applyFinesForLostBook,
 };
 module.exports = OrderController;
