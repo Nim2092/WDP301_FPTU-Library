@@ -145,7 +145,9 @@ const createFines = async (req, res, next) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    const penaltyReason = await PenaltyReason.findById(fineReason_id);
+    const penaltyReason = await PenaltyReason.findById(fineReason_id).populate(
+      "reasonName"
+    );
     if (!penaltyReason) {
       return res.status(404).json({ message: "Penalty reason not found" });
     }
@@ -178,7 +180,7 @@ const createFines = async (req, res, next) => {
     const notification = new Notification({
       userId: user_id,
       type: "Fines",
-      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount}k cho sách #${order.book_id.identifier_code}. Vui lòng thanh toán để tránh thêm phí.`,
+      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount}k cho sách #${order.book_id.identifier_code} vì lý do ${penaltyReason.reasonName}. Vui lòng thanh toán để tránh thêm phí.`,
     });
     await notification.save();
 
