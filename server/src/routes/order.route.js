@@ -18,4 +18,12 @@ orderRouter.put("/change-status/:orderId", orderController.changeOrderStatus);
 orderRouter.post("/renew/:orderId", orderController.renewOrder);
 
 orderRouter.post("/return/:orderId", orderController.returnOrder);
+
+orderRouter.get("/filter", orderController.filterOrdersByStatus);
+
+orderRouter.put("/cancel/:orderId", orderController.cancelOrder);
+
+orderRouter.put("/report-lost/:orderId", orderController.reportLostBook);
+
+orderRouter.post("/lost-fines/:orderId", orderController.applyFinesForLostBook);
 module.exports = orderRouter;
