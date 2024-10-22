@@ -141,10 +141,13 @@ async function updateBookSet(req, res, next) {
 
 async function listBookSet(req, res, next) {
     try {
-        const { page = 1, limit = 10, title, author, pubYear, publisher } = req.query;
+        const { page = 1, limit = 10, title, author, pubYear, publisher, catalog_id } = req.query;
 
         const query = {};
 
+        if (catalog_id) {
+            query.catalog_id = catalog_id;
+        }
         if (title) {
             query.title = { $regex: new RegExp(title, 'i') };
         }
