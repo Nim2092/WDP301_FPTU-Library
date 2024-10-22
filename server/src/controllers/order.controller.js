@@ -151,6 +151,7 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
+
     //check if the book is already borrowed or reserved by another user
     const existingOrder = await Order.findOne({
       book_id: bookId,
@@ -176,6 +177,15 @@ const createBorrowOrder = async (req, res, next) => {
 
     const borrowDateObj = new Date(borrowDate);
     const dueDateObj = new Date(dueDate);
+
+    const differenceInDays = (dueDateObj - borrowDateObj) / (1000 * 60 * 60 * 24);
+
+    if (differenceInDays > 14) {
+      return res.status(400).json({
+        message: "Thời hạn mượn sách tối đa là 14 ngày.",
+        data: null,
+      });
+    }
 
     if (isNaN(borrowDateObj.getTime()) || isNaN(dueDateObj.getTime())) {
       return res.status(400).json({
