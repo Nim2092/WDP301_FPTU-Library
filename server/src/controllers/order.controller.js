@@ -152,7 +152,6 @@ const createBorrowOrder = async (req, res, next) => {
       });
     }
 
-
     //check if the book is already borrowed or reserved by another user
     const existingOrder = await Order.findOne({
       book_id: bookId,
@@ -179,7 +178,8 @@ const createBorrowOrder = async (req, res, next) => {
     const borrowDateObj = new Date(borrowDate);
     const dueDateObj = new Date(dueDate);
 
-    const differenceInDays = (dueDateObj - borrowDateObj) / (1000 * 60 * 60 * 24);
+    const differenceInDays =
+      (dueDateObj - borrowDateObj) / (1000 * 60 * 60 * 24);
 
     if (differenceInDays > 14) {
       return res.status(400).json({
@@ -250,10 +250,9 @@ async function changeOrderStatus(req, res, next) {
     const { status, reason_order, updated_by } = req.body;
 
     // Find the order by ID
-    const order = await Order.findById(orderId).populate(
-      "created_by",
-      "fullName email"
-    );
+    const order = await Order.findById(orderId)
+      .populate("created_by", "fullName email")
+      .populate("book_id", "identifier_code condition");
 
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
@@ -484,52 +483,6 @@ const filterOrdersByStatus = async (req, res, next) => {
   }
 };
 
-//Cancel order
-const cancelOrder = async (req, res, next) => {
-  try {
-    const { orderId } = req.params;
-    const { userId } = req.body;
-
-    const order = await Order.findById(orderId).populate(
-      "book_id",
-      "identifier_code"
-    );
-    if (!order) {
-      return res.status(404).json({ message: "Order not found." });
-    }
-
-    // Check if the order is in a cancelable state
-    if (order.status !== "Pending") {
-      return res.status(400).json({
-        message: `Order cannot be canceled. Current status: ${order.status}`,
-      });
-    }
-
-    order.status = "Canceled";
-    order.updated_by = userId;
-    await order.save();
-
-    //create notification
-    const notification = new Notification({
-      userId: userId,
-      type: "Canceled",
-      message: `Bạn đã hủy thành công sách #${order.book_id.identifier_code}.`,
-    });
-    await notification.save();
-
-    return res.status(200).json({
-      message: "Order canceled successfully.",
-      data: order,
-    });
-  } catch (error) {
-    console.error("Error canceling order", error);
-    return res.status(500).json({
-      message: "An error occurred",
-      error: error.message,
-    });
-  }
-};
-
 //Report lost book
 const reportLostBook = async (req, res, next) => {
   try {
@@ -642,7 +595,6 @@ const OrderController = {
   renewOrder,
   returnOrder,
   filterOrdersByStatus,
-  cancelOrder,
   reportLostBook,
   applyFinesForLostBook,
 };
