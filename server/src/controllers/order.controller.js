@@ -143,7 +143,6 @@ const getOrderByUserId = async (req, res, next) => {
 //       });
 //     }
 
-
 //     //check if book set exists and has available copies
 //     const bookSet = await BookSet.findById(book.bookSet_id);
 //     if (!bookSet || bookSet.availableCopies < 1) {
@@ -241,7 +240,7 @@ const createBorrowOrder = async (req, res, next) => {
 
     console.log(req.body);
     console.log(req.params);
-    
+
     // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
@@ -297,7 +296,7 @@ const createBorrowOrder = async (req, res, next) => {
 
     if (differenceInDays > 14) {
       return res.status(400).json({
-        message: "Thời hạn mượn sách tối đa là 14 ngày.",
+        message: "The maximum term for borrowing books is 14 days",
         data: null,
       });
     }
@@ -352,8 +351,8 @@ const createBorrowOrder = async (req, res, next) => {
 
     const notification = new Notification({
       userId: userId,
-      type: "Borrow",
-      message: `Bạn đã yêu cầu mượn sách thành công. Vui lòng đến lấy sách đúng ngày. Hạn trả là ngày ${dueDateObj.toDateString()}.`,
+      type: "Pending",
+      message: `You have successfully requested to borrow the book. Your book loan is due today ${dueDateObj.toDateString()}.`,
     });
 
     await notification.save();
@@ -367,8 +366,6 @@ const createBorrowOrder = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
-
-
 
 // change order status
 async function changeOrderStatus(req, res, next) {
@@ -411,6 +408,45 @@ async function changeOrderStatus(req, res, next) {
       order.reason_order = reason_order; // Set the reason for rejection
     }
 
+    // Check if the order is overdue or lost and the status is being changed to Renew Pending
+    if (
+      status === "Renew Pending" &&
+      (order.status === "Lost" || order.status === "Overdue")
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Lost or overdue books cannot be renewed" });
+    }
+
+    //Check can not renew a returned order
+    if (order.status === "Returned" && status === "Renew Pending") {
+      return res.status(400).json({
+        message: "Cannot renew a returned order",
+      });
+    }
+
+    //Check just orders with status Pending or Renew Pending can be cancel
+    const cancelableStatuses = ["Pending", "Renew Pending"];
+    if (status === "Canceled" && !cancelableStatuses.includes(status)) {
+      return res.status(400).json({
+        message: `Just orders with status ${cancelableStatuses.join(
+          " or "
+        )} can be cancel.`,
+      });
+    }
+
+    //Order cancellation limits
+    const user = order.created_by;
+    if (status === "Canceled") {
+      if (user.cancelCount >= 3) {
+        return res.status(400).json({
+          message: "You have reached the maximum number of cancellations.",
+        });
+      }
+      user.cancelCount += 1;
+      await user.save();
+    }
+
     // Update the order status
     order.status = status;
     order.updated_by = updated_by;
@@ -422,18 +458,37 @@ async function changeOrderStatus(req, res, next) {
     let notificationType = "Status Change";
     let notificationMessage = `Your order #${order._id} status has been changed to ${status}.`;
 
-    if (status === "Approved") {
-      notificationType = "Approved"; // Set notification type to "Approval" for approved status
-      notificationMessage = `Your order #${order._id} has been approved.`;
-    } else if (status === "Rejected") {
-      notificationType = "Rejected"; // Set notification type to "Rejected" for rejected status
-      notificationMessage = `Your order #${order._id} has been rejected. Reason: ${reason_order}.`;
+    switch (status) {
+      case "Approved":
+        notificationMessage = `Your request to borrow book #${order.book_id.identifier_code} has been approved. The due date is ${order.dueDate}.`;
+        break;
+      case "Rejected":
+        notificationMessage = `Your order #${order._id} has been rejected. Reason: ${reason_order}.`;
+        break;
+      case "Received":
+        notificationMessage = `You have received book #${order.book_id.identifier_code}.`;
+        break;
+      case "Returned":
+        notificationMessage = `You have successfully returned book #${order.book_id.identifier_code}.`;
+        break;
+      case "Overdue":
+        notificationMessage = `Your book #${order.book_id.identifier_code} is overdue. Please return it as soon as possible.`;
+        break;
+      case "Lost":
+        notificationMessage = `Book #${order.book_id.identifier_code} has been reported lost. Reason: ${reason_order}.`;
+        break;
+      case "Renew Pending":
+        notificationMessage = `Your request to renew book #${order.book_id.identifier_code} is being processed.`;
+        break;
+      case "Canceled":
+        notificationMessage = `Your order #${order._id} has been canceled.`;
+        break;
     }
 
     // Create a notification for the user who created the order
     const notification = new Notification({
       userId: order.created_by._id,
-      type: notificationType,
+      type: status,
       message: notificationMessage,
     });
 
@@ -495,8 +550,8 @@ async function renewOrder(req, res, next) {
 
     const notification = new Notification({
       userId: userId,
-      type: "Renewal",
-      message: `Bạn đã gia hạn thành công sách #${order.book_id.identifier_code}. Ngày trả mới là ${dueDate}.`,
+      type: "Renew Pending",
+      message: `Your request to renew book #${order.book_id.identifier_code} is being processed. The new book return date is ${dueDate}.`,
     });
 
     await notification.save();
@@ -542,8 +597,8 @@ async function returnOrder(req, res, next) {
 
     const notification = new Notification({
       userId: userId,
-      type: "Return",
-      message: `Bạn đã trả thành công sách #${order.book_id.identifier_code}. Tình trạng sách là: ${order.book_id.condition}. Cảm ơn!`,
+      type: "Returned",
+      message: `You have successfully returned the book #${order.book_id.identifier_code}. Book condition is: ${order.book_id.condition}. Thank you!`,
     });
 
     await notification.save();
@@ -631,12 +686,12 @@ const reportLostBook = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Lost",
-      message: `Sách ${order.book_id.identifier_code} đã được báo cáo là bị mất.`,
+      message: `Book ${order.book_id.identifier_code} has been reported lost.`,
     });
     await notification.save();
 
     return res.status(200).json({
-      message: `Báo cáo sách bị mất thành công.`,
+      message: `Report lost books successfully.`,
       data: order,
     });
   } catch (error) {
@@ -697,7 +752,7 @@ const applyFinesForLostBook = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Fines",
-      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount}k cho sách ${order.book_id.identifier_code} vì bị mất.`,
+      message: `You have been penalized ${penaltyReason.penaltyAmount}k for book ${order.book_id.identifier_code} for loss.`,
     });
     await notification.save();
 
