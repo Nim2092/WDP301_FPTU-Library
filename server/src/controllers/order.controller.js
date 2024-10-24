@@ -648,7 +648,14 @@ const filterOrdersByStatus = async (req, res, next) => {
 
     // Find orders by status and populate the related fields
     const orders = await Order.find({ status })
-      .populate("book_id", "title")
+      .populate({
+        path: "book_id",
+        select: "identifier_code",
+        populate: {
+          path: "bookSet_id",
+          select: "title",
+        },
+      })
       .populate("created_by", "name email")
       .populate("updated_by", "name email");
 

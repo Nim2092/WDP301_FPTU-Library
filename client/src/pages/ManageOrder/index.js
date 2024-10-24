@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { Modal, Button, Container } from "react-bootstrap";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
+import { toast, ToastContainer } from "react-toastify";
 
 const BorrowBookList = () => {
   const [showModal, setShowModal] = useState(false);
@@ -11,13 +12,19 @@ const BorrowBookList = () => {
   const [borrowBooks, setBorrowBooks] = useState([]); // List of borrowed books
   const [status, setStatus] = useState(""); // Holds the status filter
   const { user } = useContext(AuthContext); // Get the user context
+  const [selectedBooks, setSelectedBooks] = useState([]); // For storing selected books' IDs
 
   // Fetch books function
   const fetchBooks = async () => {
     try {
-      const response = await axios.get(`http://localhost:9999/api/orders/getAll`);
+      const response = status === "" 
+        ? await axios.get(`http://localhost:9999/api/orders/getAll`) 
+        : await axios.get(`http://localhost:9999/api/orders/filter?status=${status}`);
+      
       setBorrowBooks(response.data.data || []);
     } catch (error) {
+      const errorMessage = error.response ? error.response.data.message : "An error occurred while fetching borrow books.";
+      toast.error(errorMessage);
       console.error("Error fetching borrow books:", error);
     }
   };
@@ -46,39 +53,77 @@ const BorrowBookList = () => {
 
       setShowModal(false);
       setReason(""); // Clear the reason input after action
-
-      if (modalType === "approve") {
-        // Reload the page after approval
-        fetchBooks();
-      } else {
-        // Refresh the book list after rejection
-        fetchBooks();
-      }
+      fetchBooks();
     } catch (error) {
       console.error(`Error ${modalType === 'approve' ? 'approving' : 'rejecting'} the book:`, error);
     }
   };
 
+  // Select or unselect all books
+  const handleSelectAll = () => {
+    if (selectedBooks.length === borrowBooks.length) {
+      // Unselect all if all are selected
+      setSelectedBooks([]);
+    } else {
+      // Select all books
+      const allBookIds = borrowBooks.map((book) => book._id);
+      setSelectedBooks(allBookIds);
+    }
+  };
+
+  // Handle individual book selection
+  const handleSelectBook = (bookId) => {
+    if (selectedBooks.includes(bookId)) {
+      // If already selected, remove it
+      setSelectedBooks(selectedBooks.filter((id) => id !== bookId));
+    } else {
+      // Otherwise, add it to the selected books
+      setSelectedBooks([...selectedBooks, bookId]);
+    }
+  };
+
   return (
     <Container className="mt-4">
+      <ToastContainer />
       <h2 className="mb-4">List of Borrowed Books</h2>
-
-      {/* Status Filter Dropdown */}
-      <select
-        className="form-select mb-4 w-25 float-end"
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-      >
-        <option value="">Select Status</option>
-        <option value="Pending">Pending</option>
-        <option value="Approved">Approved</option>
-        <option value="Rejected">Rejected</option>
-      </select>
-
+      <div className="d-flex justify-content-between">
+        <div>
+          {/* Status Filter Dropdown */}
+          <select
+            className="form-select mb-4"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">All Orders</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Received">Received</option>
+            <option value="Canceled">Canceled</option>
+            <option value="Returned">Returned</option>
+            <option value="Overdue">Overdue</option>
+            <option value="Lost">Lost</option>
+            <option value="Renew Pending">Renew Pending</option>
+          </select>
+        </div>
+        {/* Approve and Select All */}
+        <div>
+          <Button variant="primary" style={{marginRight: "10px"}} onClick={handleSelectAll}>
+            {selectedBooks.length === borrowBooks.length ? "Unselect All" : "Select All"}
+          </Button>
+          <Button variant="primary" style={{marginRight: "10px"}}>
+            Approve Selected
+          </Button>
+          <Button variant="danger">
+            Reject Selected
+          </Button>
+        </div>
+      </div>
       {/* Borrowed Books Table */}
       <table className="table table-bordered">
         <thead>
           <tr>
+            <th>Select</th>
             <th>ID</th>
             <th>Book Title</th>
             <th>Borrow Date</th>
@@ -91,6 +136,13 @@ const BorrowBookList = () => {
           {borrowBooks.length > 0 ? (
             borrowBooks.map((book, index) => (
               <tr key={book._id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedBooks.includes(book._id)}
+                    onChange={() => handleSelectBook(book._id)}
+                  />
+                </td>
                 <td>{index + 1}</td>
                 <td>{book.book_id.bookSet_id.title}</td>
                 <td>{new Date(book.borrowDate).toLocaleDateString()}</td>
