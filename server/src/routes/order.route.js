@@ -31,7 +31,7 @@ orderRouter.post("/lost-fines/:orderId", orderController.applyFinesForLostBook);
 //   orderController.rejectOverdueOrders
 // );
 
-// orderRouter.get("/test-due-date/:orderId", orderController.checkDueDates);
+// orderRouter.get("/test-due-date/:orderId", orderController.checkDueDatesAndReminder);
 
 // orderRouter.get(
 //   "/test-overdue/:orderId",

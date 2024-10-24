@@ -573,7 +573,13 @@ async function renewOrder(req, res, next) {
 async function returnOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { userId } = req.body;
+    const { userId, returnDate } = req.body;
+
+    if (!returnDate) {
+      return res.status(400).json({
+        message: "Please provide a return date.",
+      });
+    }
 
     const order = await Order.findById(orderId).populate(
       "book_id",
@@ -592,14 +598,14 @@ async function returnOrder(req, res, next) {
     }
 
     order.status = "Returned";
-    order.returnDate = new Date();
+    order.returnDate = new Date(returnDate);
 
     await order.save();
 
     const notification = new Notification({
       userId: userId,
       type: "Returned",
-      message: `You have successfully returned the book #${order.book_id.identifier_code}. Book condition is: ${order.book_id.condition}. Thank you!`,
+      message: `You have successfully returned the book #${order.book_id.identifier_code} on ${order.returnDate} . Book condition is: ${order.book_id.condition}. Thank you!`,
     });
 
     await notification.save();
@@ -811,7 +817,7 @@ const rejectOverdueOrders = async (req, res, next) => {
 };
 
 // Check due dates and send notifications to users
-const checkDueDates = async (req, res, next) => {
+const checkDueDatesAndReminder = async (req, res, next) => {
   try {
     // const { orderId } = req.params;
     const now = new Date();
@@ -870,15 +876,15 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
         // Chọn lý do phạt dựa trên số ngày quá hạn
         if (daysOverdue <= 3) {
           penaltyReason = await PenaltyReason.findOne({
-            reasonName: "Quá hạn 1-3 ngày",
+            reasonName: "Overdue 1-3 days",
           });
         } else if (daysOverdue <= 7) {
           penaltyReason = await PenaltyReason.findOne({
-            reasonName: "Quá hạn 4-7 ngày",
+            reasonName: "Overdue 4-7 days",
           });
         } else {
           penaltyReason = await PenaltyReason.findOne({
-            reasonName: "Quá hạn trên 7 ngày",
+            reasonName: "Overdue over 7 days",
           });
         }
 
@@ -933,7 +939,7 @@ cron.schedule("0 0 * * *", () => {
   rejectOverdueOrders();
 
   console.log("Running cron job to check due dates and send notifications...");
-  checkDueDates();
+  checkDueDatesAndReminder();
 
   console.log("Running cron job to check overdue orders and apply fines...");
   checkOverdueAndApplyFines();
@@ -951,7 +957,7 @@ const OrderController = {
   reportLostBook,
   applyFinesForLostBook,
   // rejectOverdueOrders,
-  // checkDueDates,
+  // checkDueDatesAndReminder,
   // checkOverdueAndApplyFines,
 };
 module.exports = OrderController;
