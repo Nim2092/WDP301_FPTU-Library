@@ -566,30 +566,32 @@ const bulkUpdateOrderStatus = async (req, res) => {
       return res.status(400).json({ message: "No orders selected." });
     }
 
-    // Find and update the orders in bulk
+    // Find and update the orders in bulk where the status is "Pending"
     const orders = await Order.find({
-      _id: { $in: orderIds },
-      status: "Pending",
+      _id: { $in: orderIds }, // Match the selected IDs
+      status: { $in: ["Pending", "Renew Pending"] }
     });
 
     if (orders.length === 0) {
       return res.status(404).json({ message: "No pending orders found." });
     }
 
-    // Update each order
+    // Update each order's status to "Approved"
     const bulkOperations = orders.map((order) => {
-      // Update order status to Approved
-      order.status = "Approved";
+      if (order.status === "Pending") {
+        order.status = "Approved";
+      } else if (order.status === "Renew Pending") {
+        order.status = "Received";
+      }
       order.updated_by = updated_by;
-
       return order.save();
     });
 
-    // Execute bulk updates
+    // Execute all bulk updates
     await Promise.all(bulkOperations);
 
     return res.status(200).json({
-      message: "Orders approved successfully.",
+      message: "Selected orders approved successfully.",
       data: orders,
     });
   } catch (error) {
@@ -600,6 +602,7 @@ const bulkUpdateOrderStatus = async (req, res) => {
     });
   }
 };
+
 
 // Renew order
 async function renewOrder(req, res, next) {

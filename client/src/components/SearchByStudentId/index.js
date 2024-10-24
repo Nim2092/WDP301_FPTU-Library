@@ -1,31 +1,30 @@
-import React, { useState, useEffect  } from "react";
+import React, { useState } from "react";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
 
 function SearchByStudentId({ onNextStep }) {
   const [studentId, setStudentId] = useState("");
-  const [userID, setUserID] = useState("");
-  // This function handles searching by student ID
-  useEffect(() => {
-    axios.get(`http://localhost:9999/api/user/getByCode/${studentId}`)
-      .then(response => {
-        setUserID(response.data.data.userID);
-        console.log(response.data);
-      })
-      .catch(error => {
-        console.error("Error fetching orders:", error);
-      });
-  }, [studentId]);
 
-  const handleSearch = () => {
-    if (userID.trim()) {
-      onNextStep();
+  // This function handles searching by student ID
+  const handleSearch = async () => {
+    if (studentId.trim()) {
+      try {
+        const user = await axios.get(`http://localhost:9999/api/user/getByCode/${studentId}`);
+        const userID = user.data.data.userID;
+        onNextStep(userID); // Pass userID to parent component
+      } catch (error) {
+        toast.error("Error fetching user details. Please try again.");
+        console.error("Error fetching user by Student ID:", error);
+      }
     } else {
-      alert("Please enter a valid Student ID.");
+      toast.error("Please enter a valid Student ID.");
+      // alert("Please enter a valid Student ID.");
     }
   };
 
   return (
     <div className="mt-4">
+      <ToastContainer />
       <h3>Search By Student ID</h3>
       <div className="form-group">
         <input
