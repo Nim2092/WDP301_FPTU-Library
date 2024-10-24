@@ -508,6 +508,51 @@ async function changeOrderStatus(req, res, next) {
   }
 }
 
+// Approve multiple orders
+const bulkUpdateOrderStatus = async (req, res) => {
+  try {
+    const { orderIds, updated_by } = req.body;
+
+    // Validate input
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({ message: "No orders selected." });
+    }
+
+    // Find and update the orders in bulk
+    const orders = await Order.find({
+      _id: { $in: orderIds },
+      status: "Pending",
+    });
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No pending orders found." });
+    }
+
+    // Update each order
+    const bulkOperations = orders.map((order) => {
+      // Update order status to Approved
+      order.status = "Approved";
+      order.updated_by = updated_by;
+
+      return order.save();
+    });
+
+    // Execute bulk updates
+    await Promise.all(bulkOperations);
+
+    return res.status(200).json({
+      message: "Orders approved successfully.",
+      data: orders,
+    });
+  } catch (error) {
+    console.error("Error in bulk updating order status:", error);
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
+  }
+};
+
 // Renew order
 async function renewOrder(req, res, next) {
   try {
@@ -958,6 +1003,7 @@ const OrderController = {
   getOrderById,
   createBorrowOrder,
   changeOrderStatus,
+  bulkUpdateOrderStatus,
   renewOrder,
   returnOrder,
   filterOrdersByStatus,
