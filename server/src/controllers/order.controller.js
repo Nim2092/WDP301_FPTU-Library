@@ -980,7 +980,7 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
     });
     console.log("Checking overdue orders and applying fines...");
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(404).json({ message: error.message });
     console.error("Error checking due dates and applying fines:", error);
   }
 };
