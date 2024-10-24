@@ -11,6 +11,8 @@ orderRouter.get("/by-order/:orderId", orderController.getOrderById);
 
 orderRouter.get("/by-user/:userId", orderController.getOrderByUserId);
 
+orderRouter.get("/by-identifier-code/:identifierCode", orderController.getOrderByIdentifierCode);
+
 orderRouter.post("/create-borrow/:bookId", orderController.createBorrowOrder);
 
 orderRouter.put("/change-status/:orderId", orderController.changeOrderStatus);
