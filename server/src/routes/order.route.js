@@ -15,6 +15,8 @@ orderRouter.post("/create-borrow/:bookId", orderController.createBorrowOrder);
 
 orderRouter.put("/change-status/:orderId", orderController.changeOrderStatus);
 
+orderRouter.put("/approve-all", orderController.bulkUpdateOrderStatus);
+
 orderRouter.post("/renew/:orderId", orderController.renewOrder);
 
 orderRouter.post("/return/:orderId", orderController.returnOrder);
