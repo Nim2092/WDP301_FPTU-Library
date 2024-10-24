@@ -268,6 +268,19 @@ async function updateBookSet(req, res, next) {
   }
 }
 
+// Hàm loại bỏ dấu tiếng Việt
+// Hàm loại bỏ dấu tiếng Việt
+function removeVietnameseDiacritics(str) {
+  return str
+      .normalize('NFD') // Tách các ký tự có dấu thành ký tự cơ bản + dấu
+      .replace(/[\u0300-\u036f]/g, ''); // Loại bỏ dấu
+}
+
+// Hàm chuẩn hóa chuỗi (bao gồm cả việc loại bỏ dấu)
+function normalizeString(str) {
+  return removeVietnameseDiacritics(str.toLowerCase().replace(/\s+/g, ' ').trim());
+}
+
 async function listBookSet(req, res, next) {
   try {
     const {
@@ -285,42 +298,47 @@ async function listBookSet(req, res, next) {
     if (catalog_id) {
       query.catalog_id = catalog_id;
     }
-    if (title) {
-      query.title = { $regex: new RegExp(title, "i") };
-    }
-    if (author) {
-      query.author = { $regex: new RegExp(author, "i") };
-    }
-    if (pubYear) {
-      query.publishedYear = new Date(pubYear);
-    }
-    if (publisher) {
-      query.publisher = { $regex: new RegExp(publisher, "i") };
-    }
 
+    // Lấy tất cả các bản ghi bookSet
+    const allBookSets = await BookSet.find(query).populate("catalog_id").sort({ createdAt: -1 });
+
+    // Chuẩn hóa các tham số tìm kiếm
+    const normalizedTitle = title ? normalizeString(title) : null;
+    const normalizedAuthor = author ? normalizeString(author) : null;
+    const normalizedPublisher = publisher ? normalizeString(publisher) : null;
+
+    // Lọc danh sách các bản ghi
+    const filteredBookSets = allBookSets.filter(bookSet => {
+      const normalizedBookTitle = normalizeString(bookSet.title);
+      const normalizedBookAuthor = normalizeString(bookSet.author);
+      const normalizedBookPublisher = normalizeString(bookSet.publisher);
+
+      const titleMatch = normalizedTitle ? normalizedBookTitle.includes(normalizedTitle) : true;
+      const authorMatch = normalizedAuthor ? normalizedBookAuthor.includes(normalizedAuthor) : true;
+      const publisherMatch = normalizedPublisher ? normalizedBookPublisher.includes(normalizedPublisher) : true;
+
+      return titleMatch && authorMatch && publisherMatch;
+    });
+
+    // Phân trang
     const skip = (page - 1) * limit;
-
-    const bookSets = await BookSet.find(query)
-      .populate("catalog_id")
-      .skip(skip)
-      .limit(parseInt(limit))
-      .sort({ createdAt: -1 });
-
-    const totalBookSets = await BookSet.countDocuments(query);
+    const paginatedBookSets = filteredBookSets.slice(skip, skip + parseInt(limit));
+    const totalBookSets = filteredBookSets.length;
 
     return res.status(200).json({
       message: "BookSets fetched successfully",
-      data: bookSets,
+      data: paginatedBookSets,
       total: totalBookSets,
       currentPage: parseInt(page),
       totalPages: Math.ceil(totalBookSets / limit),
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "An error occurred", error: error.message });
+    return res.status(500).json({ message: "An error occurred", error: error.message });
   }
 }
+
+
+
 
 async function getBookSetDetail(req, res, next) {
   try {

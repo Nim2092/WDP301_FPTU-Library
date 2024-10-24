@@ -160,11 +160,12 @@ function SearchResults({ books }) {
           <div className="card mb-4 p-3" key={book._id}>
             <div className="row no-gutters">
               <div className="col-md-3">
+                {/* Hiển thị ảnh từ API tương tự như cách load ảnh của News */}
                 <img
-                  src="https://via.placeholder.com/150" // Replace with actual book image if available
-                  alt={book.title}
-                  className="img-fluid"
-                />
+                      src={`http://localhost:9999/api/book-sets/image/${book.image.split("/").pop()}`}
+                      alt={book.title}
+                      style={{ width: "250px", height: "auto" }} // Điều chỉnh kích thước ảnh
+                    />
               </div>
               <div className="col-md-9">
                 <div className="card-body">

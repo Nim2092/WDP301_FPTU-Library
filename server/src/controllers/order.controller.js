@@ -76,6 +76,47 @@ const getOrderById = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+const getOrderByIdentifierCode = async (req, res, next) => {
+  try {
+    const { identifierCode } = req.params; // Lấy identifier_code từ tham số yêu cầu
+
+    // Tìm sách theo identifier_code
+    console.log(identifierCode);
+    const book = await Book.findOne({ identifier_code: identifierCode });
+
+    // Kiểm tra xem sách có tồn tại không
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    // Tìm đơn hàng dựa vào book_id
+    const order = await Order.findOne({ book_id: book._id })
+        .populate({
+          path: "book_id", // Populating the book reference
+          populate: {
+            path: "bookSet_id", // Nested populate to get book set details
+            model: "BookSet", // Reference to the BookSet model
+          },
+        })
+        .populate("created_by", "fullName") // Populate the creator's full name
+        .populate("updated_by", "fullName"); // Populate the updater's full name
+
+    // Kiểm tra xem đơn hàng có tồn tại không
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Trả về thông tin đơn hàng đã tìm thấy
+    res.status(200).json({
+      message: "Get order successfully",
+      data: order,
+    });
+  } catch (error) {
+    console.error("Error getting the order", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
 
 //Get orders by user id
 const getOrderByUserId = async (req, res, next) => {
@@ -253,6 +294,12 @@ const createBorrowOrder = async (req, res, next) => {
     if (!book) {
       return res.status(404).json({
         message: "Book not found",
+        data: null,
+      });
+    }
+    if(book.status !== 'Available') {
+      return res.status(500).json({
+        message: "Book is borrowed or is not good enough to borrow.",
         data: null,
       });
     }
@@ -448,6 +495,7 @@ async function changeOrderStatus(req, res, next) {
       await user.save();
     }
 
+
     // Update the order status
     order.status = status;
     order.updated_by = updated_by;
@@ -621,13 +669,7 @@ async function renewOrder(req, res, next) {
 async function returnOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { userId, returnDate } = req.body;
-
-    if (!returnDate) {
-      return res.status(400).json({
-        message: "Please provide a return date.",
-      });
-    }
+    const { userId, book_condition } = req.body;
 
     const order = await Order.findById(orderId).populate(
       "book_id",
@@ -644,9 +686,23 @@ async function returnOrder(req, res, next) {
         message: "Book has already been returned.",
       });
     }
+    const book = await Book.findById(order.book_id);
+    if(order.status === 'Lost' || book_condition === 'Lost' || book_condition === 'Hard') {
+      book.status = "Destroyed";
+      book.condition = book_condition;
+      await book.save();
+    } else {
+      book.status = "Available";
+      book.condition = book_condition;
+      await book.save();
+      const bookSet = await BookSet.findById(book.bookSet_id);
+      console.log(book);
+      bookSet.availableCopies += 1;
+      await bookSet.save();
+    }
 
     order.status = "Returned";
-    order.returnDate = new Date(returnDate);
+    order.returnDate = new Date();
 
     await order.save();
 
@@ -838,7 +894,7 @@ const rejectOverdueOrders = async (req, res, next) => {
     const now = new Date();
     const pendingOrders = await Order.find({
       // _id: orderId, // testing
-      status: "Pending",
+      status: "Approved",
     });
     // Loop through all pending orders to check if any of them are overdue
     for (const order of pendingOrders) {
@@ -847,7 +903,7 @@ const rejectOverdueOrders = async (req, res, next) => {
 
       // If the order is overdue by more than 3 days, reject the order
       if (daysDiff > 3) {
-        order.status = "Rejected";
+        order.status = "Canceled";
         order.reason_order = "User did not pick up the book within 3 days.";
         await order.save();
 
@@ -983,7 +1039,7 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
     });
     console.log("Checking overdue orders and applying fines...");
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(404).json({ message: error.message });
     console.error("Error checking due dates and applying fines:", error);
   }
 };
@@ -1012,6 +1068,7 @@ const OrderController = {
   filterOrdersByStatus,
   reportLostBook,
   applyFinesForLostBook,
+  getOrderByIdentifierCode,
   // rejectOverdueOrders,
   // checkDueDatesAndReminder,
   // checkOverdueAndApplyFines,
