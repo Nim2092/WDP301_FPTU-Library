@@ -15,10 +15,15 @@ finesRouter.get("/by-order/:orderId", finesController.getFinesByOrderId);
 
 finesRouter.post("/create", finesController.createFines);
 
-//filter fines by status
+finesRouter.put("/update/:finesId", finesController.updateFines);
+
+finesRouter.delete("/delete/:finesId", finesController.deleteFines);
+
 finesRouter.get(
   "/filter-by-status/:status",
   finesController.filterFinesByStatus
 );
+
+finesRouter.put("/update-status/:finesId", finesController.updateFinesStatus);
 
 module.exports = finesRouter;

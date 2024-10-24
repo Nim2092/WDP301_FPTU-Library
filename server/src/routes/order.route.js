@@ -18,4 +18,23 @@ orderRouter.put("/change-status/:orderId", orderController.changeOrderStatus);
 orderRouter.post("/renew/:orderId", orderController.renewOrder);
 
 orderRouter.post("/return/:orderId", orderController.returnOrder);
+
+orderRouter.get("/filter", orderController.filterOrdersByStatus);
+
+orderRouter.put("/report-lost/:orderId", orderController.reportLostBook);
+
+orderRouter.post("/lost-fines/:orderId", orderController.applyFinesForLostBook);
+
+//for testing and demo
+// orderRouter.get(
+//   "/test-reject-overdue/:orderId",
+//   orderController.rejectOverdueOrders
+// );
+
+// orderRouter.get("/test-due-date/:orderId", orderController.checkDueDatesAndReminder);
+
+// orderRouter.get(
+//   "/test-overdue/:orderId",
+//   orderController.checkOverdueAndApplyFines
+// );
 module.exports = orderRouter;

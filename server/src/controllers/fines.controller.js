@@ -145,7 +145,9 @@ const createFines = async (req, res, next) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    const penaltyReason = await PenaltyReason.findById(fineReason_id);
+    const penaltyReason = await PenaltyReason.findById(fineReason_id).populate(
+      "reasonName"
+    );
     if (!penaltyReason) {
       return res.status(404).json({ message: "Penalty reason not found" });
     }
@@ -178,7 +180,7 @@ const createFines = async (req, res, next) => {
     const notification = new Notification({
       userId: user_id,
       type: "Fines",
-      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount}k cho sách #${order.book_id.identifier_code}. Vui lòng thanh toán để tránh thêm phí.`,
+      message: `You have been penalized ${penaltyReason.penaltyAmount}k for book #${order.book_id.identifier_code} for reason ${penaltyReason.reasonName}. Please pay to avoid additional fees.`,
     });
     await notification.save();
 
@@ -197,7 +199,7 @@ const filterFinesByStatus = async (req, res, next) => {
   try {
     const { status } = req.params;
 
-    if (!["pending", "paid", "overdue"].includes(status)) {
+    if (!["Pending", "Paid", "Overdue"].includes(status)) {
       return res.status(400).json({
         message: "Invalid status",
         data: null,
@@ -221,12 +223,128 @@ const filterFinesByStatus = async (req, res, next) => {
   }
 };
 
+//update fines status
+const updateFinesStatus = async (req, res, next) => {
+  try {
+    const { finesId } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ["Pending", "Paid", "Overdue"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        message: `Invalid status. Allowed statuses are: ${validStatuses.join(
+          ", "
+        )}`,
+      });
+    }
+    const fines = await Fines.findById(finesId);
+    if (!fines) {
+      return res.status(404).json({
+        message: "Fines not found",
+        data: null,
+      });
+    }
+
+    fines.status = status;
+    await fines.save();
+
+    res.status(200).json({
+      message: "Update fines status successfully",
+      data: fines,
+    });
+  } catch (error) {
+    console.error("Error updating fines status", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//update fines
+const updateFines = async (req, res, next) => {
+  try {
+    const { finesId } = req.params;
+    const { user_id, order_id, fineReason_id, createBy, updateBy } = req.body;
+
+    const fines = await Fines.findById(finesId);
+    if (!fines) {
+      return res.status(404).json({
+        message: "Fines not found",
+        data: null,
+      });
+    }
+
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const order = await Order.findById(order_id).populate(
+      "book_id",
+      "identifier_code condition"
+    );
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const penaltyReason = await PenaltyReason.findById(fineReason_id).populate(
+      "reasonName"
+    );
+    if (!penaltyReason) {
+      return res.status(404).json({ message: "Penalty reason not found" });
+    }
+
+    fines.user_id = user_id;
+    fines.order_id = order_id;
+    fines.fineReason_id = fineReason_id;
+    fines.createBy = createBy;
+    fines.updateBy = updateBy;
+    fines.totalFinesAmount = penaltyReason.penaltyAmount;
+    fines.status = "Pending";
+    fines.paymentMethod = null;
+    fines.paymentDate = null;
+
+    const updatedFines = await fines.save();
+
+    res.status(200).json({
+      message: "Update fines successfully",
+      data: updatedFines,
+    });
+  } catch (error) {
+    console.error("Error updating fines", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//delete fines
+const deleteFines = async (req, res, next) => {
+  try {
+    const { finesId } = req.params;
+    const fines = await Fines.findByIdAndDelete(finesId);
+    if (!fines) {
+      return res.status(404).json({
+        message: "Fines not found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      message: "Delete fines successfully",
+      data: fines,
+    });
+  } catch (error) {
+    console.error("Error deleting fines", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
 const FinesController = {
   getAllFines,
   getFinesById,
   getFinesByUserId,
   getFinesByOrderId,
   createFines,
+  updateFines,
+  deleteFines,
   filterFinesByStatus,
+  updateFinesStatus,
 };
 module.exports = FinesController;
