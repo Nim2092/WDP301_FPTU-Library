@@ -11,8 +11,8 @@ const finesSchema = new Schema(
       ref: "PenaltyReason",
       required: true,
     },
-    createBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    updateBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    createBy: { type: Schema.Types.ObjectId, ref: "User" },
+    updateBy: { type: Schema.Types.ObjectId, ref: "User" },
     totalFinesAmount: { type: Number, min: 0 },
     status: {
       type: String,

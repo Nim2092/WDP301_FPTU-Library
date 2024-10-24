@@ -10,6 +10,7 @@ const {
   penaltyreason: PenaltyReason,
   fines: Fines,
 } = db;
+const cron = require("node-cron");
 
 //Get all order
 const getAllOrder = async (req, res, next) => {
@@ -768,6 +769,176 @@ const applyFinesForLostBook = async (req, res, next) => {
   }
 };
 
+//Reject overdue orders which are not picked up by users
+const rejectOverdueOrders = async (req, res, next) => {
+  try {
+    // const { orderId } = req.params;
+
+    const now = new Date();
+    const pendingOrders = await Order.find({
+      // _id: orderId, // testing
+      status: "Pending",
+    });
+    // Loop through all pending orders to check if any of them are overdue
+    for (const order of pendingOrders) {
+      const requestDate = new Date(order.requestDate);
+      const daysDiff = Math.floor((now - requestDate) / (1000 * 60 * 60 * 24));
+
+      // If the order is overdue by more than 3 days, reject the order
+      if (daysDiff > 3) {
+        order.status = "Rejected";
+        order.reason_order = "User did not pick up the book within 3 days.";
+        await order.save();
+
+        // Send a notification to the user
+        const notification = new Notification({
+          userId: order.created_by,
+          type: "Rejected",
+          message: `Your order #${order._id} has been rejected because you did not pick up the book within 3 days.`,
+        });
+        await notification.save();
+      }
+    }
+    res.status(200).json({
+      message: "Overdue orders rejected successfully.",
+      data: pendingOrders,
+    });
+    console.log("Checking and rejecting overdue orders...");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+    console.error("Error in rejecting overdue orders:", error);
+  }
+};
+
+// Check due dates and send notifications to users
+const checkDueDates = async (req, res, next) => {
+  try {
+    // const { orderId } = req.params;
+    const now = new Date();
+    const orders = await Order.find({
+      // _id: orderId, // testing
+      status: { $in: ["Approved", "Received"] },
+    });
+
+    // Loop through all orders to check due dates and send notifications
+    for (const order of orders) {
+      const dueDate = new Date(order.dueDate);
+      const daysUntilDue = Math.floor((dueDate - now) / (1000 * 60 * 60 * 24)); // number of days until due date
+
+      // If the book is due in 3 days, send a reminder notification
+      if (daysUntilDue <= 3) {
+        const reminderNotification = new Notification({
+          userId: order.created_by,
+          orderId: order._id,
+          type: "Reminder",
+          message: `Your book is due in ${daysUntilDue} days! Please return it by ${dueDate.toDateString()}.`,
+        });
+        await reminderNotification.save();
+        console.log(
+          `Sent reminder to user ${order.created_by} for order ${order._id}`
+        );
+      }
+    }
+    res.status(200).json({
+      message: "Due dates checked and notifications sent.",
+      data: orders,
+    });
+    console.log("Checking due dates and sending reminders...");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+    console.error("Error checking due dates and sending notifications:", error);
+  }
+};
+
+// Check overdue orders and apply fines
+const checkOverdueAndApplyFines = async (req, res, next) => {
+  try {
+    // const { orderId } = req.params;
+    const now = new Date();
+    const orders = await Order.find({
+      // _id: orderId, // testing
+      status: { $in: ["Pending", "Approved", "Received"] },
+    });
+
+    for (const order of orders) {
+      const dueDate = new Date(order.dueDate);
+      const daysOverdue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24)); // number of days overdue
+
+      if (daysOverdue > 0) {
+        let penaltyReason;
+
+        // Chọn lý do phạt dựa trên số ngày quá hạn
+        if (daysOverdue <= 3) {
+          penaltyReason = await PenaltyReason.findOne({
+            reasonName: "Quá hạn 1-3 ngày",
+          });
+        } else if (daysOverdue <= 7) {
+          penaltyReason = await PenaltyReason.findOne({
+            reasonName: "Quá hạn 4-7 ngày",
+          });
+        } else {
+          penaltyReason = await PenaltyReason.findOne({
+            reasonName: "Quá hạn trên 7 ngày",
+          });
+        }
+
+        if (penaltyReason) {
+          const fine = new Fines({
+            user_id: order.created_by,
+            book_id: order.book_id,
+            order_id: order._id,
+            fineReason_id: penaltyReason._id,
+            totalFineAmount: penaltyReason.penaltyAmount,
+            status: "Pending",
+            createdAt: now,
+            updatedAt: now,
+          });
+          await fine.save();
+
+          // Send a notification to the user
+          const fineNotification = new Notification({
+            userId: order.created_by,
+            orderId: order._id,
+            type: "Fines",
+            message: `Your book is overdue by ${daysOverdue} days. You have been fined ${penaltyReason.penaltyAmount}VND.`,
+          });
+
+          await fineNotification.save();
+          console.log(
+            `Applied fine for order ${order._id} with amount ${penaltyReason.penaltyAmount}`
+          );
+        }
+
+        // Cập nhật trạng thái đơn hàng thành "Overdue" nếu chưa được cập nhật
+        if (order.status !== "Overdue") {
+          order.status = "Overdue";
+          await order.save();
+        }
+      }
+    }
+    res.status(200).json({
+      message: "Overdue orders checked and fines applied.",
+      data: orders,
+    });
+    console.log("Checking overdue orders and applying fines...");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+    console.error("Error checking due dates and applying fines:", error);
+  }
+};
+
+// Schedule a cron job to run every day at midnight to check overdue orders
+cron.schedule("0 0 * * *", () => {
+  console.log("Running cron job to check overdue orders...");
+  rejectOverdueOrders();
+
+  console.log("Running cron job to check due dates and send notifications...");
+  checkDueDates();
+
+  console.log("Running cron job to check overdue orders and apply fines...");
+  checkOverdueAndApplyFines();
+});
+
 const OrderController = {
   getOrderByUserId,
   getAllOrder,
@@ -779,5 +950,8 @@ const OrderController = {
   filterOrdersByStatus,
   reportLostBook,
   applyFinesForLostBook,
+  // rejectOverdueOrders,
+  // checkDueDates,
+  // checkOverdueAndApplyFines,
 };
 module.exports = OrderController;
