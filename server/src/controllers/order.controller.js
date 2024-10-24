@@ -835,7 +835,7 @@ const rejectOverdueOrders = async (req, res, next) => {
     const now = new Date();
     const pendingOrders = await Order.find({
       // _id: orderId, // testing
-      status: "Pending",
+      status: "Approved",
     });
     // Loop through all pending orders to check if any of them are overdue
     for (const order of pendingOrders) {
@@ -844,7 +844,7 @@ const rejectOverdueOrders = async (req, res, next) => {
 
       // If the order is overdue by more than 3 days, reject the order
       if (daysDiff > 3) {
-        order.status = "Rejected";
+        order.status = "Canceled";
         order.reason_order = "User did not pick up the book within 3 days.";
         await order.save();
 
