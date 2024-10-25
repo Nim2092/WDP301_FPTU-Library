@@ -679,7 +679,7 @@ async function renewOrder(req, res, next) {
 async function returnOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { userId, book_condition } = req.body;
+    const { userId, book_condition, returnDate, createBy, updateBy } = req.body;
 
     const order = await Order.findById(orderId).populate(
       "book_id",
@@ -697,7 +697,71 @@ async function returnOrder(req, res, next) {
       });
     }
     const book = await Book.findById(order.book_id);
-    if(order.status === 'Lost' || book_condition === 'Lost' || book_condition === 'Hard') {
+    var isDestroyed = false;
+    var fineReasonType = '';
+    switch (book_condition) {
+      default:
+        isDestroyed = false;
+        fineReasonType = '';
+        break;
+      case 'Light':
+        isDestroyed = false;
+        fineReasonType = 'PN2';
+        break;
+      case 'Medium':
+        isDestroyed = false;
+        fineReasonType = 'PN3';
+        break;
+      case 'Hard':
+        isDestroyed = true;
+        fineReasonType = 'PN4';
+        break;
+      case 'Lost':
+        isDestroyed = true;
+        fineReasonType = 'PN5';
+        break;
+    }
+    if(fineReasonType) {
+      const fineReason = await PenaltyReason.findOne({type: fineReasonType})
+      const fineReason_id = fineReason._id;
+      const bookSet = await BookSet.findById(book.bookSet_id);
+      const totalAmount = fineReason.penaltyAmount * bookSet.price / 100;
+      const fines = new Fines({
+        user_id: userId,
+        order_id: orderId,
+        fineReason_id,
+        createBy,
+        updateBy,
+        totalFinesAmount: totalAmount,
+        status: "Pending",
+        paymentMethod: null,
+        paymentDate: null,
+      });
+
+      const newFines = await fines.save();
+    }
+    const returnDateObj = new Date(returnDate);
+    const dueDateObj = new Date(order.dueDate);
+    const daysLate = Math.floor((returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24));
+    if (daysLate > 0) {
+      const overdueFine = await PenaltyReason.findOne({type: "PN1"})
+      const overdueFineId = overdueFine._id;
+      const fineAmount = daysLate * overdueFine.penaltyAmount;
+      const fines = new Fines({
+        user_id: userId,
+        order_id: orderId,
+        fineReason_id: overdueFineId,
+        createBy,
+        updateBy,
+        totalFinesAmount: fineAmount,
+        status: "Pending",
+        paymentMethod: null,
+        paymentDate: null,
+      });
+
+      const newOverdueFines = await fines.save();
+    }
+    if(order.status === 'Lost' || isDestroyed) {
       book.status = "Destroyed";
       book.condition = book_condition;
       await book.save();
@@ -712,7 +776,7 @@ async function returnOrder(req, res, next) {
     }
 
     order.status = "Returned";
-    order.returnDate = new Date();
+    order.returnDate = new Date(returnDate);
 
     await order.save();
 

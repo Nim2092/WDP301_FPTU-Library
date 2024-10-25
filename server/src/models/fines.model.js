@@ -4,7 +4,6 @@ const { Schema } = mongoose;
 const finesSchema = new Schema(
   {
     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    book_id: { type: Schema.Types.ObjectId, ref: "Book" },
     order_id: { type: Schema.Types.ObjectId, ref: "Order", required: true },
     fineReason_id: {
       type: Schema.Types.ObjectId,
@@ -22,6 +21,7 @@ const finesSchema = new Schema(
     },
     paymentMethod: { type: String, default: null },
     paymentDate: { type: Date, default: null },
+    reason: { type: String, default: null },
   },
   { timestamps: true }
 );
