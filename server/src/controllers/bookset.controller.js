@@ -15,6 +15,7 @@ async function createBookSet(req, res, next) {
       publisher,
       physicalDescription,
       totalCopies,
+      price
     } = req.body;
     const image = req.file;
 
@@ -28,7 +29,8 @@ async function createBookSet(req, res, next) {
       !publisher ||
       !physicalDescription ||
       !shelfLocationCode ||
-      !totalCopies
+      !totalCopies ||
+      !price
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
@@ -52,6 +54,7 @@ async function createBookSet(req, res, next) {
       physicalDescription,
       totalCopies,
       availableCopies,
+      price
     });
 
     if (image) {
@@ -151,6 +154,7 @@ async function updateBookSet(req, res, next) {
       physicalDescription,
       totalCopies,
       availableCopies,
+      price
     } = req.body;
     const image = req.file;
 
@@ -162,7 +166,8 @@ async function updateBookSet(req, res, next) {
       !publishedYear ||
       !publisher ||
       !physicalDescription ||
-      !shelfLocationCode
+      !shelfLocationCode ||
+      !price
     ) {
       return res
         .status(400)
@@ -186,6 +191,7 @@ async function updateBookSet(req, res, next) {
       physicalDescription,
       totalCopies,
       availableCopies,
+      price
     };
 
     if (image) {
