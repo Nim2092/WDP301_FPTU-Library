@@ -16,7 +16,6 @@ const getAllFines = async (req, res, next) => {
   try {
     const fines = await Fines.find({})
       .populate("user_id")
-      .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -45,7 +44,6 @@ const getFinesById = async (req, res, next) => {
     const { finesId } = req.params;
     const fines = await Fines.findById(finesId)
       .populate("user_id")
-      .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -81,7 +79,6 @@ const getFinesByUserId = async (req, res, next) => {
 
     const fines = await Fines.find({ user_id: userId })
       .populate("user_id")
-      .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -111,7 +108,6 @@ const getFinesByOrderId = async (req, res, next) => {
 
     const fines = await Fines.find({ order_id: orderId })
       .populate("user_id")
-      .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -138,7 +134,6 @@ const createFines = async (req, res, next) => {
     }
 
     const order = await Order.findById(order_id).populate(
-      "book_id",
       "identifier_code condition"
     );
     if (!order) {
@@ -290,7 +285,6 @@ const updateFines = async (req, res, next) => {
     }
 
     const order = await Order.findById(order_id).populate(
-      "book_id",
       "identifier_code condition"
     );
     if (!order) {
