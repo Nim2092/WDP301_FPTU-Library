@@ -1,7 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-function IdentifiBookCode({ onNextStep }) {
+function IdentifiBookCode({ bookID, onNextStep, onPreviousStep }) {
   const [bookCode, setBookCode] = useState(""); // State to manage the book code input
+  const [identifiedBookCode, setIdentifiedBookCode] = useState(""); // State to manage the identified book code
+  // Identify book code when bookID changes
+  useEffect(() => {
+    axios.get(`http://localhost:9999/api/orders/getById/${bookID}`)
+      .then(response => {
+        setBookCode(response.data.data.bookCode);
+      })
+      .catch(error => {
+        console.error("Error fetching book details:", error);
+      });
+  }, [bookID]);
 
   // Handler for input change
   const handleChange = (e) => {
@@ -19,6 +31,10 @@ function IdentifiBookCode({ onNextStep }) {
     console.log("Book identification code:", bookCode);
     // Proceed to the next step after successful identification code submission
     onNextStep();
+  };
+
+  const handlePreviousStep = () => {
+    onPreviousStep(); // Proceed to the previous step
   };
 
   return (
@@ -41,6 +57,9 @@ function IdentifiBookCode({ onNextStep }) {
           Submit
         </button>
       </form>
+      <button className="btn btn-primary mt-3" onClick={handlePreviousStep}>
+        Previous
+      </button>
     </div>
   );
 }
