@@ -49,15 +49,16 @@ function RuleDetail() {
     <div className="rule_detail container mt-4">
       <div className="">
         <h1>
-          <strong> {rule.title}</strong>
+          <strong>{rule.title}</strong>
         </h1>
       </div>
       <div className="d-flex justify-content-between">
-        <p> {new Date(rule.createdAt).toLocaleString()}</p>
-        <p> {new Date(rule.updatedAt).toLocaleString()}</p>
+        <p>{new Date(rule.createdAt).toLocaleString()}</p>
+        <p>{new Date(rule.updatedAt).toLocaleString()}</p>
       </div>
       <div className="mt-4">
-        <p>{rule.content}</p>
+        {/* Render content as HTML */}
+        <div dangerouslySetInnerHTML={{ __html: rule.content }} />
       </div>
     </div>
   );
