@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom"; // To get the orderId from the URL
 import "./RenewBook.scss"; // Import the CSS file if available
+import { ToastContainer, toast } from 'react-toastify';
 import AuthContext from "../../contexts/UserContext";
 
 function RenewBook() {
@@ -42,7 +43,7 @@ function RenewBook() {
       );
       alert("Book renewed successfully.");
     } catch (err) {
-      setError("Failed to renew the book. Please try again.");
+      toast.error(err.response?.data?.message);
     }
   };
 
@@ -51,6 +52,7 @@ function RenewBook() {
 
   return (
     <div className="renew-book container my-5">
+      <ToastContainer /> 
       <div className="row">
         <div className="col-md-4">
           <div className="col-md-4">
