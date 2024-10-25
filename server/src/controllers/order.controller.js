@@ -615,7 +615,6 @@ async function renewOrder(req, res, next) {
         message: "Please provide a new due date.",
       });
     }
-
     if (!renew_reason) {
       return res.status(400).json({
         message: "Please provide a reason for renewal.",
@@ -629,6 +628,23 @@ async function renewOrder(req, res, next) {
     if (!order) {
       return res.status(404).json({
         message: "Order not found.",
+      });
+    }
+    const borrowDateObj = new Date(order.borrowDate);
+    const dueDateObj = new Date(dueDate);
+
+    const differenceInDays =
+        (dueDateObj - borrowDateObj) / (1000 * 60 * 60 * 24);
+    var availableDays = 14;
+    switch (order.renewalCount) {
+      case 1: availableDays = 14*2; break;
+      case 2: availableDays = 14*3; break;
+      default: availableDays = 14; break;
+    }
+    if (differenceInDays > availableDays) {
+      return res.status(400).json({
+        message: "The maximum term for borrowing books is 14 days",
+        data: null,
       });
     }
 
