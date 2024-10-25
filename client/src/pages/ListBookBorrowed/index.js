@@ -96,7 +96,8 @@ function ListBookBorrowed() {
               <th>Book</th>
               <th>Borrow date</th>
               <th>Due date</th>
-              <th>Status</th> {/* Add a header for the status column */}
+              <th>Status</th> 
+              <th>Identifi Code</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -107,7 +108,8 @@ function ListBookBorrowed() {
                 <td>{order.book_id?.bookSet_id?.title || "Unknown Title"}</td> {/* Displaying the book title from the nested bookSet */}
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
-                <td>{order.status || "Unknown Status"}</td> {/* Display the order status */}
+                <td>{order.status || "Unknown Status"}</td> 
+                <td>{order.book_id.identifier_code}</td>
                 <td>
                   <button
                     onClick={() => handleReportLostBook(order._id)} // Call the handleReportLostBook function with order ID
@@ -125,7 +127,7 @@ function ListBookBorrowed() {
                     to={`/order-book-detail/${order._id}`}
                     className="btn btn-outline-primary"
                   >
-                    detail
+                    Detail
                   </Link>
                 </td>
               </tr>

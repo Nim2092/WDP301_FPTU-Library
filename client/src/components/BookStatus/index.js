@@ -1,16 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+function BookStatus({ bookID, onPreviousStep }) {
+  const [bookData, setBookData] = useState({});
+  const [fineData, setFineData] = useState({});
+  useEffect(() => {
+    axios.get(`http://localhost:9999/api/orders/by-order/${bookID}`)
+      .then(response => {
+        setBookData(response.data.data); // Lưu dữ liệu sách từ API
+      })
+      .catch(error => {
+        toast.error("Error fetching book details:", error);
+        console.error("Error fetching book details:", error);
+      });
+  }, [bookID]);
 
-function BookStatus() {
-  // Assuming some initial state values for demonstration purposes
-  const [bookData, setBookData] = useState({
-    name: "Sample Book Name",
-    borrowDate: "10/09/2024",
-    bookReturnDate: "15/09/2024",
-    returnDate: new Date().toISOString().split("T")[0],
-    bookStatus: "Good",
-    totalFines: "50.000 VND",
-    note: "",
-  });
 
   // Handler for updating form fields
   const handleChange = (e) => {
@@ -25,13 +29,15 @@ function BookStatus() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Book Return Data:", bookData);
-    alert("Payment Successful");
-    // Add your submission logic here
+    // Xử lý logic thanh toán hoặc cập nhật trạng thái tại đây
   };
 
   return (
     <div className="container mt-4">
-      <h2>Return Book</h2>
+        <ToastContainer />
+      <button className="btn btn-primary mb-3" onClick={onPreviousStep}>Previous Step</button>
+      <h2 className="mb-3 text-center">Return Book</h2>
+
       <form onSubmit={handleSubmit}>
         {/* Book Name */}
         <div className="form-group mt-3">
@@ -40,7 +46,7 @@ function BookStatus() {
             type="text"
             id="name"
             className="form-control"
-            value={bookData.name}
+            value={bookData.book_id?.bookSet_id?.title || ""}
             readOnly
           />
         </div>
@@ -53,7 +59,7 @@ function BookStatus() {
               type="text"
               id="borrowDate"
               className="form-control"
-              value={bookData.borrowDate}
+              value={bookData.borrowDate ? new Date(bookData.borrowDate).toLocaleDateString("en-GB") : ""}
               readOnly
             />
           </div>
@@ -63,13 +69,13 @@ function BookStatus() {
               type="text"
               id="bookReturnDate"
               className="form-control"
-              value={bookData.bookReturnDate}
+              value={bookData.dueDate ? new Date(bookData.dueDate).toLocaleDateString("en-GB") : ""}
               readOnly
             />
           </div>
         </div>
 
-        {/* Return Date and Book Status */}
+        {/* Return Date and Book Condition */}
         <div className="row">
           <div className="form-group mt-3 col-md-6">
             <label htmlFor="returnDate">Return Date</label>
@@ -78,42 +84,28 @@ function BookStatus() {
               id="returnDate"
               name="returnDate"
               className="form-control"
-              value={bookData.returnDate}
+              value={new Date().toISOString().split('T')[0]} // Set current date in YYYY-MM-DD format
               onChange={handleChange}
             />
           </div>
           <div className="form-group mt-3 col-md-6">
-            <label htmlFor="bookStatus">Book Status</label>
+            <label htmlFor="bookStatus">Book Condition</label>
             <select
               id="bookStatus"
-              name="bookStatus"
+              name="condition" // Sử dụng "condition" để lưu vào đúng trường dữ liệu
               className="form-control"
-              value={bookData.bookStatus}
+              value={bookData.condition || ""} // Hiển thị trạng thái ban đầu nếu có
               onChange={handleChange}
               required
             >
-              <option value="" disabled>
-                Select Book Status
-              </option>
+              <option value="" disabled>Select condition</option>
               <option value="Good">Good</option>
-              <option value="Fair">Fair</option>
-              <option value="Damaged">Damaged</option>
               <option value="Lost">Lost</option>
+              <option value="Light">Light</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
             </select>
           </div>
-        </div>
-
-        {/* Total Fines */}
-        <div className="form-group mt-3">
-          <label htmlFor="totalFines">Total Fines</label>
-          <input
-            type="text"
-            id="totalFines"
-            className="form-control"
-            value={bookData.totalFines}
-            readOnly
-            style={{ color: "#8B0000", fontWeight: "bold" }}
-          />
         </div>
 
         {/* Note */}
@@ -123,7 +115,7 @@ function BookStatus() {
             id="note"
             name="note"
             className="form-control"
-            value={bookData.note}
+            value={bookData.note || ""}
             onChange={handleChange}
             rows="4"
             placeholder="Enter any notes regarding the return"

@@ -43,7 +43,7 @@ import OrderDetail from "./pages/OrderDetail";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import Notification from "./pages/Notification";
 import Fines from "./pages/Fines";
-
+import Chart from "./pages/Chart";
 function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
@@ -82,7 +82,7 @@ function App() {
                 <Route path="/list-news-admin" element={<ProtectedRoute roles={["librarian"]}><ListNews /></ProtectedRoute>} />
                 <Route path="/update-news/:id" element={<ProtectedRoute roles={["librarian"]}><UpdateNews /></ProtectedRoute>} />
                 <Route path="/manage-return-book" element={<ProtectedRoute roles={["librarian"]}><ManageReturnBook /></ProtectedRoute>} />
-
+                <Route path="/chart" element={<ProtectedRoute roles={["librarian"]}><Chart /></ProtectedRoute>} />
 
                 {/* Admin Routes */}
                 <Route path="/create-account" element={<ProtectedRoute roles={["admin"]}><CreateAccount /></ProtectedRoute>} />
@@ -130,6 +130,7 @@ const ProtectedRoute = ({ roles, children }) => {
       { path: "/manage-return-book", label: "Quản lý trả sách", icon: "fa fa-undo" }, 
       { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper-o" }, 
       { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" }, 
+      { path: "/chart", label: "Thống kê", icon: "fa fa-chart-bar" }, 
     ],
     admin: [
       { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
