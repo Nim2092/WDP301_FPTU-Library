@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom"; // To get the orderId from the URL
-import "./RenewBook.scss"; // If you have a CSS file
+import "./RenewBook.scss"; // Import the CSS file if available
+import AuthContext from "../../contexts/UserContext";
 
 function RenewBook() {
   const { orderId } = useParams(); // Get the orderId from the URL
-
+  const { user } = useContext(AuthContext); // Get user context to retrieve userId
   const [book, setBook] = useState(null);
   const [newDueDate, setNewDueDate] = useState("");
   const [renewReason, setRenewReason] = useState("");
@@ -35,7 +36,8 @@ function RenewBook() {
         `http://localhost:9999/api/orders/renew/${orderId}`,
         {
           dueDate: newDueDate,
-          renew_reason: renewReason, // Pass the renewal reason
+          renew_reason: renewReason,
+          userId: user.id, // Pass userId to the backend
         }
       );
       alert("Book renewed successfully.");
@@ -51,11 +53,13 @@ function RenewBook() {
     <div className="renew-book container my-5">
       <div className="row">
         <div className="col-md-4">
-          <img
-            src="https://via.placeholder.com/150" // Replace with actual book image
-            alt="Book cover"
-            className="img-fluid"
-          />
+          <div className="col-md-4">
+            <img
+              src={`http://localhost:9999/api/news/thumbnail/${book?.book_id?.bookSet_id?.image.split("/").pop()}`}
+              className="img-fluid"
+              alt={book?.book_id?.bookSet_id?.title}
+            />
+          </div>
         </div>
         <div className="col-md-8">
           <h3>{book?.book_id?.bookSet_id?.title || "Unknown Title"}</h3>
