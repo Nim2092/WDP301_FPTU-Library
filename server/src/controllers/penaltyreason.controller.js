@@ -37,7 +37,7 @@ const getPenaltyReasonsById = async (req, res) => {
 //create a penalty reason
 const createPenaltyReasons = async (req, res) => {
   try {
-    const { reasonName, penaltyAmount } = req.body;
+    const { reasonName, penaltyAmount, type } = req.body;
     if (!reasonName || !penaltyAmount) {
       return res
         .status(400)
@@ -46,6 +46,7 @@ const createPenaltyReasons = async (req, res) => {
     const penaltyReason = new PenaltyReason({
       reasonName,
       penaltyAmount,
+      type
     });
     await penaltyReason.save();
     res.status(201).json({
