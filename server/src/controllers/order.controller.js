@@ -621,6 +621,7 @@ async function renewOrder(req, res, next) {
       });
     }
 
+    // Find the order by ID and check if it is in 'Received' status
     const order = await Order.findById(orderId).populate(
       "book_id",
       "identifier_code condition"
@@ -630,11 +631,17 @@ async function renewOrder(req, res, next) {
         message: "Order not found.",
       });
     }
+
+    if (order.status !== "Received") {
+      return res.status(400).json({
+        message: "Only orders with status 'Received' can be renewed.",
+      });
+    }
+
     const oldDueDateObj = new Date(order.dueDate);
     const dueDateObj = new Date(dueDate);
 
-    const differenceInDays =
-        (dueDateObj - oldDueDateObj) / (1000 * 60 * 60 * 24);
+    const differenceInDays = (dueDateObj - oldDueDateObj) / (1000 * 60 * 60 * 24);
     if (differenceInDays > 14) {
       return res.status(400).json({
         message: "The maximum term for borrowing books is 14 days",
@@ -648,10 +655,12 @@ async function renewOrder(req, res, next) {
       });
     }
 
+    // Update order details for renewal
     order.dueDate = dueDate;
     order.renewalCount += 1;
     order.renewalDate = new Date();
     order.renew_reason = renew_reason;
+    order.status = "Renew Pending"; // Set status to Renew Pending
 
     await order.save();
 
@@ -674,6 +683,7 @@ async function renewOrder(req, res, next) {
     });
   }
 }
+
 
 // Return order
 async function returnOrder(req, res, next) {
@@ -793,24 +803,34 @@ const filterOrdersByStatus = async (req, res, next) => {
   }
 };
 
-//Report lost book
+// Report lost book
 const reportLostBook = async (req, res, next) => {
   try {
     const { orderId } = req.params;
     const { userId } = req.body;
 
+    // Find the order and populate the necessary fields
     const order = await Order.findById(orderId).populate(
       "book_id",
       "identifier_code condition"
     );
+
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
     }
 
+    // Check if the order status is "Received" before allowing it to be reported as "Lost"
+    if (order.status !== "Received") {
+      return res.status(400).json({
+        message: "Only orders with status 'Received' can be reported as lost.",
+      });
+    }
+
+    // Update the order status to "Lost"
     order.status = "Lost";
     await order.save();
 
-    // Create notification
+    // Create a notification to inform the user
     const notification = new Notification({
       userId: userId,
       type: "Lost",
@@ -819,7 +839,7 @@ const reportLostBook = async (req, res, next) => {
     await notification.save();
 
     return res.status(200).json({
-      message: `Report lost books successfully.`,
+      message: "Report lost book successfully.",
       data: order,
     });
   } catch (error) {
@@ -829,6 +849,7 @@ const reportLostBook = async (req, res, next) => {
     });
   }
 };
+
 
 //Approve fines for lost book
 const applyFinesForLostBook = async (req, res, next) => {

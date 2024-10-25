@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom"; // To get the orderId from the URL
+import { useParams, useNavigate } from "react-router-dom"; // To get the orderId from the URL
 import "./RenewBook.scss"; // Import the CSS file if available
 import { ToastContainer, toast } from 'react-toastify';
 import AuthContext from "../../contexts/UserContext";
@@ -13,6 +13,8 @@ function RenewBook() {
   const [renewReason, setRenewReason] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Dùng để điều hướng đến trang mượn sách
+
 
   useEffect(() => {
     // Fetch order details when the component mounts
@@ -41,7 +43,8 @@ function RenewBook() {
           userId: user.id, // Pass userId to the backend
         }
       );
-      alert("Book renewed successfully.");
+      toast.done("Book renewed successfully.");
+      navigate(`/list-book-borrowed`);
     } catch (err) {
       toast.error(err.response?.data?.message);
     }
