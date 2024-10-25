@@ -679,7 +679,7 @@ async function renewOrder(req, res, next) {
 async function returnOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { userId, book_condition, returnDate, createBy, updateBy } = req.body;
+    const { userId, book_condition, returnDate, createBy, updateBy, fine_reason } = req.body;
 
     const order = await Order.findById(orderId).populate(
       "book_id",
@@ -736,6 +736,7 @@ async function returnOrder(req, res, next) {
         status: "Pending",
         paymentMethod: null,
         paymentDate: null,
+        reason: fine_reason
       });
 
       const newFines = await fines.save();
@@ -757,6 +758,7 @@ async function returnOrder(req, res, next) {
         status: "Pending",
         paymentMethod: null,
         paymentDate: null,
+        reason: "Overdue"
       });
 
       const newOverdueFines = await fines.save();
