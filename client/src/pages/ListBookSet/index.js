@@ -33,11 +33,22 @@ function ListBookSet() {
   };
 
   const handleDelete = async (id) => {
+    const confirmed = window.confirm("Are you sure you want to delete this book set?");
+    if (!confirmed) return;
+
     try {
       const response = await axios.delete(`http://localhost:9999/api/book-sets/delete/${id}`);
       console.log(response.data);
+      
+      // Remove the deleted book set from the state to update the UI
+      const updatedData = filteredBookSetData.filter((bookSet) => bookSet._id !== id);
+      setBookSetData(updatedData); // Update both states to reflect the change
+      setFilteredBookSetData(updatedData);
+      
+      alert("Book set deleted successfully");
     } catch (error) {
       console.error("Error deleting book set:", error);
+      alert("Failed to delete book set");
     }
   };
 
@@ -56,7 +67,7 @@ function ListBookSet() {
           <table className="table table-bordered">
             <thead>
               <tr>
-                <th>Image</th> {/* Cột ảnh */}
+                <th>Image</th>
                 <th>Title</th>
                 <th>Author</th>
                 <th>ISBN</th>
@@ -71,11 +82,10 @@ function ListBookSet() {
               {filteredBookSetData.map((bookSet) => (
                 <tr key={bookSet._id}>
                   <td>
-                    {/* Hiển thị ảnh từ API tương tự như cách load ảnh của News */}
                     <img
                       src={`http://localhost:9999/api/book-sets/image/${bookSet.image.split("/").pop()}`}
                       alt={bookSet.title}
-                      style={{ width: "100px", height: "auto" }} // Điều chỉnh kích thước ảnh
+                      style={{ width: "100px", height: "auto" }}
                     />
                   </td>
                   <td>{bookSet.title}</td>
