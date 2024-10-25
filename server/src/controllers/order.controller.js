@@ -873,7 +873,7 @@ const filterOrdersByStatus = async (req, res, next) => {
 const reportLostBook = async (req, res, next) => {
   try {
     const { orderId } = req.params;
-    const { userId } = req.body;
+    const { userId, createBy, updateBy } = req.body;
 
     // Find the order and populate the necessary fields
     const order = await Order.findById(orderId).populate(
@@ -884,6 +884,27 @@ const reportLostBook = async (req, res, next) => {
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
     }
+    const book = await Book.findById(order.book_id);
+    book.condition = "Lost";
+    book.status = "Destroyed";
+    await book.save();
+    const fineReason = await PenaltyReason.findOne({type: "PN5"})
+    const fineReason_id = fineReason._id;
+    const bookSet = await BookSet.findById(book.bookSet_id);
+    const totalAmount = fineReason.penaltyAmount * bookSet.price / 100;
+    const fines = new Fines({
+      user_id: userId,
+      order_id: orderId,
+      fineReason_id,
+      createBy,
+      updateBy,
+      totalFinesAmount: totalAmount,
+      status: "Pending",
+      paymentMethod: null,
+      paymentDate: null,
+      reason: "Lost book"
+    });
+    await fines.save();
 
     // Check if the order status is "Received" before allowing it to be reported as "Lost"
     if (order.status !== "Received") {
