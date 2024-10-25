@@ -615,13 +615,13 @@ async function renewOrder(req, res, next) {
         message: "Please provide a new due date.",
       });
     }
-
     if (!renew_reason) {
       return res.status(400).json({
         message: "Please provide a reason for renewal.",
       });
     }
 
+    // Find the order by ID and check if it is in 'Received' status
     const order = await Order.findById(orderId).populate(
       "book_id",
       "identifier_code condition"
@@ -632,16 +632,35 @@ async function renewOrder(req, res, next) {
       });
     }
 
+    if (order.status !== "Received") {
+      return res.status(400).json({
+        message: "Only orders with status 'Received' can be renewed.",
+      });
+    }
+
+    const oldDueDateObj = new Date(order.dueDate);
+    const dueDateObj = new Date(dueDate);
+
+    const differenceInDays = (dueDateObj - oldDueDateObj) / (1000 * 60 * 60 * 24);
+    if (differenceInDays > 14) {
+      return res.status(400).json({
+        message: "The maximum term for borrowing books is 14 days",
+        data: null,
+      });
+    }
+
     if (order.renewalCount >= 3) {
       return res.status(400).json({
         message: "Order cannot be renewed more than 3 times.",
       });
     }
 
+    // Update order details for renewal
     order.dueDate = dueDate;
     order.renewalCount += 1;
     order.renewalDate = new Date();
     order.renew_reason = renew_reason;
+    order.status = "Renew Pending"; // Set status to Renew Pending
 
     await order.save();
 
@@ -665,11 +684,12 @@ async function renewOrder(req, res, next) {
   }
 }
 
+
 // Return order
 async function returnOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { userId, book_condition } = req.body;
+    const { userId, book_condition, returnDate, createBy, updateBy, fine_reason } = req.body;
 
     const order = await Order.findById(orderId).populate(
       "book_id",
@@ -687,7 +707,73 @@ async function returnOrder(req, res, next) {
       });
     }
     const book = await Book.findById(order.book_id);
-    if(order.status === 'Lost' || book_condition === 'Lost' || book_condition === 'Hard') {
+    var isDestroyed = false;
+    var fineReasonType = '';
+    switch (book_condition) {
+      default:
+        isDestroyed = false;
+        fineReasonType = '';
+        break;
+      case 'Light':
+        isDestroyed = false;
+        fineReasonType = 'PN2';
+        break;
+      case 'Medium':
+        isDestroyed = false;
+        fineReasonType = 'PN3';
+        break;
+      case 'Hard':
+        isDestroyed = true;
+        fineReasonType = 'PN4';
+        break;
+      case 'Lost':
+        isDestroyed = true;
+        fineReasonType = 'PN5';
+        break;
+    }
+    if(fineReasonType) {
+      const fineReason = await PenaltyReason.findOne({type: fineReasonType})
+      const fineReason_id = fineReason._id;
+      const bookSet = await BookSet.findById(book.bookSet_id);
+      const totalAmount = fineReason.penaltyAmount * bookSet.price / 100;
+      const fines = new Fines({
+        user_id: userId,
+        order_id: orderId,
+        fineReason_id,
+        createBy,
+        updateBy,
+        totalFinesAmount: totalAmount,
+        status: "Pending",
+        paymentMethod: null,
+        paymentDate: null,
+        reason: fine_reason
+      });
+
+      const newFines = await fines.save();
+    }
+    const returnDateObj = new Date(returnDate);
+    const dueDateObj = new Date(order.dueDate);
+    const daysLate = Math.floor((returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24));
+    if (daysLate > 0) {
+      const overdueFine = await PenaltyReason.findOne({type: "PN1"})
+      const overdueFineId = overdueFine._id;
+      const fineAmount = daysLate * overdueFine.penaltyAmount;
+      const fines = new Fines({
+        user_id: userId,
+        order_id: orderId,
+        fineReason_id: overdueFineId,
+        createBy,
+        updateBy,
+        totalFinesAmount: fineAmount,
+        status: "Pending",
+        paymentMethod: null,
+        paymentDate: null,
+        reason: "Overdue"
+      });
+
+      const newOverdueFines = await fines.save();
+    }
+    if(order.status === 'Lost' || isDestroyed) {
       book.status = "Destroyed";
       book.condition = book_condition;
       await book.save();
@@ -702,7 +788,7 @@ async function returnOrder(req, res, next) {
     }
 
     order.status = "Returned";
-    order.returnDate = new Date();
+    order.returnDate = new Date(returnDate);
 
     await order.save();
 
@@ -783,24 +869,34 @@ const filterOrdersByStatus = async (req, res, next) => {
   }
 };
 
-//Report lost book
+// Report lost book
 const reportLostBook = async (req, res, next) => {
   try {
     const { orderId } = req.params;
     const { userId } = req.body;
 
+    // Find the order and populate the necessary fields
     const order = await Order.findById(orderId).populate(
       "book_id",
       "identifier_code condition"
     );
+
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
     }
 
+    // Check if the order status is "Received" before allowing it to be reported as "Lost"
+    if (order.status !== "Received") {
+      return res.status(400).json({
+        message: "Only orders with status 'Received' can be reported as lost.",
+      });
+    }
+
+    // Update the order status to "Lost"
     order.status = "Lost";
     await order.save();
 
-    // Create notification
+    // Create a notification to inform the user
     const notification = new Notification({
       userId: userId,
       type: "Lost",
@@ -809,7 +905,7 @@ const reportLostBook = async (req, res, next) => {
     await notification.save();
 
     return res.status(200).json({
-      message: `Report lost books successfully.`,
+      message: "Report lost book successfully.",
       data: order,
     });
   } catch (error) {
@@ -819,6 +915,7 @@ const reportLostBook = async (req, res, next) => {
     });
   }
 };
+
 
 //Approve fines for lost book
 const applyFinesForLostBook = async (req, res, next) => {

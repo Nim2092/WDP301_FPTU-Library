@@ -162,14 +162,26 @@ const createFines = async (req, res, next) => {
         data: null,
       });
     }
+    var totalAmount = 0;
+    if (penaltyReason.type === "PN1") {
+      const returnDateObj = new Date(order.returnDate);
+      const dueDateObj = new Date(order.dueDate);
 
+      const daysLate = Math.floor((returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24));
+      totalAmount = daysLate * penaltyReason.penaltyAmount;
+
+    } else {
+        const book = await Book.findById(order.book_id);
+        const bookSet = await BookSet.findById(book.bookSet_id);
+        totalAmount = penaltyReason.penaltyAmount * bookSet.price / 100;
+    }
     const fines = new Fines({
       user_id,
       order_id,
       fineReason_id,
       createBy,
       updateBy,
-      totalFinesAmount: penaltyReason.penaltyAmount,
+      totalFinesAmount: totalAmount,
       status: "Pending",
       paymentMethod: null,
       paymentDate: null,

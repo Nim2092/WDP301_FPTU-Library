@@ -39,14 +39,15 @@ function ListBookBorrowed() {
   }, [user, token]);
 
   // Function to handle the "Report lost book" action
-  const handleReportLostBook = async (orderId) => {
-    const confirmLost = window.confirm("Are you sure you want to report this book as lost?");
+  const handleReportLostBook = async (orderId, currentStatus) => {
+    const confirmLost = window.confirm(
+      "Are you sure you want to report this book as lost?"
+    );
     if (confirmLost) {
       try {
-        // API call to update the order status to 'lost'
         await axios.put(
-          `http://localhost:9999/api/orders/change-status/${orderId}`, // Adjust the API endpoint as per your backend
-          { status: 'lost' }, // You might need to adjust the payload depending on your API
+          `http://localhost:9999/api/orders/report-lost/${orderId}`,
+          { userId: user.id, status: currentStatus },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -54,7 +55,7 @@ function ListBookBorrowed() {
           }
         );
         alert("The book has been successfully reported as lost.");
-        // Optionally, refetch the data to update the UI
+
         const response = await axios.get(
           `http://localhost:9999/api/orders/by-user/${user.id}`,
           {
@@ -63,7 +64,7 @@ function ListBookBorrowed() {
             },
           }
         );
-        setBorrowedBooks(response.data.data); // Update the borrowed books list
+        setBorrowedBooks(response.data.data);
       } catch (err) {
         console.error(err);
         alert("Failed to report the book as lost. Please try again.");
@@ -71,7 +72,6 @@ function ListBookBorrowed() {
     }
   };
 
-  // Show loading indicator while fetching data
   if (loading) {
     return <p>Loading borrowed books...</p>;
   }
@@ -105,18 +105,24 @@ function ListBookBorrowed() {
             {borrowedBooks.map((order, index) => (
               <tr key={order._id}>
                 <td>{index + 1}</td>
-                <td>{order.book_id?.bookSet_id?.title || "Unknown Title"}</td> {/* Displaying the book title from the nested bookSet */}
+                <td>
+                  {order.book_id?.bookSet_id?.title || "Unknown Title"}
+                </td>{" "}
+                {/* Displaying the book title from the nested bookSet */}
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
                 <td>{order.status || "Unknown Status"}</td> 
                 <td>{order.book_id.identifier_code}</td>
                 <td>
                   <button
-                    onClick={() => handleReportLostBook(order._id)} // Call the handleReportLostBook function with order ID
+                    onClick={() =>
+                      handleReportLostBook(order._id, order.status)
+                    } // Pass the order ID and current status
                     className="btn btn-outline-primary me-2"
                   >
                     Report lost book
                   </button>
+
                   <Link
                     to={`/renew-book/${order._id}`}
                     className="btn btn-outline-primary me-2"
