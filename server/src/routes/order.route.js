@@ -11,7 +11,10 @@ orderRouter.get("/by-order/:orderId", orderController.getOrderById);
 
 orderRouter.get("/by-user/:userId", orderController.getOrderByUserId);
 
-orderRouter.get("/by-identifier-code/:identifierCode", orderController.getOrderByIdentifierCode);
+orderRouter.get(
+  "/by-identifier-code/:identifierCode",
+  orderController.getOrderByIdentifierCode
+);
 
 orderRouter.post("/create-borrow/:bookId", orderController.createBorrowOrder);
 
@@ -30,15 +33,9 @@ orderRouter.put("/report-lost/:orderId", orderController.reportLostBook);
 orderRouter.post("/lost-fines/:orderId", orderController.applyFinesForLostBook);
 
 //for testing and demo
-// orderRouter.get(
-//   "/test-reject-overdue/:orderId",
-//   orderController.rejectOverdueOrders
-// );
+orderRouter.post("/test-reject-overdue", orderController.rejectOverdueOrders);
 
-// orderRouter.get("/test-due-date/:orderId", orderController.checkDueDatesAndReminder);
+orderRouter.post("/test-due-date", orderController.checkDueDatesAndReminder);
 
-// orderRouter.get(
-//   "/test-overdue/:orderId",
-//   orderController.checkOverdueAndApplyFines
-// );
+orderRouter.post("/test-overdue", orderController.checkOverdueAndApplyFines);
 module.exports = orderRouter;
