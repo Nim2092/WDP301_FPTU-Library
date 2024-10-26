@@ -4,7 +4,7 @@ import SearchByStudentId from "../../components/SearchByStudentId";
 import BookStatus from "../../components/BookStatus";
 import IdentifiBookCode from "../../components/IdentifiBookCode";
 import ProgressBar from "../../components/ProgressBar";
-
+import Bill from "../../pages/Bill"
 function ManageReturnBook() {
   const [currentStep, setCurrentStep] = useState(1);
   const [userID, setUserID] = useState(""); // Store userID
@@ -46,7 +46,9 @@ function ManageReturnBook() {
       //     />
       //   );
       case 3:
-        return <BookStatus bookID={bookID} onPreviousStep={handlePreviousStep} />;
+        return <BookStatus bookID={bookID} onNextStep={handleNextStep} onPreviousStep={handlePreviousStep} />;
+      case 4:
+        return <Bill />
       default:
         return <SearchByStudentId onNextStep={handleNextStep} />;
     }

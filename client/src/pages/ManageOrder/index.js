@@ -244,6 +244,7 @@ const BorrowBookList = () => {
             <th>Due Date</th>
             <th>Identify Book Code</th>
             <th>Status</th>
+            <th>Book Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -267,6 +268,9 @@ const BorrowBookList = () => {
                   <span className={`text-${book.status === "Pending" ? "warning" : book.status === "Approved" ? "success" : "danger"}`}>
                     {book.status}
                   </span>
+                </td>
+                <td>
+                  {book.book_id.condition}
                 </td>
                 {book.status === "Pending" && (
                   <td className="d-flex justify-content-center">
@@ -295,6 +299,7 @@ const BorrowBookList = () => {
                     <Button variant="primary" onClick={() => handleActionClick(book, "receive")}> Approve Renew</Button>
                   </td>
                 )}
+                
               </tr>
             ))
           ) : (

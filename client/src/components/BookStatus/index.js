@@ -1,41 +1,67 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 function BookStatus({ bookID, onPreviousStep }) {
   const [bookData, setBookData] = useState({});
-  const [fineData, setFineData] = useState({});
+  const [fineData, setFineData] = useState({ fine_reason: "" });
+  const [returnDate, setReturnDate] = useState(new Date().toISOString().split("T")[0]);
+  const [bookCondition, setBookCondition] = useState("Good");
+  const [data, setData] = useState([]);
+
   useEffect(() => {
-    axios.get(`http://localhost:9999/api/orders/by-order/${bookID}`)
-      .then(response => {
-        setBookData(response.data.data); // Lưu dữ liệu sách từ API
+    axios
+      .get(`http://localhost:9999/api/orders/by-order/${bookID}`)
+      .then((response) => {
+        setBookData(response.data.data);
       })
-      .catch(error => {
-        toast.error("Error fetching book details:", error);
+      .catch((error) => {
+        toast.error("Error fetching book details");
         console.error("Error fetching book details:", error);
       });
   }, [bookID]);
 
-
-  // Handler for updating form fields
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setBookData((prevData) => ({
-      ...prevData,
-      [name]: value,
+  const handleFineReasonChange = (e) => {
+    setFineData((prevFineData) => ({
+      ...prevFineData,
+      fine_reason: e.target.value,
     }));
   };
 
-  // Handler for submitting the form
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Book Return Data:", bookData);
-    // Xử lý logic thanh toán hoặc cập nhật trạng thái tại đây
+
+    const payload = {
+      userId: bookData.created_by?._id || "",
+      returnDate: new Date(returnDate).toISOString(),
+      createBy: bookData.created_by?._id || "",
+      updateBy: bookData.updated_by?._id || "",
+      book_condition: bookCondition,
+      fine_reason: fineData.fine_reason,
+    };
+
+    try {
+      const response = await axios.post(`http://localhost:9999/api/orders/return/${bookID}`, payload);
+
+      if (response.status === 200) {
+        toast.success("Book return confirmed successfully!");
+        onPreviousStep();
+      } else {
+        toast.error("Error confirming book return.");
+      }
+    } catch (error) {
+      toast.error("Error confirming book return.");
+      console.error("Error confirming book return:", error);
+    }
   };
 
   return (
     <div className="container mt-4">
-        <ToastContainer />
-      <button className="btn btn-primary mb-3" onClick={onPreviousStep}>Previous Step</button>
+      <ToastContainer />
+      <button className="btn btn-primary mb-3" onClick={onPreviousStep}>
+        Previous Step
+      </button>
       <h2 className="mb-3 text-center">Return Book</h2>
 
       <form onSubmit={handleSubmit}>
@@ -51,7 +77,7 @@ function BookStatus({ bookID, onPreviousStep }) {
           />
         </div>
 
-        {/* Borrow Date and Book Return Date */}
+        {/* Borrow Date and Due Date */}
         <div className="row">
           <div className="form-group mt-3 col-md-6">
             <label htmlFor="borrowDate">Borrow Date</label>
@@ -82,50 +108,48 @@ function BookStatus({ bookID, onPreviousStep }) {
             <input
               type="date"
               id="returnDate"
-              name="returnDate"
               className="form-control"
-              value={new Date().toISOString().split('T')[0]} // Set current date in YYYY-MM-DD format
-              onChange={handleChange}
+              value={returnDate}
+              onChange={(e) => setReturnDate(e.target.value)}
+              required
             />
           </div>
           <div className="form-group mt-3 col-md-6">
             <label htmlFor="bookStatus">Book Condition</label>
             <select
               id="bookStatus"
-              name="condition" // Sử dụng "condition" để lưu vào đúng trường dữ liệu
               className="form-control"
-              value={bookData.condition || ""} // Hiển thị trạng thái ban đầu nếu có
-              onChange={handleChange}
+              value={bookCondition}
+              onChange={(e) => setBookCondition(e.target.value)}
               required
             >
-              <option value="" disabled>Select condition</option>
               <option value="Good">Good</option>
-              <option value="Lost">Lost</option>
               <option value="Light">Light</option>
               <option value="Medium">Medium</option>
               <option value="Hard">Hard</option>
+              <option value="Lost">Lost</option>
             </select>
           </div>
         </div>
 
-        {/* Note */}
+        {/* Fine Reason */}
         <div className="form-group mt-3">
-          <label htmlFor="note">Note</label>
+          <label htmlFor="fineReason">Fine Reason</label>
           <textarea
-            id="note"
-            name="note"
+            id="fineReason"
+            name="fine_reason"
             className="form-control"
-            value={bookData.note || ""}
-            onChange={handleChange}
+            value={fineData.fine_reason}
+            onChange={handleFineReasonChange}
             rows="4"
-            placeholder="Enter any notes regarding the return"
+            placeholder="Enter any reasons regarding fines or damage"
           ></textarea>
         </div>
 
-        {/* Pay Button */}
+        {/* Confirm Button */}
         <div className="d-flex justify-content-center mt-4">
           <button type="submit" className="btn btn-primary btn-lg">
-            Pay
+            Confirm
           </button>
         </div>
       </form>
