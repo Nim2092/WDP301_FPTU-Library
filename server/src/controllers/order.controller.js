@@ -171,119 +171,6 @@ const getOrderByUserId = async (req, res, next) => {
   }
 };
 
-//create borrow order with book id
-// const createBorrowOrder = async (req, res, next) => {
-//   try {
-//     const { borrowDate, dueDate, userId } = req.body;
-//     const { bookId } = req.params;
-
-//     console.log(req.body);
-//     console.log(req.params);
-//     //check if user exists
-//     const user = await User.findById(userId);
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     //check if book exists
-//     const book = await Book.findById(bookId);
-//     if (!book) {
-//       return res.status(404).json({
-//         message: "Book not found",
-//         data: null,
-//       });
-//     }
-
-//     //check if book set exists and has available copies
-//     const bookSet = await BookSet.findById(book.bookSet_id);
-//     if (!bookSet || bookSet.availableCopies < 1) {
-//       return res.status(400).json({
-//         message: "No available copies left for this book set",
-//         data: null,
-//       });
-//     }
-
-//     //check if the book is already borrowed or reserved by another user
-//     const existingOrder = await Order.findOne({
-//       book_id: bookId,
-//       status: {
-//         $in: ["Pending", "Approved", "Received", "Overdue", "Renew Pending"],
-//       },
-//     });
-
-//     if (existingOrder) {
-//       return res.status(400).json({
-//         message: "This book is already borrowed or reserved by another user",
-//         data: null,
-//       });
-//     }
-
-//     //check if borrow date and due date are valid
-//     if (!borrowDate || !dueDate) {
-//       return res.status(400).json({
-//         message: "Borrow date and due date are required",
-//         data: null,
-//       });
-//     }
-
-//     const borrowDateObj = new Date(borrowDate);
-//     const dueDateObj = new Date(dueDate);
-
-//     if (isNaN(borrowDateObj.getTime()) || isNaN(dueDateObj.getTime())) {
-//       return res.status(400).json({
-//         message: "Invalid borrow date or due date",
-//         data: null,
-//       });
-//     }
-
-//     if (dueDateObj <= borrowDateObj) {
-//       return res.status(400).json({
-//         message: "Due date must be after borrow date",
-//         data: null,
-//       });
-//     }
-
-//     //create new order
-//     const order = new Order({
-//       book_id: bookId,
-//       created_by: userId,
-//       updated_by: userId,
-//       status: "Pending",
-//       requestDate: new Date(),
-//       borrowDate: borrowDateObj,
-//       dueDate: dueDateObj,
-//       returnDate: null,
-//       reason_order: "",
-//       renewalCount: 0,
-//       renewalDate: null,
-//     });
-
-//     const newOrder = await order.save();
-
-//     book.status = "Borrowed";
-//     await book.save();
-
-//     bookSet.availableCopies -= 1;
-//     await bookSet.save();
-
-//     const notification = new Notification({
-//       userId: userId,
-//       type: "Borrow",
-//       message: `Bạn đã yêu cầu mượn sách thành công. Vui lòng đến lấy sách đúng ngày. Hạn trả là ngày ${dueDateObj.toDateString()}.`,
-//     });
-
-//     await notification.save();
-
-//     res.status(201).json({
-//       message: "Order created successfully",
-//       data: newOrder,
-//     });
-//   } catch (error) {
-//     console.error("Error creating order", error);
-//     res.status(500).send({ message: error.message });
-//   }
-// };
-
 const createBorrowOrder = async (req, res, next) => {
   try {
     const { borrowDate, dueDate, userId } = req.body;
@@ -406,6 +293,7 @@ const createBorrowOrder = async (req, res, next) => {
     bookSet.availableCopies -= 1;
     await bookSet.save();
 
+    // Create a notification for the user who created the order
     const notification = new Notification({
       userId: userId,
       type: "Pending",
@@ -413,6 +301,24 @@ const createBorrowOrder = async (req, res, next) => {
     });
 
     await notification.save();
+
+    // send email
+    const userEmail = user.email;
+    let info = await transporter.sendMail({
+      from: '"Library Notification" <titi2024hd@gmail.com>',
+      to: userEmail,
+      subject: "Book Borrow Request Confirmation",
+      text: `Hello, you have successfully requested to borrow the book with identifier code ${
+        book.identifier_code
+      }. Your book loan is due on ${dueDateObj.toDateString()}. Thank you for using our library service.`,
+      html: `<b>Hello</b>, you have successfully requested to borrow the book with identifier code <strong>${
+        book.identifier_code
+      }</strong>.<br>Your book loan is due on <strong>${dueDateObj.toDateString()}</strong>.<br><br>Thank you for using our library service.`,
+    });
+
+    console.log(
+      `Sent borrow request confirmation email to ${userEmail} for order ${newOrder._id}`
+    );
 
     res.status(201).json({
       message: "Order created successfully",
@@ -680,6 +586,26 @@ async function renewOrder(req, res, next) {
 
     await notification.save();
 
+    // Tìm thông tin người dùng để gửi email
+    const user = await User.findById(userId).populate("email");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Gửi email thông báo cho người dùng
+    const userEmail = user.email;
+    let info = await transporter.sendMail({
+      from: '"Library Notification" <titi2024hd@gmail.com>',
+      to: userEmail,
+      subject: "Book Renewal Request Received",
+      text: `Hello, your request to renew the book with identifier code ${order.book_id.identifier_code} is being processed. The new return date for the book is ${dueDate}. Thank you for using our service.`,
+      html: `<b>Hello</b>, your request to renew the book with identifier code <strong>${order.book_id.identifier_code}</strong> is being processed. <br>The new return date for the book is <strong>${dueDate}</strong>.<br><br>Thank you for using our service.`,
+    });
+
+    console.log(
+      `Sent renewal confirmation email to ${userEmail} for order ${orderId}`
+    );
+
     return res.status(200).json({
       message: "Order renewed successfully.",
       data: order,
@@ -705,10 +631,16 @@ async function returnOrder(req, res, next) {
       fine_reason,
     } = req.body;
 
-    const order = await Order.findById(orderId).populate(
-      "book_id",
-      "identifier_code condition"
-    );
+    const order = await Order.findById(orderId)
+      .populate("book_id", "identifier_code condition")
+      .populate({
+        path: "book_id",
+        select: "identifier_code",
+        populate: {
+          path: "bookSet_id",
+          select: "title",
+        },
+      });
     if (!order) {
       return res.status(404).json({
         message: "Order not found.",
@@ -745,6 +677,9 @@ async function returnOrder(req, res, next) {
         fineReasonType = "PN5";
         break;
     }
+
+    let finesApplied = [];
+
     if (fineReasonType) {
       const fineReason = await PenaltyReason.findOne({ type: fineReasonType });
       const fineReason_id = fineReason._id;
@@ -763,7 +698,13 @@ async function returnOrder(req, res, next) {
         reason: fine_reason,
       });
 
-      const newFines = await fines.save();
+      await fines.save();
+
+      finesApplied.push({
+        type: "Condition Fine",
+        amount: totalAmount,
+        message: `Applied fine for book condition: ${book_condition}`,
+      });
     }
     const returnDateObj = new Date(returnDate);
     const dueDateObj = new Date(order.dueDate);
@@ -787,7 +728,13 @@ async function returnOrder(req, res, next) {
         reason: "Overdue",
       });
 
-      const newOverdueFines = await fines.save();
+      await fines.save();
+
+      finesApplied.push({
+        type: "Overdue Fine",
+        amount: fineAmount,
+        message: `Applied fine for overdue of ${daysLate} days`,
+      });
     }
     if (order.status === "Lost" || isDestroyed) {
       book.status = "Destroyed";
@@ -811,10 +758,43 @@ async function returnOrder(req, res, next) {
     const notification = new Notification({
       userId: userId,
       type: "Returned",
-      message: `You have successfully returned the book #${order.book_id.identifier_code} on ${order.returnDate} . Book condition is: ${order.book_id.condition}. Thank you!`,
+      message: `You have successfully returned the book with identifier code #${order.book_id.identifier_code} on ${order.returnDate} . Book condition is: ${order.book_id.condition}. Thank you!`,
     });
 
     await notification.save();
+
+    // Tìm thông tin người dùng để gửi email
+    const user = await User.findById(userId).populate("email");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // send email
+    const userEmail = user.email;
+    const fineDetails = finesApplied
+      .map((fine) => `${fine.message} with amount: ${fine.amount} VND`)
+      .join("<br>");
+    let info = await transporter.sendMail({
+      from: '"Library Notification" <titi2024hd@gmail.com>',
+      to: userEmail,
+      subject: "Book Return Confirmation",
+      text: `Hello, you have successfully returned the book with identifier code #${
+        order.book_id.identifier_code
+      } on ${order.returnDate}. Book condition is: ${book_condition}. ${
+        fineDetails ? `You have been fined: ${fineDetails}` : ""
+      }`,
+      html: `<b>Hello</b>, you have successfully returned the book with identifier code <strong>#${
+        order.book_id.identifier_code
+      }</strong> on ${
+        order.returnDate
+      }.<br>Book condition is: <strong>${book_condition}</strong>.<br>${
+        fineDetails ? `<br>You have been fined:<br>${fineDetails}` : ""
+      }<br><br>Thank you!`,
+    });
+
+    console.log(
+      `Sent return confirmation email to ${userEmail} for order ${orderId}`
+    );
 
     return res.status(200).json({
       message: "Order returned successfully.",
@@ -959,10 +939,14 @@ const applyFinesForLostBook = async (req, res, next) => {
     const { orderId } = req.params;
     const { userId, fineReasonId, createBy, updateBy } = req.body;
 
-    const order = await Order.findById(orderId).populate(
-      "book_id",
-      "identifier_code"
-    );
+    const order = await Order.findById(orderId).populate({
+      path: "book_id",
+      select: "identifier_code",
+      populate: {
+        path: "bookSet_id",
+        select: "title",
+      },
+    });
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
     }
@@ -989,12 +973,13 @@ const applyFinesForLostBook = async (req, res, next) => {
       fineReason_id: fineReasonId,
       createBy: createBy,
       updateBy: updateBy,
-      totalFineAmount: penaltyReason.penaltyAmount,
+      totalFinesAmount: penaltyReason.penaltyAmount,
       status: "Pending",
       createdAt: new Date(),
       updatedAt: new Date(),
       paymentMethod: null,
       paymentDate: null,
+      reason: "Lost book",
     });
 
     await fines.save();
@@ -1003,9 +988,29 @@ const applyFinesForLostBook = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Fines",
-      message: `You have been penalized ${penaltyReason.penaltyAmount}k for book ${order.book_id.identifier_code} for loss.`,
+      message: `You have been penalized ${penaltyReason.penaltyAmount} VND for losing the book "${order.book_id.bookSet_id.title}".`,
     });
     await notification.save();
+
+    // Tìm thông tin người dùng để gửi email
+    const user = await User.findById(userId).populate("email");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Gửi email thông báo cho người dùng
+    const userEmail = user.email;
+    let info = await transporter.sendMail({
+      from: '"Library Notification" <titi2024hd@gmail.com>',
+      to: userEmail,
+      subject: "Lost Book Fine Notification",
+      text: `Hello, you have been penalized ${penaltyReason.penaltyAmount} VND for losing the book "${order.book_id.bookSet_id.title}". Please contact the library for further assistance if needed.`,
+      html: `<b>Hello</b>, you have been penalized <strong>${penaltyReason.penaltyAmount}</strong> VND for losing the book <strong>#${order.book_id.bookSet_id.title}</strong>. <br><br>Please contact the library for further assistance if needed.`,
+    });
+
+    console.log(
+      `Sent lost book fine email to ${userEmail} for order ${orderId}`
+    );
 
     return res.status(200).json({
       message: `Applied fines for lost book successfully.`,
