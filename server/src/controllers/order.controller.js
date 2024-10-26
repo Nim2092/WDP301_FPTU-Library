@@ -11,6 +11,16 @@ const {
   fines: Fines,
 } = db;
 const cron = require("node-cron");
+const nodemailer = require("nodemailer");
+
+//for send email
+let transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "titi2024hd@gmail.com",
+    pass: "mrwm vfbp dprc qwyu",
+  },
+});
 
 //Get all order
 const getAllOrder = async (req, res, next) => {
@@ -91,15 +101,15 @@ const getOrderByIdentifierCode = async (req, res, next) => {
 
     // Tìm đơn hàng dựa vào book_id
     const order = await Order.findOne({ book_id: book._id })
-        .populate({
-          path: "book_id", // Populating the book reference
-          populate: {
-            path: "bookSet_id", // Nested populate to get book set details
-            model: "BookSet", // Reference to the BookSet model
-          },
-        })
-        .populate("created_by", "fullName") // Populate the creator's full name
-        .populate("updated_by", "fullName"); // Populate the updater's full name
+      .populate({
+        path: "book_id", // Populating the book reference
+        populate: {
+          path: "bookSet_id", // Nested populate to get book set details
+          model: "BookSet", // Reference to the BookSet model
+        },
+      })
+      .populate("created_by", "fullName") // Populate the creator's full name
+      .populate("updated_by", "fullName"); // Populate the updater's full name
 
     // Kiểm tra xem đơn hàng có tồn tại không
     if (!order) {
@@ -116,7 +126,6 @@ const getOrderByIdentifierCode = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
-
 
 //Get orders by user id
 const getOrderByUserId = async (req, res, next) => {
@@ -297,7 +306,7 @@ const createBorrowOrder = async (req, res, next) => {
         data: null,
       });
     }
-    if(book.status !== 'Available') {
+    if (book.status !== "Available") {
       return res.status(500).json({
         message: "Book is borrowed or is not good enough to borrow.",
         data: null,
@@ -495,7 +504,6 @@ async function changeOrderStatus(req, res, next) {
       await user.save();
     }
 
-
     // Update the order status
     order.status = status;
     order.updated_by = updated_by;
@@ -569,7 +577,7 @@ const bulkUpdateOrderStatus = async (req, res) => {
     // Find and update the orders in bulk where the status is "Pending"
     const orders = await Order.find({
       _id: { $in: orderIds }, // Match the selected IDs
-      status: { $in: ["Pending", "Renew Pending"] }
+      status: { $in: ["Pending", "Renew Pending"] },
     });
 
     if (orders.length === 0) {
@@ -602,7 +610,6 @@ const bulkUpdateOrderStatus = async (req, res) => {
     });
   }
 };
-
 
 // Renew order
 async function renewOrder(req, res, next) {
@@ -641,7 +648,8 @@ async function renewOrder(req, res, next) {
     const oldDueDateObj = new Date(order.dueDate);
     const dueDateObj = new Date(dueDate);
 
-    const differenceInDays = (dueDateObj - oldDueDateObj) / (1000 * 60 * 60 * 24);
+    const differenceInDays =
+      (dueDateObj - oldDueDateObj) / (1000 * 60 * 60 * 24);
     if (differenceInDays > 14) {
       return res.status(400).json({
         message: "The maximum term for borrowing books is 14 days",
@@ -684,12 +692,18 @@ async function renewOrder(req, res, next) {
   }
 }
 
-
 // Return order
 async function returnOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { userId, book_condition, returnDate, createBy, updateBy, fine_reason } = req.body;
+    const {
+      userId,
+      book_condition,
+      returnDate,
+      createBy,
+      updateBy,
+      fine_reason,
+    } = req.body;
 
     const order = await Order.findById(orderId).populate(
       "book_id",
@@ -708,34 +722,34 @@ async function returnOrder(req, res, next) {
     }
     const book = await Book.findById(order.book_id);
     var isDestroyed = false;
-    var fineReasonType = '';
+    var fineReasonType = "";
     switch (book_condition) {
       default:
         isDestroyed = false;
-        fineReasonType = '';
+        fineReasonType = "";
         break;
-      case 'Light':
+      case "Light":
         isDestroyed = false;
-        fineReasonType = 'PN2';
+        fineReasonType = "PN2";
         break;
-      case 'Medium':
+      case "Medium":
         isDestroyed = false;
-        fineReasonType = 'PN3';
+        fineReasonType = "PN3";
         break;
-      case 'Hard':
+      case "Hard":
         isDestroyed = true;
-        fineReasonType = 'PN4';
+        fineReasonType = "PN4";
         break;
-      case 'Lost':
+      case "Lost":
         isDestroyed = true;
-        fineReasonType = 'PN5';
+        fineReasonType = "PN5";
         break;
     }
-    if(fineReasonType) {
-      const fineReason = await PenaltyReason.findOne({type: fineReasonType})
+    if (fineReasonType) {
+      const fineReason = await PenaltyReason.findOne({ type: fineReasonType });
       const fineReason_id = fineReason._id;
       const bookSet = await BookSet.findById(book.bookSet_id);
-      const totalAmount = fineReason.penaltyAmount * bookSet.price / 100;
+      const totalAmount = (fineReason.penaltyAmount * bookSet.price) / 100;
       const fines = new Fines({
         user_id: userId,
         order_id: orderId,
@@ -746,16 +760,18 @@ async function returnOrder(req, res, next) {
         status: "Pending",
         paymentMethod: null,
         paymentDate: null,
-        reason: fine_reason
+        reason: fine_reason,
       });
 
       const newFines = await fines.save();
     }
     const returnDateObj = new Date(returnDate);
     const dueDateObj = new Date(order.dueDate);
-    const daysLate = Math.floor((returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24));
+    const daysLate = Math.floor(
+      (returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24)
+    );
     if (daysLate > 0) {
-      const overdueFine = await PenaltyReason.findOne({type: "PN1"})
+      const overdueFine = await PenaltyReason.findOne({ type: "PN1" });
       const overdueFineId = overdueFine._id;
       const fineAmount = daysLate * overdueFine.penaltyAmount;
       const fines = new Fines({
@@ -768,12 +784,12 @@ async function returnOrder(req, res, next) {
         status: "Pending",
         paymentMethod: null,
         paymentDate: null,
-        reason: "Overdue"
+        reason: "Overdue",
       });
 
       const newOverdueFines = await fines.save();
     }
-    if(order.status === 'Lost' || isDestroyed) {
+    if (order.status === "Lost" || isDestroyed) {
       book.status = "Destroyed";
       book.condition = book_condition;
       await book.save();
@@ -888,10 +904,10 @@ const reportLostBook = async (req, res, next) => {
     book.condition = "Lost";
     book.status = "Destroyed";
     await book.save();
-    const fineReason = await PenaltyReason.findOne({type: "PN5"})
+    const fineReason = await PenaltyReason.findOne({ type: "PN5" });
     const fineReason_id = fineReason._id;
     const bookSet = await BookSet.findById(book.bookSet_id);
-    const totalAmount = fineReason.penaltyAmount * bookSet.price / 100;
+    const totalAmount = (fineReason.penaltyAmount * bookSet.price) / 100;
     const fines = new Fines({
       user_id: userId,
       order_id: orderId,
@@ -902,7 +918,7 @@ const reportLostBook = async (req, res, next) => {
       status: "Pending",
       paymentMethod: null,
       paymentDate: null,
-      reason: "Lost book"
+      reason: "Lost book",
     });
     await fines.save();
 
@@ -936,7 +952,6 @@ const reportLostBook = async (req, res, next) => {
     });
   }
 };
-
 
 //Approve fines for lost book
 const applyFinesForLostBook = async (req, res, next) => {
@@ -1013,7 +1028,18 @@ const rejectOverdueOrders = async (req, res, next) => {
     const pendingOrders = await Order.find({
       // _id: orderId, // testing
       status: "Approved",
-    });
+    })
+      .populate("created_by", "name email")
+      .populate({
+        path: "book_id",
+        select: "identifier_code",
+        populate: {
+          path: "bookSet_id",
+          select: "title",
+        },
+      });
+
+    let emailSent = [];
     // Loop through all pending orders to check if any of them are overdue
     for (const order of pendingOrders) {
       const requestDate = new Date(order.requestDate);
@@ -1032,11 +1058,32 @@ const rejectOverdueOrders = async (req, res, next) => {
           message: `Your order #${order._id} has been rejected because you did not pick up the book within 3 days.`,
         });
         await notification.save();
+
+        // Send an email to the user
+        const userEmail = order.created_by.email;
+        let info = await transporter.sendMail({
+          from: '"Library Notification" <titi2024hd@gmail.com>',
+          to: userEmail,
+          subject: "Order Canceled - Book Not Picked Up",
+          text: `Hello, your order for the book "${order.book_id.bookSet_id.title}" (Order ID: ${order._id}) has been canceled because it was not picked up within 3 days. Please contact the library for further assistance if needed.`,
+          html: `<b>Hello</b>, your order for the book "<strong>${order.book_id.bookSet_id.title}</strong>" (Order ID: ${order._id}) has been canceled because it was not picked up within 3 days. <br><br>Please contact the library for further assistance if needed.`,
+        });
+
+        // Lưu lại các thông tin về thông báo đã gửi
+        emailSent.push({
+          userEmail,
+          orderId: order._id,
+          message: `Sent cancellation email for "${order.book_id.bookSet_id.title}" due to overdue.`,
+        });
+
+        console.log(
+          `Sent cancellation email to ${userEmail} for order ${order._id}`
+        );
       }
     }
     res.status(200).json({
-      message: "Overdue orders rejected successfully.",
-      data: pendingOrders,
+      message: "Overdue orders rejected successfully and email sent.",
+      data: emailSent,
     });
     console.log("Checking and rejecting overdue orders...");
   } catch (error) {
@@ -1048,13 +1095,23 @@ const rejectOverdueOrders = async (req, res, next) => {
 // Check due dates and send notifications to users
 const checkDueDatesAndReminder = async (req, res, next) => {
   try {
-    // const { orderId } = req.params;
+    // const { orderId } = req.params; //testing
     const now = new Date();
     const orders = await Order.find({
       // _id: orderId, // testing
-      status: { $in: ["Approved", "Received"] },
-    });
-
+      status: { $in: ["Received"] },
+    })
+      .populate({
+        path: "book_id",
+        select: "identifier_code",
+        populate: {
+          path: "bookSet_id",
+          select: "title",
+        },
+      })
+      .populate("created_by", "name email");
+    console.log(orders);
+    let emailSent = [];
     // Loop through all orders to check due dates and send notifications
     for (const order of orders) {
       const dueDate = new Date(order.dueDate);
@@ -1072,11 +1129,33 @@ const checkDueDatesAndReminder = async (req, res, next) => {
         console.log(
           `Sent reminder to user ${order.created_by} for order ${order._id}`
         );
+
+        //send email
+        const userEmail = order.created_by.email;
+        let info = await transporter.sendMail({
+          from: '"Library Reminder" <titi2024hd@gmail.com>',
+          to: userEmail,
+          subject: "Book Return Reminder",
+          text: `Hello, just a reminder that your book "${
+            order.book_id.bookSet_id.title
+          }" is due in ${daysUntilDue} days on ${dueDate.toDateString()}. Please return it on time to avoid fines.`,
+          html: `<b>Hello</b>, just a reminder that your book "${
+            order.book_id.bookSet_id.title
+          }" is due in <strong>${daysUntilDue}</strong> days on <strong>${dueDate.toDateString()}</strong>. <br><br>Please return it on time to avoid fines.`,
+        });
+
+        emailSent.push({
+          userEmail,
+          orderId: order._id,
+          message: `Sent reminder for "${order.book_id.bookSet_id.title}" due in ${daysUntilDue} days.`,
+        });
+
+        console.log(`Sent reminder to user ${userEmail}`);
       }
     }
     res.status(200).json({
       message: "Due dates checked and notifications sent.",
-      data: orders,
+      data: emailSent,
     });
     console.log("Checking due dates and sending reminders...");
   } catch (error) {
@@ -1088,60 +1167,74 @@ const checkDueDatesAndReminder = async (req, res, next) => {
 // Check overdue orders and apply fines
 const checkOverdueAndApplyFines = async (req, res, next) => {
   try {
-    // const { orderId } = req.params;
     const now = new Date();
     const orders = await Order.find({
-      // _id: orderId, // testing
-      status: { $in: ["Pending", "Approved", "Received"] },
-    });
+      status: { $in: ["Received"] },
+    })
+      .populate("created_by", "name email")
+      .populate({
+        path: "book_id",
+        select: "identifier_code",
+        populate: {
+          path: "bookSet_id",
+          select: "title",
+        },
+      });
+
+    let finesApplied = [];
 
     for (const order of orders) {
       const dueDate = new Date(order.dueDate);
-      const daysOverdue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24)); // number of days overdue
+      const daysOverdue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
 
       if (daysOverdue > 0) {
-        let penaltyReason;
-
-        // Chọn lý do phạt dựa trên số ngày quá hạn
-        if (daysOverdue <= 3) {
-          penaltyReason = await PenaltyReason.findOne({
-            reasonName: "Overdue 1-3 days",
-          });
-        } else if (daysOverdue <= 7) {
-          penaltyReason = await PenaltyReason.findOne({
-            reasonName: "Overdue 4-7 days",
-          });
-        } else {
-          penaltyReason = await PenaltyReason.findOne({
-            reasonName: "Overdue over 7 days",
-          });
-        }
+        const penaltyReason = await PenaltyReason.findOne({
+          reasonName: "Overdue",
+        });
 
         if (penaltyReason) {
+          const totalFineAmount = daysOverdue * penaltyReason.penaltyAmount;
+
+          // create a new fine record for overdue book
           const fine = new Fines({
-            user_id: order.created_by,
-            book_id: order.book_id,
+            user_id: order.created_by._id,
+            book_id: order.book_id._id,
             order_id: order._id,
             fineReason_id: penaltyReason._id,
-            totalFineAmount: penaltyReason.penaltyAmount,
+            totalFinesAmount: totalFineAmount,
             status: "Pending",
-            createdAt: now,
-            updatedAt: now,
+            reason: "Overdue",
           });
           await fine.save();
 
-          // Send a notification to the user
+          // Create a notification for the user
           const fineNotification = new Notification({
-            userId: order.created_by,
+            userId: order.created_by._id,
             orderId: order._id,
             type: "Fines",
-            message: `Your book is overdue by ${daysOverdue} days. You have been fined ${penaltyReason.penaltyAmount}VND.`,
+            message: `Your book is overdue by ${daysOverdue} days. You have been fined ${totalFineAmount} VND.`,
+          });
+          await fineNotification.save();
+
+          // Send an email to the user
+          const userEmail = order.created_by.email;
+          let info = await transporter.sendMail({
+            from: '"Library Notification" <titi2024hd@gmail.com>',
+            to: userEmail,
+            subject: "Overdue Fine Notification",
+            text: `Hello, your book "${order.book_id.bookSet_id.title}" is overdue by ${daysOverdue} days. You have been fined ${totalFineAmount} VND. Please return the book and pay the fine to avoid further penalties.`,
+            html: `<b>Hello</b>, your book "<strong>${order.book_id.bookSet_id.title}</strong>" is overdue by <strong>${daysOverdue}</strong> days. <br>You have been fined <strong>${totalFineAmount}</strong> VND. <br><br>Please return the book and pay the fine to avoid further penalties.`,
           });
 
-          await fineNotification.save();
-          console.log(
-            `Applied fine for order ${order._id} with amount ${penaltyReason.penaltyAmount}`
-          );
+          // Lưu lại các thông tin về phạt đã áp dụng
+          finesApplied.push({
+            userEmail,
+            orderId: order._id,
+            fineAmount: totalFineAmount,
+            message: `Sent fine email for "${order.book_id.bookSet_id.title}" overdue by ${daysOverdue} days.`,
+          });
+
+          console.log(`Sent fine email to ${userEmail} for order ${order._id}`);
         }
 
         // Cập nhật trạng thái đơn hàng thành "Overdue" nếu chưa được cập nhật
@@ -1151,13 +1244,14 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
         }
       }
     }
+
     res.status(200).json({
       message: "Overdue orders checked and fines applied.",
-      data: orders,
+      data: finesApplied,
     });
     console.log("Checking overdue orders and applying fines...");
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: error.message });
     console.error("Error checking due dates and applying fines:", error);
   }
 };
@@ -1187,8 +1281,8 @@ const OrderController = {
   reportLostBook,
   applyFinesForLostBook,
   getOrderByIdentifierCode,
-  // rejectOverdueOrders,
-  // checkDueDatesAndReminder,
-  // checkOverdueAndApplyFines,
+  rejectOverdueOrders,
+  checkDueDatesAndReminder,
+  checkOverdueAndApplyFines,
 };
 module.exports = OrderController;
