@@ -1,5 +1,5 @@
 const { default: mongoose } = require("mongoose");
-const axios = require('axios');
+const axios = require("axios");
 const db = require("../models");
 const {
   user: User,
@@ -11,6 +11,16 @@ const {
   notification: Notification,
   bookset: BookSet,
 } = db;
+const nodemailer = require("nodemailer");
+
+//for send email
+let transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "titi2024hd@gmail.com",
+    pass: "mrwm vfbp dprc qwyu",
+  },
+});
 
 //get All fines
 const getAllFines = async (req, res, next) => {
@@ -167,13 +177,14 @@ const createFines = async (req, res, next) => {
       const returnDateObj = new Date(order.returnDate);
       const dueDateObj = new Date(order.dueDate);
 
-      const daysLate = Math.floor((returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24));
+      const daysLate = Math.floor(
+        (returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24)
+      );
       totalAmount = daysLate * penaltyReason.penaltyAmount;
-
     } else {
-        const book = await Book.findById(order.book_id);
-        const bookSet = await BookSet.findById(book.bookSet_id);
-        totalAmount = penaltyReason.penaltyAmount * bookSet.price / 100;
+      const book = await Book.findById(order.book_id);
+      const bookSet = await BookSet.findById(book.bookSet_id);
+      totalAmount = (penaltyReason.penaltyAmount * bookSet.price) / 100;
     }
     const fines = new Fines({
       user_id,
@@ -347,12 +358,14 @@ const deleteFines = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+//check payment
 const checkPayment = async (req, res, next) => {
   const { paymentKey } = req.params;
   const { fineId } = req.body;
-  const sheetId = '1KnvznxmaALff3bQN0Nv4hU55MpnkhcOjJ8URzco6iL4';
-  const apiKey = 'AIzaSyDrXD0uTwJImmMV_A7mrOXUPKbZOr8nBC8';
-  const range = 'Casso!A2:F100';
+  const sheetId = "1KnvznxmaALff3bQN0Nv4hU55MpnkhcOjJ8URzco6iL4";
+  const apiKey = "AIzaSyDrXD0uTwJImmMV_A7mrOXUPKbZOr8nBC8";
+  const range = "Casso!A2:F100";
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
 
   try {
@@ -364,7 +377,7 @@ const checkPayment = async (req, res, next) => {
       let message = false;
       let amount = 0;
 
-      response.data.values.forEach(value => {
+      response.data.values.forEach((value) => {
         const matches = value[1].match(/start(.*?)end/);
         if (matches && paymentKey === matches[1].trim()) {
           message = true;
@@ -373,32 +386,61 @@ const checkPayment = async (req, res, next) => {
       });
 
       if (message) {
-        const fine = await Fines.findById(fineId);
+        const fine = await Fines.findById(fineId).populate(
+          "user_id",
+          "email name"
+        );
         if (!fine) {
           return res.status(404).json({ error: "Fine not found" });
         }
 
-        fine.status = 'Paid';
-        fine.paymentMethod = 'Casso';
+        fine.status = "Paid";
+        fine.paymentMethod = "Casso";
         fine.paymentDate = new Date();
         await fine.save();
 
+        // Create a notification for the user
+        const paymentNotification = new Notification({
+          userId: fine.user_id._id,
+          orderId: fine.order_id,
+          type: "Payment",
+          message: `Your payment of ${amount} VND has been successfully processed for the fine.`,
+        });
+        await paymentNotification.save();
+
+        // send email to user
+        const userEmail = fine.user_id.email;
+        await transporter.sendMail({
+          from: '"Library Notification" <titi2024hd@gmail.com>',
+          to: userEmail,
+          subject: "Payment Confirmation",
+          text: `Hello, your payment of ${amount} VND for the fine has been successfully processed. Thank you!`,
+          html: `<b>Hello</b>, your payment of <strong>${amount} VND</strong> for the fine has been successfully processed.<br><br>Thank you!`,
+        });
+
+        console.log(
+          `Sent payment confirmation email to ${userEmail} for fine ${fineId}`
+        );
+
         return res.status(200).json({ message: "OK", data: fine });
       } else {
-        return res.status(500).json({ error: 'Không có giao dịch', data: response.data.values });
+        return res
+          .status(500)
+          .json({ error: "Không có giao dịch", data: response.data.values });
       }
     }
 
-    return res.status(500).json({ error: 'Không thể lấy dữ liệu từ Google Sheets', data: response.data.values });
-
+    return res.status(500).json({
+      error: "Không thể lấy dữ liệu từ Google Sheets",
+      data: response.data.values,
+    });
   } catch (error) {
     console.error("Error occurred:", error);
-    return res.status(500).json({ error: 'Đã xảy ra lỗi trong quá trình xử lý' });
+    return res
+      .status(500)
+      .json({ error: "Đã xảy ra lỗi trong quá trình xử lý" });
   }
 };
-
-
-
 
 //chart fines by month
 const ChartFinesbyMonth = async (req, res, next) => {
@@ -441,7 +483,10 @@ const ChartFinesbyMonth = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Error charting fines by month:", error);
-    res.status(500).json({ message: "Error retrieving monthly fines stats", error: error.message });
+    res.status(500).json({
+      message: "Error retrieving monthly fines stats",
+      error: error.message,
+    });
   }
 };
 
