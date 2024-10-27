@@ -19,6 +19,8 @@ finesRouter.put("/update/:finesId", finesController.updateFines);
 
 finesRouter.delete("/delete/:finesId", finesController.deleteFines);
 
+finesRouter.post("/check-payment/:paymentKey", finesController.checkPayment);
+
 finesRouter.get(
   "/filter-by-status/:status",
   finesController.filterFinesByStatus
