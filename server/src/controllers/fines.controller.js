@@ -17,7 +17,12 @@ const getAllFines = async (req, res, next) => {
   try {
     const fines = await Fines.find({})
       .populate("user_id")
-      // .populate("book_id")
+      .populate({
+        path: "book_id",
+        populate: {
+          path: "bookSet_id"
+        },
+      })
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -82,7 +87,7 @@ const getFinesByUserId = async (req, res, next) => {
 
     const fines = await Fines.find({ user_id: userId })
       .populate("user_id")
-      // .populate("book_id")
+      .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -349,7 +354,7 @@ const deleteFines = async (req, res, next) => {
 };
 const checkPayment = async (req, res, next) => {
   const { paymentKey } = req.params;
-  const { fineId } = req.body;
+  const { fineId } = req.body;  // fineId có thể là mảng chứa 1 hoặc nhiều ID
   const sheetId = '1KnvznxmaALff3bQN0Nv4hU55MpnkhcOjJ8URzco6iL4';
   const apiKey = 'AIzaSyDrXD0uTwJImmMV_A7mrOXUPKbZOr8nBC8';
   const range = 'Casso!A2:F100';
@@ -357,7 +362,6 @@ const checkPayment = async (req, res, next) => {
 
   try {
     const response = await axios.get(url);
-
     console.log("Data from Google Sheets API:", response.data);
 
     if (response.status === 200 && response.data.values) {
@@ -365,25 +369,25 @@ const checkPayment = async (req, res, next) => {
       let amount = 0;
 
       response.data.values.forEach(value => {
-        const matches = value[1].match(/start(.*?)end/);
-        if (matches && paymentKey === matches[1].trim()) {
+        const matches = value[1].toLowerCase().match(/start(.*?)end/i);
+        if (matches && paymentKey.toLowerCase() === matches[1].trim()) {
           message = true;
           amount = parseInt(value[2], 10) * 1000;
         }
       });
 
       if (message) {
-        const fine = await Fines.findById(fineId);
-        if (!fine) {
-          return res.status(404).json({ error: "Fine not found" });
-        }
+        // Cập nhật tất cả các fines có _id trong mảng fineId
+        const result = await Fines.updateMany(
+            { _id: { $in: Array.isArray(fineId) ? fineId : [fineId] } },
+            {
+              status: 'Paid',
+              paymentMethod: 'Casso',
+              paymentDate: new Date()
+            }
+        );
 
-        fine.status = 'Paid';
-        fine.paymentMethod = 'Casso';
-        fine.paymentDate = new Date();
-        await fine.save();
-
-        return res.status(200).json({ message: "OK", data: fine });
+        return res.status(200).json({ message: "OK", data: result });
       } else {
         return res.status(500).json({ error: 'Không có giao dịch', data: response.data.values });
       }

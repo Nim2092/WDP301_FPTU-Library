@@ -13,8 +13,8 @@ function BookStatus({ bookID, onPreviousStep }) {
     axios
       .get(`http://localhost:9999/api/orders/by-order/${bookID}`)
       .then((response) => {
-        const { book_id: book, borrowDate, dueDate } = response.data.data;
-        setBookData({ book, borrowDate, dueDate });
+        const { book_id: book, borrowDate, dueDate, created_by, updated_by } = response.data.data;
+        setBookData({ book, borrowDate, dueDate, created_by, updated_by });
       })
       .catch((error) => {
         toast.error("Error fetching book details");
@@ -29,10 +29,10 @@ function BookStatus({ bookID, onPreviousStep }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = {
-      userId: bookData.book?.created_by?._id || "",
+      userId: bookData.created_by?._id || "",
       returnDate: new Date(returnDate).toISOString(),
-      createBy: bookData.book?.created_by?._id || "",
-      updateBy: bookData.book?.updated_by?._id || "",
+      createBy: bookData.created_by?._id || "",
+      updateBy: bookData.updated_by?._id || "",
       book_condition: bookCondition,
       fine_reason: fineData.fine_reason,
     };
@@ -106,7 +106,6 @@ function BookStatus({ bookID, onPreviousStep }) {
               id="returnDate"
               className="form-control"
               value={returnDate}
-              max={new Date().toISOString().split("T")[0]}
               onChange={(e) => setReturnDate(e.target.value)}
               required
             />
