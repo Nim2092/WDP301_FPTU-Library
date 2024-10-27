@@ -8,13 +8,13 @@ function BookStatus({ bookID, onPreviousStep }) {
   const [fineData, setFineData] = useState({ fine_reason: "" });
   const [returnDate, setReturnDate] = useState(new Date().toISOString().split("T")[0]);
   const [bookCondition, setBookCondition] = useState("Good");
-  const [data, setData] = useState([]);
 
   useEffect(() => {
     axios
       .get(`http://localhost:9999/api/orders/by-order/${bookID}`)
       .then((response) => {
-        setBookData(response.data.data);
+        const { book_id: book, borrowDate, dueDate } = response.data.data;
+        setBookData({ book, borrowDate, dueDate });
       })
       .catch((error) => {
         toast.error("Error fetching book details");
@@ -23,20 +23,16 @@ function BookStatus({ bookID, onPreviousStep }) {
   }, [bookID]);
 
   const handleFineReasonChange = (e) => {
-    setFineData((prevFineData) => ({
-      ...prevFineData,
-      fine_reason: e.target.value,
-    }));
+    setFineData({ fine_reason: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const payload = {
-      userId: bookData.created_by?._id || "",
+      userId: bookData.book?.created_by?._id || "",
       returnDate: new Date(returnDate).toISOString(),
-      createBy: bookData.created_by?._id || "",
-      updateBy: bookData.updated_by?._id || "",
+      createBy: bookData.book?.created_by?._id || "",
+      updateBy: bookData.book?.updated_by?._id || "",
       book_condition: bookCondition,
       fine_reason: fineData.fine_reason,
     };
@@ -72,7 +68,7 @@ function BookStatus({ bookID, onPreviousStep }) {
             type="text"
             id="name"
             className="form-control"
-            value={bookData.book_id?.bookSet_id?.title || ""}
+            value={bookData.book?.bookSet_id?.title || ""}
             readOnly
           />
         </div>
@@ -110,6 +106,7 @@ function BookStatus({ bookID, onPreviousStep }) {
               id="returnDate"
               className="form-control"
               value={returnDate}
+              max={new Date().toISOString().split("T")[0]}
               onChange={(e) => setReturnDate(e.target.value)}
               required
             />

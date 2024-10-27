@@ -299,7 +299,6 @@ const BorrowBookList = () => {
                     <Button variant="primary" onClick={() => handleActionClick(book, "receive")}> Approve Renew</Button>
                   </td>
                 )}
-                
               </tr>
             ))
           ) : (

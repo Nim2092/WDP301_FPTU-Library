@@ -91,15 +91,15 @@ const getOrderByIdentifierCode = async (req, res, next) => {
 
     // Tìm đơn hàng dựa vào book_id
     const order = await Order.findOne({ book_id: book._id })
-        .populate({
-          path: "book_id", // Populating the book reference
-          populate: {
-            path: "bookSet_id", // Nested populate to get book set details
-            model: "BookSet", // Reference to the BookSet model
-          },
-        })
-        .populate("created_by", "fullName") // Populate the creator's full name
-        .populate("updated_by", "fullName"); // Populate the updater's full name
+      .populate({
+        path: "book_id", // Populating the book reference
+        populate: {
+          path: "bookSet_id", // Nested populate to get book set details
+          model: "BookSet", // Reference to the BookSet model
+        },
+      })
+      .populate("created_by", "fullName") // Populate the creator's full name
+      .populate("updated_by", "fullName"); // Populate the updater's full name
 
     // Kiểm tra xem đơn hàng có tồn tại không
     if (!order) {
@@ -297,7 +297,7 @@ const createBorrowOrder = async (req, res, next) => {
         data: null,
       });
     }
-    if(book.status !== 'Available') {
+    if (book.status !== 'Available') {
       return res.status(500).json({
         message: "Book is borrowed or is not good enough to borrow.",
         data: null,
@@ -731,8 +731,8 @@ async function returnOrder(req, res, next) {
         fineReasonType = 'PN5';
         break;
     }
-    if(fineReasonType) {
-      const fineReason = await PenaltyReason.findOne({type: fineReasonType})
+    if (fineReasonType) {
+      const fineReason = await PenaltyReason.findOne({ type: fineReasonType })
       const fineReason_id = fineReason._id;
       const bookSet = await BookSet.findById(book.bookSet_id);
       const totalAmount = fineReason.penaltyAmount * bookSet.price / 100;
@@ -755,7 +755,7 @@ async function returnOrder(req, res, next) {
     const dueDateObj = new Date(order.dueDate);
     const daysLate = Math.floor((returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24));
     if (daysLate > 0) {
-      const overdueFine = await PenaltyReason.findOne({type: "PN1"})
+      const overdueFine = await PenaltyReason.findOne({ type: "PN1" })
       const overdueFineId = overdueFine._id;
       const fineAmount = daysLate * overdueFine.penaltyAmount;
       const fines = new Fines({
@@ -773,7 +773,7 @@ async function returnOrder(req, res, next) {
 
       const newOverdueFines = await fines.save();
     }
-    if(order.status === 'Lost' || isDestroyed) {
+    if (order.status === 'Lost' || isDestroyed) {
       book.status = "Destroyed";
       book.condition = book_condition;
       await book.save();
@@ -1141,6 +1141,61 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
   }
 };
 
+const ChartOrderbyMonth = async (req, res, next) => {
+  try {
+    // Get the current year or use the year from a query parameter if provided
+    const year = req.query.year || new Date().getFullYear();
+
+    const monthlyStats = await Order.aggregate([
+      {
+        $match: {
+          requestDate: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$requestDate" },
+            status: "$status",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.month",
+          statuses: {
+            $push: { status: "$_id.status", count: "$count" },
+          },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+      {
+        $project: {
+          month: "$_id",
+          statuses: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      message: "Monthly order stats retrieved successfully",
+      data: monthlyStats,
+    });
+  } catch (error) {
+    console.error("Error in ChartOrderbyMonth:", error); // Log for debugging
+    res.status(500).json({
+      message: "Error retrieving monthly stats",
+      error: error.message,
+    });
+  }
+};
+
 // Schedule a cron job to run every day at midnight to check overdue orders
 cron.schedule("0 0 * * *", () => {
   console.log("Running cron job to check overdue orders...");
@@ -1166,6 +1221,7 @@ const OrderController = {
   reportLostBook,
   applyFinesForLostBook,
   getOrderByIdentifierCode,
+  ChartOrderbyMonth,
   // rejectOverdueOrders,
   // checkDueDatesAndReminder,
   // checkOverdueAndApplyFines,

@@ -2,64 +2,52 @@ import React, { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 import axios from "axios";
-// Đăng ký các thành phần cần thiết
+
+// Register necessary Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-function BarChart({ title, data, xAxisLabel, yAxisLabel }) {
-    const [orders, setOrders] = useState([]);
-    useEffect(() => {
-        axios.get("http://localhost:9999/api/orders/getAll")
-            .then(res => {
-                setOrders(res.data.data);
-            })
-            .catch(err => {
-                console.log(err);
-            })
-    }, []);
+function MonthlyOrderChart() {
+    const [chartData, setChartData] = useState({ labels: [], datasets: [] });
 
-    const chartData = {
-        labels: data.map((item) => item.name), // Tên cột trục X
-        datasets: [
-            {
-                label: title,
-                data: data.map((item) => item.value), // Giá trị tương ứng
-                backgroundColor: "rgba(75, 192, 192, 0.6)",
-                borderColor: "rgba(75, 192, 192, 1)",
-                borderWidth: 1,
-            },
-        ],
-    };
+    useEffect(() => {
+        axios.get("http://localhost:9999/api/orders/chart-order-by-month")
+            .then((res) => {
+                const monthlyData = res.data.data;
+
+                const labels = monthlyData.map((item) => `Month ${item.month}`);
+                const statuses = Array.from(new Set(monthlyData.flatMap((item) => item.statuses.map((status) => status.status))));
+
+                const datasets = statuses.map((status) => ({
+                    label: status,
+                    data: monthlyData.map((month) => {
+                        const statusData = month.statuses.find((s) => s.status === status);
+                        return statusData ? statusData.count : 0;
+                    }),
+                    backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.6)`,
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1,
+                }));
+
+                setChartData({ labels, datasets });
+            })
+            .catch((error) => {
+                console.error("Error fetching monthly order stats:", error);
+            });
+    }, []);
 
     const options = {
         responsive: true,
         plugins: {
-            legend: {
-                display: true,
-                position: "top",
-            },
-            title: {
-                display: true,
-                text: title,
-            },
+            legend: { display: true, position: "top" },
+            title: { display: true, text: "Monthly Order Statistics" },
         },
         scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: xAxisLabel,
-                },
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: yAxisLabel,
-                },
-                beginAtZero: true,
-            },
+            x: { title: { display: true, text: "Month" } },
+            y: { title: { display: true, text: "Order Count" }, beginAtZero: true },
         },
     };
 
     return <Bar data={chartData} options={options} />;
 }
 
-export default BarChart;
+export default MonthlyOrderChart;

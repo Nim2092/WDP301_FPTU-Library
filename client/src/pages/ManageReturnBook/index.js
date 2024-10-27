@@ -37,18 +37,10 @@ function ManageReturnBook() {
             onPreviousStep={handlePreviousStep}
           />
         );
-      // case 3:
-      //   return (
-      //     <IdentifiBookCode
-      //       bookID={bookID} // Ensure bookID is passed correctly
-      //       onNextStep={handleNextStep}
-      //       onPreviousStep={handlePreviousStep}
-      //     />
-      //   );
       case 3:
         return <BookStatus bookID={bookID} onNextStep={handleNextStep} onPreviousStep={handlePreviousStep} />;
       case 4:
-        return <Bill />
+        return <Bill bookID={bookID} onPreviousStep={handlePreviousStep}/>
       default:
         return <SearchByStudentId onNextStep={handleNextStep} />;
     }

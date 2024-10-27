@@ -16,7 +16,7 @@ const getAllFines = async (req, res, next) => {
   try {
     const fines = await Fines.find({})
       .populate("user_id")
-      .populate("book_id")
+      // .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -81,7 +81,7 @@ const getFinesByUserId = async (req, res, next) => {
 
     const fines = await Fines.find({ user_id: userId })
       .populate("user_id")
-      .populate("book_id")
+      // .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -348,6 +348,52 @@ const deleteFines = async (req, res, next) => {
   }
 };
 
+
+//chart fines by month
+const ChartFinesbyMonth = async (req, res, next) => {
+  try {
+    // Get the current year or use the year from a query parameter if provided
+    const year = req.query.year || new Date().getFullYear();
+
+    const monthlyFines = await Fines.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$createdAt" } },
+          totalFinesAmount: { $sum: "$totalFinesAmount" },
+          count: { $sum: 1 }, // Counts the number of fines issued in each month
+        },
+      },
+      {
+        $sort: { "_id.month": 1 },
+      },
+      {
+        $project: {
+          month: "$_id.month",
+          totalFinesAmount: 1,
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      message: "Monthly fines stats retrieved successfully",
+      data: monthlyFines,
+    });
+  } catch (error) {
+    console.error("Error charting fines by month:", error);
+    res.status(500).json({ message: "Error retrieving monthly fines stats", error: error.message });
+  }
+};
+
 const FinesController = {
   getAllFines,
   getFinesById,
@@ -358,5 +404,6 @@ const FinesController = {
   deleteFines,
   filterFinesByStatus,
   updateFinesStatus,
+  ChartFinesbyMonth,
 };
 module.exports = FinesController;

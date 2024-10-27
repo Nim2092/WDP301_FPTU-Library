@@ -1,24 +1,45 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import axios from "axios";
 
-// Đăng ký các thành phần cần thiết cho biểu đồ đường
+// Register necessary components for the line chart
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-function LineChart({ title, data, xAxisLabel, yAxisLabel }) {
-  const chartData = {
-    labels: data.map((item) => item.name), // Mốc thời gian hoặc tên nhãn trục X
-    datasets: [
-      {
-        label: title,
-        data: data.map((item) => item.value), // Giá trị của các vi phạm
-        borderColor: "rgba(75, 192, 192, 1)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        tension: 0.4, // Độ cong của đường
-        fill: true,
-      },
-    ],
-  };
+function FinesByMonthChart() {
+  const [chartData, setChartData] = useState({
+    labels: [],
+    datasets: [],
+  });
+
+  useEffect(() => {
+    // Fetch monthly fines data from the API
+    axios.get("http://localhost:9999/api/fines/chart-fines-by-month")
+      .then((response) => {
+        const monthlyData = response.data.data;
+
+        // Process data for the chart
+        const labels = monthlyData.map((item) => `Month ${item.month}`);
+        const data = monthlyData.map((item) => item.totalFinesAmount);
+
+        setChartData({
+          labels,
+          datasets: [
+            {
+              label: "Total Fines Amount",
+              data: data,
+              borderColor: "rgba(75, 192, 192, 1)",
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              tension: 0.4,
+              fill: true,
+            },
+          ],
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching monthly fines data:", error);
+      });
+  }, []);
 
   const options = {
     responsive: true,
@@ -29,20 +50,20 @@ function LineChart({ title, data, xAxisLabel, yAxisLabel }) {
       },
       title: {
         display: true,
-        text: title,
+        text: "Fines by Month",
       },
     },
     scales: {
       x: {
         title: {
           display: true,
-          text: xAxisLabel,
+          text: "Month",
         },
       },
       y: {
         title: {
           display: true,
-          text: yAxisLabel,
+          text: "Total Fines Amount",
         },
         beginAtZero: true,
       },
@@ -52,4 +73,4 @@ function LineChart({ title, data, xAxisLabel, yAxisLabel }) {
   return <Line data={chartData} options={options} />;
 }
 
-export default LineChart;
+export default FinesByMonthChart;
