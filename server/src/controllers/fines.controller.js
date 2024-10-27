@@ -1,5 +1,5 @@
 const { default: mongoose } = require("mongoose");
-const axios = require('axios');
+const axios = require("axios");
 const db = require("../models");
 const {
   user: User,
@@ -11,6 +11,16 @@ const {
   notification: Notification,
   bookset: BookSet,
 } = db;
+const nodemailer = require("nodemailer");
+
+//for send email
+let transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "titi2024hd@gmail.com",
+    pass: "mrwm vfbp dprc qwyu",
+  },
+});
 
 //get All fines
 const getAllFines = async (req, res, next) => {
@@ -172,13 +182,14 @@ const createFines = async (req, res, next) => {
       const returnDateObj = new Date(order.returnDate);
       const dueDateObj = new Date(order.dueDate);
 
-      const daysLate = Math.floor((returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24));
+      const daysLate = Math.floor(
+        (returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24)
+      );
       totalAmount = daysLate * penaltyReason.penaltyAmount;
-
     } else {
-        const book = await Book.findById(order.book_id);
-        const bookSet = await BookSet.findById(book.bookSet_id);
-        totalAmount = penaltyReason.penaltyAmount * bookSet.price / 100;
+      const book = await Book.findById(order.book_id);
+      const bookSet = await BookSet.findById(book.bookSet_id);
+      totalAmount = (penaltyReason.penaltyAmount * bookSet.price) / 100;
     }
     const fines = new Fines({
       user_id,
@@ -352,12 +363,14 @@ const deleteFines = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+//check payment
 const checkPayment = async (req, res, next) => {
   const { paymentKey } = req.params;
-  const { fineId } = req.body;  // fineId có thể là mảng chứa 1 hoặc nhiều ID
-  const sheetId = '1KnvznxmaALff3bQN0Nv4hU55MpnkhcOjJ8URzco6iL4';
-  const apiKey = 'AIzaSyDrXD0uTwJImmMV_A7mrOXUPKbZOr8nBC8';
-  const range = 'Casso!A2:F100';
+  const { fineId } = req.body;
+  const sheetId = "1KnvznxmaALff3bQN0Nv4hU55MpnkhcOjJ8URzco6iL4";
+  const apiKey = "AIzaSyDrXD0uTwJImmMV_A7mrOXUPKbZOr8nBC8";
+  const range = "Casso!A2:F100";
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
 
   try {
@@ -389,20 +402,23 @@ const checkPayment = async (req, res, next) => {
 
         return res.status(200).json({ message: "OK", data: result });
       } else {
-        return res.status(500).json({ error: 'Không có giao dịch', data: response.data.values });
+        return res
+          .status(500)
+          .json({ error: "Không có giao dịch", data: response.data.values });
       }
     }
 
-    return res.status(500).json({ error: 'Không thể lấy dữ liệu từ Google Sheets', data: response.data.values });
-
+    return res.status(500).json({
+      error: "Không thể lấy dữ liệu từ Google Sheets",
+      data: response.data.values,
+    });
   } catch (error) {
     console.error("Error occurred:", error);
-    return res.status(500).json({ error: 'Đã xảy ra lỗi trong quá trình xử lý' });
+    return res
+      .status(500)
+      .json({ error: "Đã xảy ra lỗi trong quá trình xử lý" });
   }
 };
-
-
-
 
 //chart fines by month
 const ChartFinesbyMonth = async (req, res, next) => {
@@ -445,7 +461,10 @@ const ChartFinesbyMonth = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Error charting fines by month:", error);
-    res.status(500).json({ message: "Error retrieving monthly fines stats", error: error.message });
+    res.status(500).json({
+      message: "Error retrieving monthly fines stats",
+      error: error.message,
+    });
   }
 };
 

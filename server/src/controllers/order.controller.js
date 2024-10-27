@@ -193,7 +193,7 @@ const createBorrowOrder = async (req, res, next) => {
         data: null,
       });
     }
-    if (book.status !== 'Available') {
+    if (book.status !== "Available") {
       return res.status(500).json({
         message: "Book is borrowed or is not good enough to borrow.",
         data: null,
@@ -1028,8 +1028,8 @@ const applyFinesForLostBook = async (req, res, next) => {
   }
 };
 
-//Reject overdue orders which are not picked up by users
-const rejectOverdueOrders = async (req, res, next) => {
+//Cancel overdue orders which are not picked up by users
+const cancelOverdueOrders = async (req, res, next) => {
   try {
     // const { orderId } = req.params;
 
@@ -1063,8 +1063,8 @@ const rejectOverdueOrders = async (req, res, next) => {
         // Send a notification to the user
         const notification = new Notification({
           userId: order.created_by,
-          type: "Rejected",
-          message: `Your order #${order._id} has been rejected because you did not pick up the book within 3 days.`,
+          type: "Canceled",
+          message: `Your order #${order._id} has been Canceled because you did not pick up the book within 3 days.`,
         });
         await notification.save();
 
@@ -1091,18 +1091,18 @@ const rejectOverdueOrders = async (req, res, next) => {
       }
     }
     res.status(200).json({
-      message: "Overdue orders rejected successfully and email sent.",
+      message: "Overdue orders Canceled successfully and email sent.",
       data: emailSent,
     });
-    console.log("Checking and rejecting overdue orders...");
+    console.log("Checking and Canceled overdue orders...");
   } catch (error) {
     res.status(500).json({ message: error.message });
     console.error("Error in rejecting overdue orders:", error);
   }
 };
 
-// Check due dates and send notifications to users
-const checkDueDatesAndReminder = async (req, res, next) => {
+// Reminder due dates orders for users
+const reminderDueDatesOrder = async (req, res, next) => {
   try {
     // const { orderId } = req.params; //testing
     const now = new Date();
@@ -1173,8 +1173,8 @@ const checkDueDatesAndReminder = async (req, res, next) => {
   }
 };
 
-// Check overdue orders and apply fines
-const checkOverdueAndApplyFines = async (req, res, next) => {
+// Reminder overdue orders for users
+const reminderOverdueOrder = async (req, res, next) => {
   try {
     const now = new Date();
     const orders = await Order.find({
@@ -1190,7 +1190,7 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
         },
       });
 
-    let finesApplied = [];
+    let emailSent = [];
 
     for (const order of orders) {
       const dueDate = new Date(order.dueDate);
@@ -1202,28 +1202,14 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
         });
 
         if (penaltyReason) {
-          const totalFineAmount = daysOverdue * penaltyReason.penaltyAmount;
-
-          // create a new fine record for overdue book
-          const fine = new Fines({
-            user_id: order.created_by._id,
-            book_id: order.book_id._id,
-            order_id: order._id,
-            fineReason_id: penaltyReason._id,
-            totalFinesAmount: totalFineAmount,
-            status: "Pending",
-            reason: "Overdue",
-          });
-          await fine.save();
-
           // Create a notification for the user
-          const fineNotification = new Notification({
+          const overdueNotification = new Notification({
             userId: order.created_by._id,
             orderId: order._id,
-            type: "Fines",
-            message: `Your book is overdue by ${daysOverdue} days. You have been fined ${totalFineAmount} VND.`,
+            type: "Reminder",
+            message: `Your book is overdue by ${daysOverdue} days. Please return it to avoid fines.`,
           });
-          await fineNotification.save();
+          await overdueNotification.save();
 
           // Send an email to the user
           const userEmail = order.created_by.email;
@@ -1231,16 +1217,15 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
             from: '"Library Notification" <titi2024hd@gmail.com>',
             to: userEmail,
             subject: "Overdue Fine Notification",
-            text: `Hello, your book "${order.book_id.bookSet_id.title}" is overdue by ${daysOverdue} days. You have been fined ${totalFineAmount} VND. Please return the book and pay the fine to avoid further penalties.`,
-            html: `<b>Hello</b>, your book "<strong>${order.book_id.bookSet_id.title}</strong>" is overdue by <strong>${daysOverdue}</strong> days. <br>You have been fined <strong>${totalFineAmount}</strong> VND. <br><br>Please return the book and pay the fine to avoid further penalties.`,
+            text: `Hello, your book "${order.book_id.bookSet_id.title}" is overdue by ${daysOverdue} days. Please return the book and pay the fine to avoid further penalties.`,
+            html: `<b>Hello</b>, your book "<strong>${order.book_id.bookSet_id.title}</strong>" is overdue by <strong>${daysOverdue}</strong> days. <br><br>Please return the book and pay the fine to avoid further penalties.`,
           });
 
           // Lưu lại các thông tin về phạt đã áp dụng
-          finesApplied.push({
+          emailSent.push({
             userEmail,
             orderId: order._id,
-            fineAmount: totalFineAmount,
-            message: `Sent fine email for "${order.book_id.bookSet_id.title}" overdue by ${daysOverdue} days.`,
+            message: `Sent email for "${order.book_id.bookSet_id.title}" overdue by ${daysOverdue} days.`,
           });
 
           console.log(`Sent fine email to ${userEmail} for order ${order._id}`);
@@ -1255,13 +1240,13 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
     }
 
     res.status(200).json({
-      message: "Overdue orders checked and fines applied.",
+      message: "Reminder for overdue orders sent successfully.",
       data: finesApplied,
     });
-    console.log("Checking overdue orders and applying fines...");
+    console.log("Reminder for overdue orders...");
   } catch (error) {
     res.status(500).json({ message: error.message });
-    console.error("Error checking due dates and applying fines:", error);
+    console.error("Error reminder for overdue orders", error);
   }
 };
 
@@ -1323,13 +1308,13 @@ const ChartOrderbyMonth = async (req, res, next) => {
 // Schedule a cron job to run every day at midnight to check overdue orders
 cron.schedule("0 0 * * *", () => {
   console.log("Running cron job to check overdue orders...");
-  rejectOverdueOrders();
+  cancelOverdueOrders();
 
   console.log("Running cron job to check due dates and send notifications...");
-  checkDueDatesAndReminder();
+  reminderDueDatesOrder();
 
   console.log("Running cron job to check overdue orders and apply fines...");
-  checkOverdueAndApplyFines();
+  reminderOverdueOrder();
 });
 
 const OrderController = {
@@ -1345,9 +1330,9 @@ const OrderController = {
   reportLostBook,
   applyFinesForLostBook,
   getOrderByIdentifierCode,
-  rejectOverdueOrders,
-  checkDueDatesAndReminder,
-  checkOverdueAndApplyFines,
-  ChartOrderbyMonth
+  cancelOverdueOrders,
+  reminderDueDatesOrder,
+  reminderOverdueOrder,
+  ChartOrderbyMonth,
 };
 module.exports = OrderController;
