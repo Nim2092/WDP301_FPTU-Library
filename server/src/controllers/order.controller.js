@@ -687,6 +687,7 @@ async function returnOrder(req, res, next) {
       const totalAmount = (fineReason.penaltyAmount * bookSet.price) / 100;
       const fines = new Fines({
         user_id: userId,
+        book_id: order.book_id,
         order_id: orderId,
         fineReason_id,
         createBy,
@@ -717,6 +718,7 @@ async function returnOrder(req, res, next) {
       const fineAmount = daysLate * overdueFine.penaltyAmount;
       const fines = new Fines({
         user_id: userId,
+        book_id: order.book_id,
         order_id: orderId,
         fineReason_id: overdueFineId,
         createBy,
@@ -890,6 +892,7 @@ const reportLostBook = async (req, res, next) => {
     const totalAmount = (fineReason.penaltyAmount * bookSet.price) / 100;
     const fines = new Fines({
       user_id: userId,
+      book_id: order.book_id._id,
       order_id: orderId,
       fineReason_id,
       createBy,
@@ -969,6 +972,7 @@ const applyFinesForLostBook = async (req, res, next) => {
     // Create new fine record for lost book
     const fines = new Fines({
       user_id: userId,
+      book_id: order.book_id,
       order_id: orderId,
       fineReason_id: fineReasonId,
       createBy: createBy,
