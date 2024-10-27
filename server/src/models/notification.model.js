@@ -19,6 +19,7 @@ const notificationSchema = new Schema(
         "Renew Pending",
         "Reminder",
         "Fines",
+        "Payment",
       ],
       required: true,
     },
