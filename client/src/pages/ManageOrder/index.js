@@ -15,30 +15,46 @@ const BorrowBookList = () => {
   const [selectedBooks, setSelectedBooks] = useState([]); // For storing selected books' IDs
   const [identifierCode, setIdentifierCode] = useState(""); // Holds the identifier code for search
   const [sortOrder, setSortOrder] = useState("asc"); // Holds the sort order
-  
+
+const callOrderAPIs = async () => {
+  try {
+    await axios.get('http://localhost:9999/api/orders/cancel-overdue');
+    await axios.get('http://localhost:9999/api/orders/reminder-due-date');
+    await axios.get('http://localhost:9999/api/orders/reminder-overdue');
+  } catch (error) {
+    console.error("Error calling order APIs:", error);
+    // toast.error("An error occurred while calling order APIs.");
+  }
+};
+
+// Call the function to execute the API requests
+callOrderAPIs();
+
   // Fetch books function with identifierCode parameter
   const fetchBooks = async (identifierCode = "") => {
+    
     try {
       let response;
-  
+      
       // Kiểm tra nếu có identifierCode (tức là yêu cầu tìm kiếm)
       if (identifierCode) {
         response = await axios.get(`http://localhost:9999/api/orders/by-identifier-code/${identifierCode}`);
       } else if (status === "") {
         response = await axios.get(`http://localhost:9999/api/orders/getAll`);
+        
       } else {
         response = await axios.get(`http://localhost:9999/api/orders/filter?status=${status}`);
       }
-  
+
       const data = response.data.data || [];
-      
+
       // Nếu dữ liệu trả về là một đối tượng thay vì mảng, bao bọc nó trong mảng
       const formattedData = Array.isArray(data) ? data : [data];
-  
+
       if (formattedData.length === 0) {
         toast.info("No books found with the specified criteria.");
       }
-      
+
       setBorrowBooks(formattedData);
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "An error occurred while fetching borrow books.";
@@ -47,7 +63,7 @@ const BorrowBookList = () => {
       console.error("Error fetching borrow books:", error);
     }
   };
-  
+
 
   useEffect(() => {
     fetchBooks();
@@ -190,7 +206,7 @@ const BorrowBookList = () => {
   return (
     <Container className="mt-4">
       <ToastContainer />
-      
+
       <div className="d-flex justify-content-between">
         <div>
           <h2 className="mb-4">List of Borrowed Books</h2>
@@ -218,8 +234,8 @@ const BorrowBookList = () => {
       <div className="d-flex justify-content-between " style={{ marginBottom: "10px" }}>
         {/* Search Bar */}
         <div className="search-bar d-flex align-items-center" >
-          <input type="text" style={{ width: "300px",height: "40px", borderRadius: "10px", border: "1px solid #ccc" }} 
-          placeholder=" Search by book identifier code" value={identifierCode} onChange={(e) => setIdentifierCode(e.target.value)} />
+          <input type="text" style={{ width: "300px", height: "40px", borderRadius: "10px", border: "1px solid #ccc" }}
+            placeholder=" Search by book identifier code" value={identifierCode} onChange={(e) => setIdentifierCode(e.target.value)} />
           <Button variant="primary" style={{ marginLeft: "10px" }} onClick={handleSearchByIdentifierCode}>Search</Button>
         </div>
         {/* Approve and Select All */}
