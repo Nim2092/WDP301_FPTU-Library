@@ -1348,5 +1348,6 @@ const OrderController = {
   rejectOverdueOrders,
   checkDueDatesAndReminder,
   checkOverdueAndApplyFines,
+  ChartOrderbyMonth
 };
 module.exports = OrderController;

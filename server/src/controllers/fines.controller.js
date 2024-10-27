@@ -1,4 +1,5 @@
 const { default: mongoose } = require("mongoose");
+const axios = require('axios');
 const db = require("../models");
 const {
   user: User,
@@ -346,6 +347,57 @@ const deleteFines = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+const checkPayment = async (req, res, next) => {
+  const { paymentKey } = req.params;
+  const { fineId } = req.body;
+  const sheetId = '1KnvznxmaALff3bQN0Nv4hU55MpnkhcOjJ8URzco6iL4';
+  const apiKey = 'AIzaSyDrXD0uTwJImmMV_A7mrOXUPKbZOr8nBC8';
+  const range = 'Casso!A2:F100';
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+
+  try {
+    const response = await axios.get(url);
+
+    console.log("Data from Google Sheets API:", response.data);
+
+    if (response.status === 200 && response.data.values) {
+      let message = false;
+      let amount = 0;
+
+      response.data.values.forEach(value => {
+        const matches = value[1].match(/start(.*?)end/);
+        if (matches && paymentKey === matches[1].trim()) {
+          message = true;
+          amount = parseInt(value[2], 10) * 1000;
+        }
+      });
+
+      if (message) {
+        const fine = await Fines.findById(fineId);
+        if (!fine) {
+          return res.status(404).json({ error: "Fine not found" });
+        }
+
+        fine.status = 'Paid';
+        fine.paymentMethod = 'Casso';
+        fine.paymentDate = new Date();
+        await fine.save();
+
+        return res.status(200).json({ message: "OK", data: fine });
+      } else {
+        return res.status(500).json({ error: 'Không có giao dịch', data: response.data.values });
+      }
+    }
+
+    return res.status(500).json({ error: 'Không thể lấy dữ liệu từ Google Sheets', data: response.data.values });
+
+  } catch (error) {
+    console.error("Error occurred:", error);
+    return res.status(500).json({ error: 'Đã xảy ra lỗi trong quá trình xử lý' });
+  }
+};
+
+
 
 
 //chart fines by month
@@ -403,6 +455,7 @@ const FinesController = {
   deleteFines,
   filterFinesByStatus,
   updateFinesStatus,
+  checkPayment,
   ChartFinesbyMonth,
 };
 module.exports = FinesController;
