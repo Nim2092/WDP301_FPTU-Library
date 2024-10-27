@@ -193,7 +193,7 @@ const createBorrowOrder = async (req, res, next) => {
         data: null,
       });
     }
-    if (book.status !== "Available") {
+    if (book.status !== 'Available') {
       return res.status(500).json({
         message: "Book is borrowed or is not good enough to borrow.",
         data: null,
@@ -1262,6 +1262,61 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
     console.error("Error checking due dates and applying fines:", error);
+  }
+};
+
+const ChartOrderbyMonth = async (req, res, next) => {
+  try {
+    // Get the current year or use the year from a query parameter if provided
+    const year = req.query.year || new Date().getFullYear();
+
+    const monthlyStats = await Order.aggregate([
+      {
+        $match: {
+          requestDate: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$requestDate" },
+            status: "$status",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.month",
+          statuses: {
+            $push: { status: "$_id.status", count: "$count" },
+          },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+      {
+        $project: {
+          month: "$_id",
+          statuses: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      message: "Monthly order stats retrieved successfully",
+      data: monthlyStats,
+    });
+  } catch (error) {
+    console.error("Error in ChartOrderbyMonth:", error); // Log for debugging
+    res.status(500).json({
+      message: "Error retrieving monthly stats",
+      error: error.message,
+    });
   }
 };
 

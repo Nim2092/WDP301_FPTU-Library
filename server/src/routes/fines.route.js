@@ -26,4 +26,6 @@ finesRouter.get(
 
 finesRouter.put("/update-status/:finesId", finesController.updateFinesStatus);
 
+finesRouter.get("/chart-fines-by-month", finesController.ChartFinesbyMonth);
+
 module.exports = finesRouter;
