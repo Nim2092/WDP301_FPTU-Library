@@ -1308,13 +1308,13 @@ const ChartOrderbyMonth = async (req, res, next) => {
 // Schedule a cron job to run every day at midnight to check overdue orders
 cron.schedule("0 0 * * *", () => {
   console.log("Running cron job to check overdue orders...");
-  rejectOverdueOrders();
+  cancelOverdueOrders();
 
   console.log("Running cron job to check due dates and send notifications...");
-  checkDueDatesAndReminder();
+  reminderDueDatesOrder();
 
   console.log("Running cron job to check overdue orders and apply fines...");
-  checkOverdueAndApplyFines();
+  reminderOverdueOrder();
 });
 
 const OrderController = {
