@@ -455,7 +455,7 @@ const FinesController = {
   deleteFines,
   filterFinesByStatus,
   updateFinesStatus,
-  checkPayment
+  checkPayment,
   ChartFinesbyMonth,
 };
 module.exports = FinesController;
