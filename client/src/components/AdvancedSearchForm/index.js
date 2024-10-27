@@ -32,7 +32,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
     <div className="container">
       <form onSubmit={handleSubmit}>
         <div className="d-flex flex-column gap-2">
-          <label htmlFor="catalog">Select Catalog</label>
+          {/* <label htmlFor="catalog">Select Catalog</label>
           <select
             id="catalog"
             name="catalog"
@@ -42,7 +42,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
           >
             <option value="catalog1">Catalog 1</option>
             <option value="catalog2">Catalog 2</option>
-          </select>
+          </select> */}
 
           <label htmlFor="book-name">Book Name</label>
           <input

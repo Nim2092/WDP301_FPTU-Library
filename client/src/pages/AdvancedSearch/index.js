@@ -7,7 +7,7 @@ function AdvancedSearch() {
   const [searchResults, setSearchResults] = useState([]);
 
   return (
-    <div className="advanced-search">
+    <div className="advanced-search container mt-5">
       <AdvancedBookForm setSearchResults={setSearchResults} />
       <SearchResults books={searchResults} />
     </div>

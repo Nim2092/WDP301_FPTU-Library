@@ -27,7 +27,12 @@ const getAllFines = async (req, res, next) => {
   try {
     const fines = await Fines.find({})
       .populate("user_id")
-      // .populate("book_id")
+      .populate({
+        path: "book_id",
+        populate: {
+          path: "bookSet_id"
+        },
+      })
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -92,7 +97,7 @@ const getFinesByUserId = async (req, res, next) => {
 
     const fines = await Fines.find({ user_id: userId })
       .populate("user_id")
-      // .populate("book_id")
+      .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -370,59 +375,32 @@ const checkPayment = async (req, res, next) => {
 
   try {
     const response = await axios.get(url);
-
     console.log("Data from Google Sheets API:", response.data);
 
     if (response.status === 200 && response.data.values) {
       let message = false;
       let amount = 0;
 
-      response.data.values.forEach((value) => {
-        const matches = value[1].match(/start(.*?)end/);
-        if (matches && paymentKey === matches[1].trim()) {
+      response.data.values.forEach(value => {
+        const matches = value[1].toLowerCase().match(/start(.*?)end/i);
+        if (matches && paymentKey.toLowerCase() === matches[1].trim()) {
           message = true;
           amount = parseInt(value[2], 10) * 1000;
         }
       });
 
       if (message) {
-        const fine = await Fines.findById(fineId).populate(
-          "user_id",
-          "email name"
-        );
-        if (!fine) {
-          return res.status(404).json({ error: "Fine not found" });
-        }
-
-        fine.status = "Paid";
-        fine.paymentMethod = "Casso";
-        fine.paymentDate = new Date();
-        await fine.save();
-
-        // Create a notification for the user
-        const paymentNotification = new Notification({
-          userId: fine.user_id._id,
-          orderId: fine.order_id,
-          type: "Payment",
-          message: `Your payment of ${amount} VND has been successfully processed for the fine.`,
-        });
-        await paymentNotification.save();
-
-        // send email to user
-        const userEmail = fine.user_id.email;
-        await transporter.sendMail({
-          from: '"Library Notification" <titi2024hd@gmail.com>',
-          to: userEmail,
-          subject: "Payment Confirmation",
-          text: `Hello, your payment of ${amount} VND for the fine has been successfully processed. Thank you!`,
-          html: `<b>Hello</b>, your payment of <strong>${amount} VND</strong> for the fine has been successfully processed.<br><br>Thank you!`,
-        });
-
-        console.log(
-          `Sent payment confirmation email to ${userEmail} for fine ${fineId}`
+        // Cập nhật tất cả các fines có _id trong mảng fineId
+        const result = await Fines.updateMany(
+            { _id: { $in: Array.isArray(fineId) ? fineId : [fineId] } },
+            {
+              status: 'Paid',
+              paymentMethod: 'Casso',
+              paymentDate: new Date()
+            }
         );
 
-        return res.status(200).json({ message: "OK", data: fine });
+        return res.status(200).json({ message: "OK", data: result });
       } else {
         return res
           .status(500)
