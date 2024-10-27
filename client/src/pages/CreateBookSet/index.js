@@ -17,6 +17,7 @@ function CreateBookSet() {
     physicalDescription: "",
     totalCopies: "",
     availableCopies: "",
+    price: "",
     image: null, // Sử dụng để lưu trữ file ảnh
   });
 
@@ -239,7 +240,18 @@ function CreateBookSet() {
           />
         </div>
 
-        
+        {/* Price */}
+        <div className="mb-3">
+          <label className="form-label">Price:</label>
+          <input
+            type="number" 
+            className="form-control"
+            name="price"
+            value={formData.price}
+            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            required
+          />
+        </div>
 
         <button type="submit" className="btn btn-primary">Create Book Set</button>
       </form>
