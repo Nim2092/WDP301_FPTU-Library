@@ -32,7 +32,7 @@ orderRouter.put("/report-lost/:orderId", orderController.reportLostBook);
 
 orderRouter.post("/lost-fines/:orderId", orderController.applyFinesForLostBook);
 
-orderRouter.get("/chart-order-by-month", orderController.ChartOrderbyMonth);
+// orderRouter.get("/chart-order-by-month", orderController.ChartOrderbyMonth);
 
 //for testing and demo
 orderRouter.post("/test-reject-overdue", orderController.rejectOverdueOrders);
