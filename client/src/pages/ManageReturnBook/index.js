@@ -9,9 +9,14 @@ function ManageReturnBook() {
   const [currentStep, setCurrentStep] = useState(1);
   const [userID, setUserID] = useState(""); // Store userID
   const [bookID, setBookID] = useState(""); // Store bookID
-  // Handler to update the step progress and store the userID
+
+  // Handler to update the step progress and store the userID or bookID
   const handleNextStep = (id) => {
-    if (id) setUserID(id); // Save userID
+    if (currentStep === 1) {
+      setUserID(id); // Save userID from step 1
+    } else if (currentStep === 2) {
+      setBookID(id); // Save bookID from step 2
+    }
     setCurrentStep((prevStep) => Math.min(prevStep + 1, 4)); // Increment step, max of 4
   };
 
@@ -25,13 +30,25 @@ function ManageReturnBook() {
       case 1:
         return <SearchByStudentId onNextStep={handleNextStep} />;
       case 2:
-        return <ListManageReturnBookByStudentId userID={userID} onNextStep={handleNextStep} onPreviousStep={handlePreviousStep}  />; // Pass userID
+        return (
+          <ListManageReturnBookByStudentId
+            userID={userID}
+            onNextStep={handleNextStep}
+            onPreviousStep={handlePreviousStep}
+          />
+        );
+      // case 3:
+      //   return (
+      //     <IdentifiBookCode
+      //       bookID={bookID} // Ensure bookID is passed correctly
+      //       onNextStep={handleNextStep}
+      //       onPreviousStep={handlePreviousStep}
+      //     />
+      //   );
       case 3:
-        return <IdentifiBookCode bookID={bookID} onNextStep={handleNextStep} onPreviousStep={handlePreviousStep} />;
-      case 4:
-        return <BookStatus onPreviousStep={handlePreviousStep} />;
+        return <BookStatus bookID={bookID} onPreviousStep={handlePreviousStep} />;
       default:
-        return <SearchByStudentId onNextStep={handleNextStep}  />;
+        return <SearchByStudentId onNextStep={handleNextStep} />;
     }
   };
 

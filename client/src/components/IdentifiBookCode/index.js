@@ -2,51 +2,78 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 function IdentifiBookCode({ bookID, onNextStep, onPreviousStep }) {
-  const [bookCode, setBookCode] = useState(""); // State to manage the book code input
-  const [identifiedBookCode, setIdentifiedBookCode] = useState(""); // State to manage the identified book code
-  // Identify book code when bookID changes
+  const [bookDetails, setBookDetails] = useState(null); // Lưu trữ thông tin sách từ API
+  const [bookCodeInput, setBookCodeInput] = useState(""); // State để lưu mã người dùng nhập vào
+
+  // Fetch book details when `bookID` changes
   useEffect(() => {
-    axios.get(`http://localhost:9999/api/orders/getById/${bookID}`)
+    axios.get(`http://localhost:9999/api/orders/by-order/${bookID}`)
       .then(response => {
-        setBookCode(response.data.data.bookCode);
+        setBookDetails(response.data.data); // Lưu dữ liệu sách từ API
+        console.log("Fetched book details:", response.data.data);
       })
       .catch(error => {
         console.error("Error fetching book details:", error);
       });
   }, [bookID]);
 
-  // Handler for input change
+  // Xử lý thay đổi trong input của người dùng
   const handleChange = (e) => {
-    setBookCode(e.target.value);
+    setBookCodeInput(e.target.value);
   };
 
-  // Handler for form submission
+  // Xử lý form submit
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (bookCode.trim() === "") {
-      alert("Please enter a valid book identification code.");
+    if (bookCodeInput.trim() === "" || bookCodeInput !== bookDetails?.book_id?.identifier_code) {
+      alert("The book identification code does not match. Please enter the correct code.");
       return;
     }
 
-    console.log("Book identification code:", bookCode);
-    // Proceed to the next step after successful identification code submission
+    console.log("Confirmed Book Identification Code:", bookCodeInput);
+    // Chuyển sang bước tiếp theo nếu mã đúng
     onNextStep();
   };
 
   const handlePreviousStep = () => {
-    onPreviousStep(); // Proceed to the previous step
+    onPreviousStep(); // Quay lại bước trước
   };
 
   return (
     <div className="container mt-4">
       <h2>Enter Book Identification Code</h2>
+      {bookDetails ? (
+        <table className="table table-bordered">
+          <thead className="thead-light">
+            <tr>
+              <th>Book</th>
+              <th>Borrow Date</th>
+              <th>Due Date</th>
+              <th>Identifier Code</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{bookDetails.book_id.bookSet_id.title}</td>
+              <td>{new Date(bookDetails.borrowDate).toLocaleDateString()}</td>
+              <td>{new Date(bookDetails.dueDate).toLocaleDateString()}</td>
+              <td>{bookDetails.book_id.identifier_code}</td>
+              <td>{bookDetails.status}</td>
+            </tr>
+          </tbody>
+        </table>
+      ) : (
+        <p>Loading book details...</p>
+      )}
+      
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="bookIdCode">Book Identification Code:</label>
           <input
             type="text"
             id="bookIdCode"
-            value={bookCode}
+            value={bookCodeInput}
             onChange={handleChange}
             className="form-control"
             placeholder="Enter the code of the book"
@@ -57,7 +84,7 @@ function IdentifiBookCode({ bookID, onNextStep, onPreviousStep }) {
           Submit
         </button>
       </form>
-      <button className="btn btn-primary mt-3" onClick={handlePreviousStep}>
+      <button className="btn btn-secondary mt-3" onClick={handlePreviousStep}>
         Previous
       </button>
     </div>

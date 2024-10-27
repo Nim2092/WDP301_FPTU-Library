@@ -64,7 +64,7 @@ function ListRule() {
           <tr>
             <th style={{ textAlign: "center", width: "50px" }}>STT</th> {/* Căn giữa và đặt độ rộng */}
             <th>Title</th>
-            <th>Content</th>
+            {/* <th>Content</th> */}
           </tr>
         </thead>
         <tbody>
@@ -79,7 +79,7 @@ function ListRule() {
                 >
                   {rule.title}
                 </td>
-                <td>{getLimitedContent(rule.content)}</td>
+                {/* <td>{getLimitedContent(rule.content)}</td> */}
               </tr>
             ))
           ) : (

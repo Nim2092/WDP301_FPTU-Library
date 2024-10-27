@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Assuming you're using React Router
+import { useParams } from "react-router-dom";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 function UpdateRule() {
   const { id } = useParams(); // Get the rule ID from the URL
@@ -56,7 +58,6 @@ function UpdateRule() {
       );
 
       const result = await response.json();
-      console.log(result);
       if (response.ok) {
         setMessage("Rule updated successfully");
       } else {
@@ -95,14 +96,16 @@ function UpdateRule() {
             required
           />
         </div>
+
         <div className="form-group">
           <label htmlFor="content">Content</label>
-          <textarea
-            className="form-control"
-            id="content"
-            value={data.content || ""} // Controlled input with fallback
-            onChange={(e) => setData({ ...data, content: e.target.value })} // Update content on change
-            required
+          <CKEditor
+            editor={ClassicEditor}
+            data={data.content} // Initial content for CKEditor
+            onChange={(event, editor) => {
+              const content = editor.getData();
+              setData({ ...data, content: content }); // Update content on change
+            }}
           />
         </div>
 

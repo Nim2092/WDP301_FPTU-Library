@@ -15,22 +15,31 @@ const BorrowBookList = () => {
   const [selectedBooks, setSelectedBooks] = useState([]); // For storing selected books' IDs
   const [identifierCode, setIdentifierCode] = useState(""); // Holds the identifier code for search
   const [sortOrder, setSortOrder] = useState("asc"); // Holds the sort order
-  // Fetch books function
-  const fetchBooks = async () => {
+  
+  // Fetch books function with identifierCode parameter
+  const fetchBooks = async (identifierCode = "") => {
     try {
       let response;
-      if (status === "") {
+  
+      // Kiểm tra nếu có identifierCode (tức là yêu cầu tìm kiếm)
+      if (identifierCode) {
+        response = await axios.get(`http://localhost:9999/api/orders/by-identifier-code/${identifierCode}`);
+      } else if (status === "") {
         response = await axios.get(`http://localhost:9999/api/orders/getAll`);
       } else {
         response = await axios.get(`http://localhost:9999/api/orders/filter?status=${status}`);
-        if (response.data.data.length === 0) {
-          toast.info("No books found with this status. Showing all orders.");
-          setStatus(""); // Reset status to show all orders
-          response = await axios.get(`http://localhost:9999/api/orders/getAll`); // Fetch all orders
-        }
       }
-
-      setBorrowBooks(response.data.data || []);
+  
+      const data = response.data.data || [];
+      
+      // Nếu dữ liệu trả về là một đối tượng thay vì mảng, bao bọc nó trong mảng
+      const formattedData = Array.isArray(data) ? data : [data];
+  
+      if (formattedData.length === 0) {
+        toast.info("No books found with the specified criteria.");
+      }
+      
+      setBorrowBooks(formattedData);
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "An error occurred while fetching borrow books.";
       toast.error(errorMessage);
@@ -38,6 +47,7 @@ const BorrowBookList = () => {
       console.error("Error fetching borrow books:", error);
     }
   };
+  
 
   useEffect(() => {
     fetchBooks();
@@ -153,13 +163,8 @@ const BorrowBookList = () => {
   };
 
   // Search by identifier code
-  const handleSearchByIdentifierCode = async () => {
-    try {
-      const response = await axios.get(`http://localhost:9999/api/orders/search-by-identifier-code?identifierCode=${identifierCode}`);
-      setBorrowBooks(response.data.data || []);
-    } catch (error) {
-      console.error("Error searching by identifier code:", error);
-    }
+  const handleSearchByIdentifierCode = () => {
+    fetchBooks(identifierCode); // Call fetchBooks with identifierCode
   };
 
   const handleSortByBookTitle = () => {
@@ -181,7 +186,6 @@ const BorrowBookList = () => {
     setBorrowBooks(sortedBooks);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   }
-
 
   return (
     <Container className="mt-4">
@@ -214,7 +218,8 @@ const BorrowBookList = () => {
       <div className="d-flex justify-content-between " style={{ marginBottom: "10px" }}>
         {/* Search Bar */}
         <div className="search-bar d-flex align-items-center" >
-          <input type="text" style={{ width: "300px",height: "40px", borderRadius: "10px", border: "1px solid #ccc" }} placeholder="Search by book identifier code" value={identifierCode} onChange={(e) => setIdentifierCode(e.target.value)} />
+          <input type="text" style={{ width: "300px",height: "40px", borderRadius: "10px", border: "1px solid #ccc" }} 
+          placeholder=" Search by book identifier code" value={identifierCode} onChange={(e) => setIdentifierCode(e.target.value)} />
           <Button variant="primary" style={{ marginLeft: "10px" }} onClick={handleSearchByIdentifierCode}>Search</Button>
         </div>
         {/* Approve and Select All */}
