@@ -1,46 +1,48 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 function CreateNews() {
   const [data, setData] = useState({
     title: "",
-    content: "",
-    thumbnail: null, // Lưu file ảnh thay vì URL
+    content: "", // CKEditor will update this value
+    thumbnail: null,
   });
 
-  const [imagePreview, setImagePreview] = useState(null); // Để hiển thị preview ảnh
+  const [imagePreview, setImagePreview] = useState(null);
   const navigate = useNavigate();
 
-  // Xử lý khi người dùng chọn ảnh
+  // Handle image selection and preview
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setData({ ...data, thumbnail: e.target.files[0] }); // Lưu file ảnh vào state
-      setImagePreview(URL.createObjectURL(e.target.files[0])); // Hiển thị preview ảnh
+      setData({ ...data, thumbnail: e.target.files[0] });
+      setImagePreview(URL.createObjectURL(e.target.files[0]));
     }
   };
 
-  // Xử lý form submission để tạo mới bài viết
+  // Handle form submission to create news
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
     formData.append("title", data.title);
-    formData.append("content", data.content);
-    formData.append("thumbnail", data.thumbnail); // Gửi file ảnh đã chọn
-    formData.append("createdBy", "60c72b2f9b1e8a5b5c8f1a2e"); // Static user ID
-    formData.append("updatedBy", "60c72b2f9b1e8a5b5c8f1a2e"); // Static user ID
+    formData.append("content", data.content); // CKEditor content
+    formData.append("thumbnail", data.thumbnail);
+    formData.append("createdBy", "60c72b2f9b1e8a5b5c8f1a2e");
+    formData.append("updatedBy", "60c72b2f9b1e8a5b5c8f1a2e");
 
     try {
       const response = await axios.post("http://localhost:9999/api/news/create", formData, {
         headers: {
-          "Content-Type": "multipart/form-data", // Khi gửi file ảnh, cần sử dụng multipart/form-data
+          "Content-Type": "multipart/form-data",
         },
       });
 
       if (response.status === 201) {
         alert("News created successfully");
-        navigate("/list-news-admin"); // Điều hướng về trang danh sách bài viết
+        navigate("/list-news-admin");
       } else {
         alert("Failed to create news");
       }
@@ -54,7 +56,7 @@ function CreateNews() {
     <div className="container mt-4">
       <h1>Create News</h1>
       <form onSubmit={handleSubmit}>
-      <div className="form-group mt-3">
+        <div className="form-group mt-3">
           <label htmlFor="thumbnail">Thumbnail</label>
           {imagePreview && (
             <div className="mt-3">
@@ -65,12 +67,11 @@ function CreateNews() {
             type="file"
             className="form-control"
             id="thumbnail"
-            onChange={handleImageChange} // Xử lý khi người dùng chọn ảnh
+            onChange={handleImageChange}
           />
-          
         </div>
 
-        <div className="form-group">
+        <div className="form-group mt-3">
           <label htmlFor="title">Title</label>
           <input
             type="text"
@@ -85,17 +86,15 @@ function CreateNews() {
 
         <div className="form-group mt-3">
           <label htmlFor="content">Content</label>
-          <textarea
-            className="form-control"
-            id="content"
-            value={data.content}
-            onChange={(e) => setData({ ...data, content: e.target.value })}
-            placeholder="Enter content"
-            required
+          <CKEditor
+            editor={ClassicEditor}
+            data={data.content}
+            onChange={(event, editor) => {
+              const contentData = editor.getData();
+              setData({ ...data, content: contentData }); // Update content with CKEditor data
+            }}
           />
         </div>
-
-        
 
         <button type="submit" className="btn btn-primary mt-3">
           Create News

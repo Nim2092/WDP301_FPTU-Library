@@ -138,7 +138,6 @@ const createFines = async (req, res, next) => {
     }
 
     const order = await Order.findById(order_id).populate(
-      "book_id",
       "identifier_code condition"
     );
     if (!order) {
@@ -177,6 +176,7 @@ const createFines = async (req, res, next) => {
     }
     const fines = new Fines({
       user_id,
+      book_id: order.book_id,
       order_id,
       fineReason_id,
       createBy,
@@ -290,7 +290,6 @@ const updateFines = async (req, res, next) => {
     }
 
     const order = await Order.findById(order_id).populate(
-      "book_id",
       "identifier_code condition"
     );
     if (!order) {

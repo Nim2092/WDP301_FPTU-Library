@@ -83,7 +83,7 @@ function ListRule() {
           <tr>
             <th>ID</th>
             <th>Title</th>
-            <th>Content</th>
+            {/* <th>Content</th> */}
             <th>Actions</th>
           </tr>
         </thead>
@@ -93,7 +93,7 @@ function ListRule() {
               <tr key={rule.id}>
                 <td>{index + 1}</td>
                 <td onClick={() => handleClick(rule.id)} className="btn-link">{rule.title}</td>
-                <td>{getLimitedContent(rule.content)  }</td>
+                {/* <td>{getLimitedContent(rule.content)  }</td> */}
                 <td className="d-flex justify-content-between">
                   <button className="btn btn-success" onClick={() => navigate(`/update-rule/${rule.id}`)}>
                     Update
