@@ -1241,7 +1241,7 @@ const reminderOverdueOrder = async (req, res, next) => {
 
     res.status(200).json({
       message: "Reminder for overdue orders sent successfully.",
-      data: finesApplied,
+      data: emailSent,
     });
     console.log("Reminder for overdue orders...");
   } catch (error) {
