@@ -9,7 +9,7 @@ const UpdateBookSet = () => {
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [formData, setFormData] = useState({
-    catalog_id: "", // Holds the ID of the catalog
+    catalog_id: "",
     isbn: "",
     code: "",
     shelfLocationCode: "",
@@ -20,8 +20,9 @@ const UpdateBookSet = () => {
     physicalDescription: "",
     totalCopies: "",
     availableCopies: "",
+    price: "", // Add price to the formData state
   });
-  const [currentCatalogName, setCurrentCatalogName] = useState(""); // Holds the catalog name for display
+  const [currentCatalogName, setCurrentCatalogName] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -31,7 +32,6 @@ const UpdateBookSet = () => {
     });
   };
 
-  // Fetch catalogs for the dropdown list
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
@@ -44,7 +44,6 @@ const UpdateBookSet = () => {
     fetchCatalogs();
   }, []);
 
-  // Fetch existing book set data for editing
   useEffect(() => {
     const fetchBookSet = async () => {
       try {
@@ -65,9 +64,10 @@ const UpdateBookSet = () => {
             physicalDescription: bookSet.physicalDescription || "",
             totalCopies: bookSet.totalCopies || "",
             availableCopies: bookSet.availableCopies || "",
+            price: bookSet.price || "", // Set initial value for price if available
           });
           setImage(`http://localhost:9999${bookSet.image}`);
-          setCurrentCatalogName(bookSet.catalog_id.name); // Set current catalog name
+          setCurrentCatalogName(bookSet.catalog_id.name);
         }
       } catch (error) {
         console.error("Error fetching book set data:", error);
@@ -129,12 +129,11 @@ const UpdateBookSet = () => {
             value={formData.catalog_id}
             onChange={(e) => handleInputChange(e)}
           >
-            {/* Display current catalog name as selected option */}
             <option value={formData.catalog_id}>
               {currentCatalogName || "Select Catalog"}
             </option>
             {catalogData
-              .filter((catalog) => catalog._id !== formData.catalog_id) // Exclude current catalog from options
+              .filter((catalog) => catalog._id !== formData.catalog_id)
               .map((catalog) => (
                 <option key={catalog._id} value={catalog._id}>
                   {catalog.name}
@@ -167,6 +166,20 @@ const UpdateBookSet = () => {
             id="isbn"
             name="isbn"
             value={formData.isbn}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+
+        {/* Price */}
+        <div className="mb-3">
+          <label htmlFor="price" className="form-label">Price:</label>
+          <input
+            type="number"
+            className="form-control"
+            id="price"
+            name="price"
+            value={formData.price || ""}
             onChange={handleInputChange}
             required
           />

@@ -7,24 +7,29 @@ const { GridFSBucket } = require("mongodb");
 //Get all user
 const getAllUser = async (req, res, next) => {
   try {
-    const user = await User.find({});
+    // Populate the role_id field and retrieve only the name field from the role document
+    const users = await User.find({}).populate({
+      path: "role_id",
+      select: "name", // Only get the "name" field from the role
+    });
 
-    if (!user) {
+    if (!users || users.length === 0) {
       return res.status(404).json({
-        message: "Get all user failed",
+        message: "No users found",
         data: null,
       });
     }
 
     res.status(200).json({
-      message: "Get all user successfully",
-      data: user,
+      message: "Get all users successfully",
+      data: users,
     });
   } catch (error) {
-    console.error("Error listing user", error);
-    res.status(500).send({ message: error.message });
+    console.error("Error listing users", error);
+    res.status(500).json({ message: error.message });
   }
 };
+
 
 //Get user by id
 const getUserById = async (req, res, next) => {

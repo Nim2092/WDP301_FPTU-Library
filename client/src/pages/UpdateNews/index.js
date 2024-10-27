@@ -36,12 +36,16 @@ function UpdateNews() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("content", data.content); // Save CKEditor HTML content
-    formData.append("thumbnail", data.thumbnail); // Send selected image file
-
+    formData.append("thumbnail", data.thumbnail)
+    // Only append the thumbnail if a new one is selected
+    if (data.thumbnail instanceof File) {
+      formData.append("thumbnail", data.thumbnail); // Send selected image file only if updated
+    }
+  
     try {
       const response = await axios.put(
         `http://localhost:9999/api/news/update/${id}`,
@@ -52,7 +56,7 @@ function UpdateNews() {
           },
         }
       );
-
+  
       if (response.status === 200) {
         alert("News updated successfully");
         navigate("/list-news-admin"); // Navigate back to the news list
@@ -67,6 +71,7 @@ function UpdateNews() {
       alert("Error updating news");
     }
   };
+  
 
   if (loading) {
     return <div>Loading...</div>;
