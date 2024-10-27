@@ -35,9 +35,9 @@ orderRouter.post("/lost-fines/:orderId", orderController.applyFinesForLostBook);
 // orderRouter.get("/chart-order-by-month", orderController.ChartOrderbyMonth);
 
 //for testing and demo
-orderRouter.post("/test-reject-overdue", orderController.rejectOverdueOrders);
+orderRouter.post("/cancel-overdue", orderController.cancelOverdueOrders);
 
-orderRouter.post("/test-due-date", orderController.checkDueDatesAndReminder);
+orderRouter.post("/reminder-due-date", orderController.reminderDueDatesOrder);
 
-orderRouter.post("/test-overdue", orderController.checkOverdueAndApplyFines);
+orderRouter.post("/reminder-overdue", orderController.reminderOverdueOrder);
 module.exports = orderRouter;
