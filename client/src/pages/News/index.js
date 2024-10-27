@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; // Nếu bạn dùng react-router-dom
+import { Link } from "react-router-dom";
+import "./news.scss"; // Import the CSS file
 
 function NewsPage() {
   const [newsItems, setNewsItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Hiển thị 6 bài viết mỗi trang
+  const itemsPerPage = 6; // Show 6 articles per page
 
   useEffect(() => {
     // Fetch news items from the API
@@ -15,7 +16,7 @@ function NewsPage() {
           throw new Error("Network response was not ok");
         }
         const data = await response.json();
-        setNewsItems(data.data);
+        setNewsItems(data.data.reverse()); // Reverse the order of news items
       } catch (error) {
         console.error("Error fetching news:", error);
       }
@@ -24,10 +25,10 @@ function NewsPage() {
     fetchNews();
   }, []);
 
-  // Tính toán số trang
+  // Calculate total pages for pagination
   const totalPages = Math.ceil(newsItems.length / itemsPerPage);
 
-  // Tính toán các bài viết sẽ hiển thị cho trang hiện tại
+  // Calculate items to display for the current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = newsItems.slice(indexOfFirstItem, indexOfLastItem);
@@ -46,26 +47,25 @@ function NewsPage() {
 
   return (
     <div className="news container my-5">
+      <h2>News</h2>
       {Array.isArray(currentItems) && currentItems.length > 0 ? (
         currentItems.map((item) => (
-          <div className="row mb-4" key={item.id}>
-            {/* Cột hình ảnh */}
+          <div className="row mb-4" key={item._id}>
             <div className="col-md-4">
               <img
-                src={`http://localhost:9999/api/news/thumbnail/${item.thumbnail
-                  .split("/")
-                  .pop()}`}
+                src={`http://localhost:9999/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
                 className="img-fluid"
                 alt={item.title}
               />
             </div>
-
-            {/* Cột nội dung */}
             <div className="col-md-8">
               <div className="card-body">
                 <h5 className="card-title">{item.title}</h5>
-                <p className="card-text">{item.content}</p>
-                <div className="text-end">
+                <div
+                  className="card-text content-preview"
+                  dangerouslySetInnerHTML={{ __html: item.content }}
+                />
+                <div className="text-end mt-3">
                   <Link
                     to={`/news-detail/${item._id}`}
                     className="btn btn-primary"
@@ -85,7 +85,7 @@ function NewsPage() {
         </div>
       )}
 
-      {/* Phân trang */}
+      {/* Pagination */}
       {newsItems.length > itemsPerPage && (
         <div className="row">
           <div className="col text-center">

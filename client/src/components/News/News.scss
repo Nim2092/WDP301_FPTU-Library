@@ -9,3 +9,14 @@
 .btn-orange:hover {
     background-color: #0056b3;
 }
+
+.content-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 4; /* Limit to 4 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 6.4em; /* Adjust based on line height */
+    line-height: 1.6em; /* Adjust line height to match your design */
+  }
+  

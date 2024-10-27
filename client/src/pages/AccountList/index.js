@@ -68,7 +68,7 @@ const AccountList = () => {
               <td>{account.fullName}</td>
               <td>{account.email}</td>
               <td>{account.phoneNumber}</td>
-              <td>{account.role_id}</td>
+              <td>{account.role_id.name}</td>
               <td className="d-flex justify-content-between">
                 <button className="btn btn-warning" onClick={() => handleEdit(account._id)}>
                   Edit

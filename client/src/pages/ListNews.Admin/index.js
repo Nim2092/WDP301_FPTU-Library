@@ -63,13 +63,15 @@ const ListNews = () => {
   const handleDetail = (id) => {
     navigate(`/news-detail/${id}`);
   };
-  //hàm lấy ra 50 ký tự đầu của content
+
+  // Function to get limited content
   const getLimitedContent = (content, limit = 50) => {
     if (content.length > limit) {
       return content.substring(0, limit) + "...";
     }
     return content;
   };
+
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between mb-3">
@@ -106,7 +108,7 @@ const ListNews = () => {
         </thead>
         <tbody>
           {newsData.length > 0 ? (
-            newsData.map((news, index) => (
+            newsData.slice().reverse().map((news, index) => ( // Reverse the order
               <tr key={news._id}>
                 <td>{index + 1}</td> 
                 <td>
@@ -119,7 +121,12 @@ const ListNews = () => {
                   />
                 </td>
                 <td className="text-start w-25">{news.title}</td>
-                <td className="text-start w-25">{getLimitedContent(news.content, 50)}</td>
+                <td className="text-start w-25"><div
+                    className="content-preview"
+                    dangerouslySetInnerHTML={{
+                      __html: getLimitedContent(news.content, 50),
+                    }}
+                  /></td>
                 <td className="d-flex justify-content-between">
                   <button
                     className="btn btn-success"
