@@ -30,7 +30,7 @@ const getAllFines = async (req, res, next) => {
       .populate({
         path: "book_id",
         populate: {
-          path: "bookSet_id"
+          path: "bookSet_id",
         },
       })
       .populate("order_id")
@@ -110,6 +110,62 @@ const getFinesByUserId = async (req, res, next) => {
   } catch (error) {
     console.error("Error getting a fines", error);
     res.status(500).send({ message: error.message });
+  }
+};
+
+// get fines by user code
+const getFinesByUserCode = async (req, res, next) => {
+  try {
+    const { userCode } = req.params;
+
+    const user = await User.findOne({ code: userCode });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    const fines = await Fines.find({ user_id: user._id })
+      .populate({
+        path: "user_id",
+        select: "code fullName email",
+      })
+      .populate({
+        path: "book_id",
+        select: "title condition",
+      })
+      .populate({
+        path: "order_id",
+        select: "borrowDate dueDate returnDate",
+      })
+      .populate({
+        path: "fineReason_id",
+        select: "reasonName penaltyAmount",
+      })
+      .populate({
+        path: "createBy",
+        select: "fullName email",
+      })
+      .populate({
+        path: "updateBy",
+        select: "fullName email",
+      });
+
+    if (!fines || fines.length === 0) {
+      return res.status(404).json({
+        message: "No fines found for this user",
+        data: [],
+      });
+    }
+
+    res.status(200).json({
+      message: "Get fines successfully",
+      data: fines,
+    });
+  } catch (error) {
+    console.error("Error getting fines:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -381,7 +437,7 @@ const checkPayment = async (req, res, next) => {
       let message = false;
       let amount = 0;
 
-      response.data.values.forEach(value => {
+      response.data.values.forEach((value) => {
         const matches = value[1].toLowerCase().match(/start(.*?)end/i);
         if (matches && paymentKey.toLowerCase() === matches[1].trim()) {
           message = true;
@@ -392,12 +448,12 @@ const checkPayment = async (req, res, next) => {
       if (message) {
         // Cập nhật tất cả các fines có _id trong mảng fineId
         const result = await Fines.updateMany(
-            { _id: { $in: Array.isArray(fineId) ? fineId : [fineId] } },
-            {
-              status: 'Paid',
-              paymentMethod: 'Casso',
-              paymentDate: new Date()
-            }
+          { _id: { $in: Array.isArray(fineId) ? fineId : [fineId] } },
+          {
+            status: "Paid",
+            paymentMethod: "Casso",
+            paymentDate: new Date(),
+          }
         );
 
         return res.status(200).json({ message: "OK", data: result });
@@ -473,6 +529,7 @@ const FinesController = {
   getFinesById,
   getFinesByUserId,
   getFinesByOrderId,
+  getFinesByUserCode,
   createFines,
   updateFines,
   deleteFines,

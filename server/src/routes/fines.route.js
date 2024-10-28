@@ -13,6 +13,8 @@ finesRouter.get("/by-user/:userId", finesController.getFinesByUserId);
 
 finesRouter.get("/by-order/:orderId", finesController.getFinesByOrderId);
 
+finesRouter.get("/by-code/:userCode", finesController.getFinesByUserCode);
+
 finesRouter.post("/create", finesController.createFines);
 
 finesRouter.put("/update/:finesId", finesController.updateFines);
