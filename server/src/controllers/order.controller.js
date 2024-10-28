@@ -399,15 +399,32 @@ async function changeOrderStatus(req, res, next) {
     }
 
     //Order cancellation limits
-    const user = order.created_by;
     if (status === "Canceled") {
-      if (user.cancelCount >= 3) {
+      const user = order.created_by;
+      const startOfMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1
+      );
+      const endOfMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() + 1,
+        0
+      );
+
+      // Find all canceled orders by the user in the current month
+      const cancellationsThisMonth = await Order.countDocuments({
+        created_by: user._id,
+        status: "Canceled",
+        updatedAt: { $gte: startOfMonth, $lte: endOfMonth },
+      });
+
+      if (cancellationsThisMonth >= 3) {
         return res.status(400).json({
-          message: "You have reached the maximum number of cancellations.",
+          message:
+            "You have reached the maximum number of cancellations this month.",
         });
       }
-      user.cancelCount += 1;
-      await user.save();
     }
 
     // Update the order status
