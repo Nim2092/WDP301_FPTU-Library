@@ -5,10 +5,11 @@ import { Modal, Button } from "react-bootstrap";
 const CatalogList = () => {
   const navigate = useNavigate();
   const [catalogData, setCatalogData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false); // Control the visibility of the modal
-  const [isEditMode, setIsEditMode] = useState(false); // Track whether it's edit mode
-  const [currentCatalogId, setCurrentCatalogId] = useState(null); // Track the catalog being edited
+  const [showModal, setShowModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentCatalogId, setCurrentCatalogId] = useState(null);
   const [newCatalog, setNewCatalog] = useState({
     name: "",
     code: "",
@@ -17,26 +18,50 @@ const CatalogList = () => {
     isTextbook: ""
   });
 
+  // Trạng thái cho các bộ lọc
+  const [filters, setFilters] = useState({
+    major: "",
+    isTextbook: "",
+    semester: ""
+  });
+
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
         const response = await fetch("http://localhost:9999/api/catalogs/list");
-        if (!response.ok) {
-          throw new Error("Failed to fetch catalog data");
-        }
+        if (!response.ok) throw new Error("Failed to fetch catalog data");
         const data = await response.json();
         setCatalogData(data);
+        setFilteredData(data); // Thiết lập dữ liệu lọc ban đầu
       } catch (error) {
         console.error("Error fetching catalog data:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchCatalogs();
   }, []);
 
-  // Handle Update (open modal with catalog data pre-filled)
+  // Cập nhật dữ liệu lọc khi thay đổi bộ lọc
+  useEffect(() => {
+    const filtered = catalogData.filter((catalog) =>
+      Object.entries(filters).every(([key, value]) =>
+        value === "" || catalog[key].toString() === value
+      )
+    );
+    setFilteredData(filtered);
+  }, [filters, catalogData]);
+
+  // Xử lý thay đổi bộ lọc
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [name]: value
+    }));
+  };
+
+  // Xử lý mở modal cập nhật
   const handleUpdate = (id) => {
     const catalogToUpdate = catalogData.find((catalog) => catalog._id === id);
     setNewCatalog({
@@ -47,11 +72,11 @@ const CatalogList = () => {
       isTextbook: catalogToUpdate.isTextbook
     });
     setCurrentCatalogId(id);
-    setIsEditMode(true); // Set edit mode
-    setShowModal(true); // Open the modal
+    setIsEditMode(true);
+    setShowModal(true);
   };
 
-  // Handle Delete
+  // Xử lý xóa catalog
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this catalog?");
     
@@ -61,29 +86,23 @@ const CatalogList = () => {
           method: "DELETE",
         });
   
-        if (!response.ok) {
-          throw new Error(`Failed to delete catalog: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Failed to delete catalog: ${response.statusText}`);
   
-        console.log(`Catalog with ID: ${id} has been deleted`);
-  
-        // Update state by filtering out the deleted catalog
         setCatalogData((prevCatalogs) => prevCatalogs.filter((catalog) => catalog._id !== id));
-        
       } catch (error) {
         console.error("Error deleting catalog:", error);
       }
     }
   };
 
-  // Open the Create Catalog Modal
+  // Mở modal tạo catalog mới
   const handleCreateNewCatalog = () => {
-    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false }); // Clear the form
-    setIsEditMode(false); // Set create mode
-    setShowModal(true); // Show modal
+    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false });
+    setIsEditMode(false);
+    setShowModal(true);
   };
 
-  // Handle Form Submit for new or updated catalog
+  // Gửi dữ liệu form (tạo mới hoặc cập nhật)
   const handleSubmitCatalog = async (e) => {
     e.preventDefault();
 
@@ -102,32 +121,28 @@ const CatalogList = () => {
         body: JSON.stringify(newCatalog),
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to ${isEditMode ? "update" : "create"} catalog`);
-      }
+      if (!response.ok) throw new Error(`Failed to ${isEditMode ? "update" : "create"} catalog`);
 
       const savedCatalog = await response.json();
 
       if (isEditMode) {
-        // Update the catalog in the catalog list
         setCatalogData((prevData) =>
           prevData.map((catalog) =>
             catalog._id === currentCatalogId ? savedCatalog : catalog
           )
         );
       } else {
-        // Add the new catalog to the list
         setCatalogData([...catalogData, savedCatalog]);
       }
 
-      setShowModal(false); // Close modal after submission
-      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false }); // Reset form
+      setShowModal(false);
+      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false });
     } catch (error) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} catalog:`, error);
     }
   };
 
-  // Handle input change for the catalog form
+  // Xử lý thay đổi input trong form
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setNewCatalog((prevCatalog) => ({
@@ -143,6 +158,48 @@ const CatalogList = () => {
         <button className="btn btn-primary" onClick={handleCreateNewCatalog}>
           Create new catalog
         </button>
+      </div>
+
+      {/* Bộ lọc */}
+      <div className="d-flex justify-content-between my-3">
+        <select
+          name="major"
+          value={filters.major}
+          onChange={handleFilterChange}
+          className="form-select mx-1"
+        >
+          <option value="">All Majors</option>
+          {[...new Set(catalogData.map((c) => c.major))].map((major) => (
+            <option key={major} value={major}>
+              {major}
+            </option>
+          ))}
+        </select>
+
+        <select
+          name="isTextbook"
+          value={filters.isTextbook}
+          onChange={handleFilterChange}
+          className="form-select mx-1"
+        >
+          <option value="">All Types</option>
+          <option value="1">Textbook</option>
+          <option value="0">Non-Textbook</option>
+        </select>
+
+        <select
+          name="semester"
+          value={filters.semester}
+          onChange={handleFilterChange}
+          className="form-select mx-1"
+        >
+          <option value="">All Semesters</option>
+          {[...new Set(catalogData.map((c) => c.semester))].map((semester) => (
+            <option key={semester} value={semester}>
+              {semester}
+            </option>
+          ))}
+        </select>
       </div>
 
       {loading ? (
@@ -161,8 +218,8 @@ const CatalogList = () => {
             </tr>
           </thead>
           <tbody>
-            {catalogData.length > 0 ? (
-              catalogData.map((catalog, index) => (
+            {filteredData.length > 0 ? (
+              filteredData.map((catalog, index) => (
                 <tr key={catalog._id}>
                   <td>{index + 1}</td>
                   <td>{catalog.name}</td>
@@ -182,7 +239,7 @@ const CatalogList = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center">
+                <td colSpan="7" className="text-center">
                   No catalogs available
                 </td>
               </tr>
@@ -250,7 +307,7 @@ const CatalogList = () => {
                 type="checkbox"
                 id="isTextbook"
                 name="isTextbook"
-                checked={newCatalog.isTextbook === 1} // Check the box if isTextbook is 1
+                checked={newCatalog.isTextbook === 1}
                 onChange={handleInputChange}
               />
             </div>

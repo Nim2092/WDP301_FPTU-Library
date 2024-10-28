@@ -40,16 +40,17 @@ function News() {
                   src={`http://localhost:9999/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
                   className="card-img-top"
                   alt={item.title}
+                  style={{ width: "100%", height: "200px", objectFit: "cover", cursor: "pointer" }}
                 />
                 <div className="card-body">
-                  <h5 className="card-title" onClick={() => handleClick(item._id)}>
+                  <h5 className="card-title" style={{ cursor: "pointer" }} onClick={() => handleClick(item._id)}>
                     {item.title}
                   </h5>
-                  <div
+                  {/* <div
                     className="card-text content-preview"
                     style={{ marginTop: "20px" }}
                     dangerouslySetInnerHTML={{ __html: item.content }}
-                  />
+                  /> */}
                 </div>
               </div>
             </div>

@@ -16,6 +16,8 @@ userRouter.delete("/delete/:userId", userController.deleteUserById);
 
 userRouter.post("/add", upload.single("image"), userController.addNewUser);
 
+userRouter.get("/all-role", userController.getRoleName);
+
 userRouter.put(
   "/update/:id",
   upload.single("image"),

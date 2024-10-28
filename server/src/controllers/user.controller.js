@@ -35,7 +35,7 @@ const getAllUser = async (req, res, next) => {
 const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).populate("role_id");
     console.log(user);
     if (!user) {
       return res.status(404).json({
@@ -444,7 +444,18 @@ const getUserByCode = async (req, res, next) => {
   }
 };
 
+const getRoleName = async (req, res, next) => {
+  try {
+    const role = await Role.find();
+    res.status(200).json({ message: "Get role name successfully", data: role });
+  } catch (error) {
+    console.error("Error getting role name", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
 const UserController = {
+  getRoleName,
   viewProfile,
   editProfile,
   deleteUserById,

@@ -9,7 +9,7 @@ function UpdateNews() {
   const navigate = useNavigate(); // Hook to navigate to another route
   const [data, setData] = useState({ title: "", content: "", thumbnail: "" }); // Initialize state with empty values
   const [loading, setLoading] = useState(true); // Loading state
-  const [image, setImage] = useState(null); // State for selected image
+  const [thumbnail, setThumbnail] = useState(null); // State for selected image
 
   useEffect(() => {
     // Fetch news detail
@@ -27,9 +27,9 @@ function UpdateNews() {
     fetchNewsDetail();
   }, [id]);
 
-  const handleImageChange = (e) => {
+  const handleThumbnailChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setImage(URL.createObjectURL(e.target.files[0])); // Create a temporary URL to preview the image
+      setThumbnail(URL.createObjectURL(e.target.files[0])); // Create a temporary URL to preview the image
       setData({ ...data, thumbnail: e.target.files[0] }); // Save the actual file to the state for server upload
     }
   };
@@ -40,7 +40,6 @@ function UpdateNews() {
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("content", data.content); // Save CKEditor HTML content
-    formData.append("thumbnail", data.thumbnail)
     // Only append the thumbnail if a new one is selected
     if (data.thumbnail instanceof File) {
       formData.append("thumbnail", data.thumbnail); // Send selected image file only if updated
@@ -79,26 +78,31 @@ function UpdateNews() {
 
   return (
     <div className="container mt-4">
-      <h1>Update News</h1>
+      <div className="row">
+        <div className="col-md-12 text-center">
+          <h1>Update News</h1>
+        </div>
+      </div>
       <form onSubmit={handleSubmit}>
         <div className="row">
-          {/* Image upload section */}
+          {/* Thumbnail upload section */}
           <div className="col-md-3">
             <div className="form-group">
-              {image ? (
-                // Show newly selected image
-                <img src={image} alt="Selected" className="img-thumbnail" />
+              {thumbnail ? (
+                // Show newly selected thumbnail
+                <img src={thumbnail} alt="Selected" className="img-thumbnail" />
               ) : data.thumbnail ? (
-                // Show current image from data if available
+                // Show current thumbnail from data if available
                 <img
                   src={`http://localhost:9999/api/news/thumbnail/${data.thumbnail
                     .split("/")
                     .pop()}`}
                   className="img-fluid"
                   alt={data.title}
+                  style={{ width: "100%", height: "auto" }}
                 />
               ) : (
-                // Placeholder if no image is available
+                // Placeholder if no thumbnail is available
                 <div
                   className="img-thumbnail d-flex justify-content-center align-items-center"
                   style={{
@@ -113,13 +117,11 @@ function UpdateNews() {
               <input
                 type="file"
                 className="form-control mt-2"
-                onChange={handleImageChange} // Handle image selection
+                onChange={handleThumbnailChange} // Handle thumbnail selection
               />
             </div>
           </div>
-        </div>
-
-        <div className="form-group">
+          <div className="col-md-9">
           <label htmlFor="title">Title</label>
           <input
             type="text"
@@ -127,8 +129,9 @@ function UpdateNews() {
             id="title"
             value={data.title}
             onChange={(e) => setData({ ...data, title: e.target.value })}
-            required
-          />
+              required
+            />
+          </div>
         </div>
 
         <div className="form-group mt-3">
