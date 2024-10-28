@@ -18,9 +18,9 @@ const BookSearch = ({ onSearch }) => {
   };
 
   return (
-    <div className="container mt-5 mb-5">
-      <form onSubmit={handleSubmit} className="p-3 border rounded">
-        <div className="form-group mb-3">
+    <div className="container">
+      <form onSubmit={handleSubmit} className="row">
+        <div className="form-group mb-3 col-md-3">
           <input
             type="text"
             className="form-control"
@@ -29,7 +29,7 @@ const BookSearch = ({ onSearch }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="d-flex justify-content-center">
+        <div className="col-md-2">
           <button type="submit" className="btn btn-primary">Search</button>
         </div>
       </form>

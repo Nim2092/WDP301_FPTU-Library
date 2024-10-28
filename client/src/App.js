@@ -45,6 +45,7 @@ import Notification from "./pages/Notification";
 import Fines from "./pages/Fines";
 import Chart from "./pages/Chart";
 import ListFines from "./pages/ListFines";
+import ScrollTop from "./components/ScrollTop";
 function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
@@ -102,7 +103,7 @@ function App() {
                 <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </div>
-            
+            <ScrollTop /> {/* Add ScrollTop component here */}
           </div>
           <Footer />
         </BrowserRouter>

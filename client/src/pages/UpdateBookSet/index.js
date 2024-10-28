@@ -129,16 +129,12 @@ const UpdateBookSet = () => {
             value={formData.catalog_id}
             onChange={(e) => handleInputChange(e)}
           >
-            <option value={formData.catalog_id}>
-              {currentCatalogName || "Select Catalog"}
-            </option>
-            {catalogData
-              .filter((catalog) => catalog._id !== formData.catalog_id)
-              .map((catalog) => (
-                <option key={catalog._id} value={catalog._id}>
-                  {catalog.name}
-                </option>
-              ))}
+            <option value="">{currentCatalogName || "Select Catalog"}</option>
+            {catalogData.map((catalog) => (
+              <option key={catalog._id} value={catalog._id}>
+                {catalog.name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -215,9 +211,7 @@ const UpdateBookSet = () => {
 
         {/* Author */}
         <div className="mb-3">
-          <label htmlFor="author" className="form-label">
-            Author:
-          </label>
+          <label htmlFor="author" className="form-label">Author:</label>
           <input
             type="text"
             className="form-control"
@@ -231,9 +225,7 @@ const UpdateBookSet = () => {
 
         {/* Published Year */}
         <div className="mb-3">
-          <label htmlFor="publishedYear" className="form-label">
-            Published Year:
-          </label>
+          <label htmlFor="publishedYear" className="form-label">Published Year:</label>
           <input
             type="date"
             className="form-control"
@@ -247,9 +239,7 @@ const UpdateBookSet = () => {
 
         {/* Publisher */}
         <div className="mb-3">
-          <label htmlFor="publisher" className="form-label">
-            Publisher:
-          </label>
+          <label htmlFor="publisher" className="form-label">Publisher:</label>
           <input
             type="text"
             className="form-control"
@@ -263,9 +253,7 @@ const UpdateBookSet = () => {
 
         {/* Physical Description */}
         <div className="mb-3">
-          <label htmlFor="physicalDescription" className="form-label">
-            Physical Description:
-          </label>
+          <label htmlFor="physicalDescription" className="form-label">Physical Description:</label>
           <input
             type="text"
             className="form-control"
@@ -279,9 +267,7 @@ const UpdateBookSet = () => {
 
         {/* Shelf Location Code */}
         <div className="mb-3">
-          <label htmlFor="shelfLocationCode" className="form-label">
-            Shelf Location Code:
-          </label>
+          <label htmlFor="shelfLocationCode" className="form-label">Shelf Location Code:</label>
           <input
             type="text"
             className="form-control"
@@ -295,9 +281,7 @@ const UpdateBookSet = () => {
 
         {/* Total Copies */}
         <div className="mb-3">
-          <label htmlFor="totalCopies" className="form-label">
-            Total Copies:
-          </label>
+          <label htmlFor="totalCopies" className="form-label">Total Copies:</label>
           <input
             type="number"
             className="form-control"
@@ -311,9 +295,7 @@ const UpdateBookSet = () => {
 
         {/* Available Copies */}
         <div className="mb-3">
-          <label htmlFor="availableCopies" className="form-label">
-            Available Copies:
-          </label>
+          <label htmlFor="availableCopies" className="form-label">Available Copies:</label>
           <input
             type="number"
             className="form-control"

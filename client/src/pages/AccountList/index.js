@@ -1,29 +1,43 @@
 import Axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
 
 const AccountList = () => {
   const [accountData, setAccountData] = useState([]);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const accountsPerPage = 20;
   const navigate = useNavigate();
+
+  // Calculate the indices for slicing the account data
+  const indexOfLastAccount = currentPage * accountsPerPage;
+  const indexOfFirstAccount = indexOfLastAccount - accountsPerPage;
+  const currentAccounts = accountData.slice(indexOfFirstAccount, indexOfLastAccount);
 
   const handleEdit = (id) => {
     navigate(`/update-account/${id}`);
     console.log(`Edit account with ID: ${id}`);
   };
 
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this account?");
-    if (confirmDelete) {
-      Axios.delete(`http://localhost:9999/api/user/delete/${id}`)
-        .then(() => {
-          console.log(`Account with ID: ${id} deleted successfully`);
-          setAccountData(accountData.filter((account) => account._id !== id));
-        })
-        .catch((error) => {
-          console.error("Error deleting account:", error);
-        });
-    }
+  const handleAccountStatusChange = (id, isActive) => {
+    axios
+      .put(`http://localhost:9999/api/user/update/${id}`, { isActive })
+      .then(() => {
+        // Thông báo thành công
+        toast.success("Account status changed successfully");
+        
+        // Cập nhật state trực tiếp mà không reload trang
+        setAccountData((prevData) =>
+          prevData.map((account) =>
+            account._id === id ? { ...account, isActive } : account
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error updating account status:", error);
+        toast.error("Failed to update account status");
+      });
   };
 
   const handleCreateNewAccount = () => {
@@ -42,8 +56,13 @@ const AccountList = () => {
       });
   }, []);
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
-    <div className="container mt-4">
+    <div className="container mt-4 mb-4">
+      <ToastContainer />
       <div className="d-flex justify-content-between">
         <h2>Account List</h2>
         <button className="btn btn-primary" onClick={handleCreateNewAccount}>
@@ -62,25 +81,49 @@ const AccountList = () => {
           </tr>
         </thead>
         <tbody>
-          {accountData.map((account, index) => (
+          {currentAccounts.map((account, index) => (
             <tr key={account._id}>
-              <td>{index + 1}</td>
+              <td>{indexOfFirstAccount + index + 1}</td>
               <td>{account.fullName}</td>
               <td>{account.email}</td>
               <td>{account.phoneNumber}</td>
               <td>{account.role_id.name}</td>
               <td className="d-flex justify-content-between">
                 <button className="btn btn-warning" onClick={() => handleEdit(account._id)}>
-                  Edit
+                  Update
                 </button>
-                <button className="btn btn-danger" onClick={() => handleDelete(account._id)}>
-                  Delete
-                </button>
+             
+                {account.isActive ? (
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => handleAccountStatusChange(account._id, false)}
+                  >
+                    Inactive
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-success"
+                    onClick={() => handleAccountStatusChange(account._id, true)}
+                  >
+                    Active
+                  </button>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <div className="pagination float-end mb-4">
+        {Array.from({ length: Math.ceil(accountData.length / accountsPerPage) }, (_, i) => (
+          <button
+            key={i}
+            className={`btn ${currentPage === i + 1 ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => handlePageChange(i + 1)}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

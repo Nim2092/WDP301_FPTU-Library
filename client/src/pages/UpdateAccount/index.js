@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const UpdateAccount = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [fullName, setFullName] = useState(""); // fullName từ API
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [roleId, setRoleId] = useState(""); // role_id từ API
+  const [roleId, setRoleId] = useState(""); // role_id của người dùng
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [roles, setRoles] = useState([]); // Danh sách các role
 
-  // Lấy dữ liệu từ API
+  // Lấy tất cả các role
+  useEffect(() => {
+    axios.get("http://localhost:9999/api/user/all-role").then((res) => {
+      setRoles(res.data.data);
+    });
+  }, []);
+
+  // Lấy dữ liệu người dùng bao gồm role hiện tại
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -22,7 +31,7 @@ const UpdateAccount = () => {
         setFullName(fullName || "");
         setEmail(email || "");
         setPhoneNumber(phoneNumber || "");
-        setRoleId(role_id || "");
+        setRoleId(role_id._id || ""); // Set current role_id bằng _id
         setImagePreview(image ? `http://localhost:9999${image}` : null);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -36,8 +45,8 @@ const UpdateAccount = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file); // Lưu trữ file hình ảnh
-      setImagePreview(URL.createObjectURL(file)); // Hiển thị ảnh đã chọn
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -61,7 +70,7 @@ const UpdateAccount = () => {
     data.append("role_id", roleId);
 
     if (image) {
-      data.append("image", image); // Thêm hình ảnh nếu có
+      data.append("image", image);
     }
 
     try {
@@ -75,7 +84,7 @@ const UpdateAccount = () => {
         throw new Error("Network response was not ok");
       }
 
-      setMessage("Cập nhật thành công!");
+      navigate("/account-list");
     } catch (error) {
       setMessage("Đã xảy ra lỗi trong quá trình cập nhật.");
       console.error("Error updating account:", error);
@@ -156,16 +165,20 @@ const UpdateAccount = () => {
               />
             </div>
             <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="roleId">Role ID</label>
-              <input
-                type="text"
+              <label htmlFor="roleId">Role Name</label>
+              <select
                 className="form-control"
                 id="roleId"
                 name="roleId"
-                value={roleId}
+                value={roleId} // Chọn role hiện tại
                 onChange={handleChange}
-                placeholder="Enter role ID"
-              />
+              >
+                {roles.map((role) => (
+                  <option key={role._id} value={role._id}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

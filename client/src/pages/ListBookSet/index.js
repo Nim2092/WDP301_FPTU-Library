@@ -40,7 +40,6 @@ function ListBookSet() {
   return (
     <div className="container mt-4">
       {/* Search Component */}
-      <BookSearch onSearch={handleSearch} />
       
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1>List of Book Sets</h1>
@@ -48,6 +47,7 @@ function ListBookSet() {
           Create Book Set
         </Link>
       </div>
+      <BookSearch onSearch={handleSearch} />
 
       <div className="table-responsive">
         {filteredBookSetData.length > 0 ? (

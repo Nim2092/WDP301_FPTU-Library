@@ -47,16 +47,15 @@ function RuleDetail() {
   // Render rule details
   return (
     <div className="rule_detail container mt-4">
-      <div className="">
+      <div className="text-center">
         <h1>
           <strong>{rule.title}</strong>
         </h1>
       </div>
-      <div className="d-flex justify-content-between">
+      <div className="float-end">
         <p>{new Date(rule.createdAt).toLocaleString()}</p>
-        <p>{new Date(rule.updatedAt).toLocaleString()}</p>
       </div>
-      <div className="mt-4">
+      <div className="mt-5">
         {/* Render content as HTML */}
         <div dangerouslySetInnerHTML={{ __html: rule.content }} />
       </div>

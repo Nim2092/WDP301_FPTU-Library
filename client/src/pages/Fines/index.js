@@ -4,7 +4,6 @@ import { Container, Button, Modal } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AuthContext from "../../contexts/UserContext";
-import { useNavigate } from "react-router-dom";
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat("vi-VN", {
@@ -23,7 +22,6 @@ function Fines() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [pollingIntervalId, setPollingIntervalId] = useState(null);
   const [timeoutId, setTimeoutId] = useState(null);
-  const navigate = useNavigate();
 
   // Generate transaction code on component mount
   useEffect(() => {
@@ -157,10 +155,7 @@ function Fines() {
             ))}
           </tbody>
         </table>
-      ) : (
-        <p>Loading fines...</p>
-      )}
-
+      ) : null}
       {/* QR Code Modal */}
       <Modal show={showQRCode} onHide={() => setShowQRCode(false)}>
         <Modal.Header closeButton>
