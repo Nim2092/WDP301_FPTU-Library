@@ -35,7 +35,6 @@ const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId).populate("role_id");
-    console.log(user);
     if (!user) {
       return res.status(404).json({
         message: "User not found",
@@ -111,6 +110,14 @@ const addNewUser = async (req, res, next) => {
       });
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
@@ -168,10 +175,24 @@ const updateUserByAdmin = async (req, res) => {
   const { role_id, fullName, email, phoneNumber, isActive } = req.body;
   const image = req.file;
 
+  if (!role_id || !email) {
+    return res.status(400).json({
+      message: "Data are required fields",
+    });
+  }
+
   try {
     let user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
     }
 
     if (role_id) user.role_id = role_id;
