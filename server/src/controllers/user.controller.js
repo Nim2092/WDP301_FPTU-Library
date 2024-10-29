@@ -30,7 +30,6 @@ const getAllUser = async (req, res, next) => {
   }
 };
 
-
 //Get user by id
 const getUserById = async (req, res, next) => {
   try {
@@ -325,10 +324,18 @@ const activateDeactivateUser = async (req, res, next) => {
         data: null,
       });
     }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: "Tài khoản bị khóa, vui lòng liên hệ thư viện để xử lý.",
+        data: null,
+      });
+    }
+
     user.isActive = !user.isActive;
     const updatedUser = await user.save();
     res.status(200).json({
-      message: "User status updated successfully",
+      message: "Trạng thái người dùng đã được cập nhật thành công.",
       data: updatedUser,
     });
   } catch (error) {
