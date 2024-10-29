@@ -229,7 +229,7 @@ const createFines = async (req, res, next) => {
 
     if (existingFines) {
       return res.status(400).json({
-        message: "Fines for this order already exists.",
+        message: "Đã tồn tại khoản phạt cho đơn hàng này.",
         data: null,
       });
     }
@@ -265,9 +265,23 @@ const createFines = async (req, res, next) => {
     const notification = new Notification({
       userId: user_id,
       type: "Fines",
-      message: `You have been penalized ${penaltyReason.penaltyAmount}k for book #${order.book_id.identifier_code} for reason ${penaltyReason.reasonName}. Please pay to avoid additional fees.`,
+      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount}k cho sách #${order.book_id.identifier_code} vì lý do ${penaltyReason.reasonName}. Vui lòng thanh toán để tránh các khoản phí bổ sung.`,
     });
     await notification.save();
+
+    // Gửi email thông báo cho người dùng
+    const userEmail = user.email;
+    let info = await transporter.sendMail({
+      from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
+      to: userEmail,
+      subject: "Thông Báo Phạt Khi Mượn Sách",
+      text: `Xin chào, đã bị phạt ${penaltyReason.penaltyAmount} VND cho sách có mã số #${order.book_id.identifier_code}. Lý do phạt là: ${penaltyReason.reasonName}.Vui lòng thực hiện thanh toán khoản phạt này sớm để tránh các khoản phí bổ sung trong tương lai. Nếu bạn cần hỗ trợ thêm, xin vui lòng liên hệ với thư viện.Trân trọng!`,
+      html: `<b>Xin chào</b>, bạn đã bị phạt <strong>${penaltyReason.penaltyAmount} VND</strong> cho sách có mã số <strong>#${order.book_id.identifier_code}</strong>. Lý do phạt là: <strong>${penaltyReason.reasonName}</strong>.<br><br> Vui lòng thực hiện thanh toán khoản phạt này sớm để tránh các khoản phí bổ sung trong tương lai.<br><br> Nếu bạn cần hỗ trợ thêm, xin vui lòng liên hệ với thư viện`,
+    });
+
+    console.log(
+      `Sent lost book fine email to ${userEmail} for order ${order_id}`
+    );
 
     res.status(201).json({
       message: "Create fines successfully",

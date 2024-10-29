@@ -41,12 +41,12 @@ const createPenaltyReasons = async (req, res) => {
     if (!reasonName || !penaltyAmount) {
       return res
         .status(400)
-        .send({ message: "Reason name and penalty amount are required" });
+        .send({ message: "Tên lý do và số tiền phạt là bắt buộc" });
     }
     const penaltyReason = new PenaltyReason({
       reasonName,
       penaltyAmount,
-      type
+      type,
     });
     await penaltyReason.save();
     res.status(201).json({

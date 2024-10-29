@@ -52,17 +52,17 @@ async function createRule(req, res, next) {
     if (!title || !content) {
       return res
         .status(400)
-        .send({ message: "Title and content are required" });
+        .send({ message: "Tiêu đề và nội dung là bắt buộc" });
     }
     const rule = new Rule({
       title: title,
-      content: title,
+      content: content,
       createdBy: createdBy,
       updatedBy: updatedBy,
     });
     const savedRule = await rule.save();
     res.status(201).json({
-      message: "Rule created successfully",
+      message: "Tạo quy định thành công",
       data: savedRule,
     });
   } catch (error) {
@@ -80,7 +80,7 @@ async function updateRule(req, res, next) {
     if (!title || !content) {
       return res
         .status(400)
-        .send({ message: "Title and content are required" });
+        .send({ message: "Tiêu đề và nội dung là bắt buộc" });
     }
 
     const rule = await Rule.findByIdAndUpdate(
@@ -89,10 +89,10 @@ async function updateRule(req, res, next) {
       { new: true }
     );
     if (!rule) {
-      return res.status(404).send({ message: "Rule not found" });
+      return res.status(404).send({ message: "Không tìm thấy quy định" });
     }
     res.status(200).json({
-      message: "Rule updated successfully",
+      message: "Cập nhật quy định thành công",
       data: rule,
     });
   } catch (error) {
@@ -110,7 +110,7 @@ async function deleteRule(req, res, next) {
       return res.status(404).send({ message: "Rule not found" });
     }
     res.status(200).json({
-      message: "Rule deleted successfully",
+      message: "Xóa quy định thành công",
       data: rule,
     });
   } catch (error) {
