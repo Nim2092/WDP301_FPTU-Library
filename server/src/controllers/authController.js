@@ -203,6 +203,14 @@ const authController = {
         await user.save(); // Only save user in DB on first login
       }
 
+      // Check if user is active
+      if (!user.isActive) {
+        return res.status(403).json({
+          message:
+            "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thư viện để được hỗ trợ.",
+        });
+      }
+
       // If user already exists or after creation, generate tokens
       const accessToken = authController.generateAccessToken(user);
       const refreshToken = authController.generateRefreshToken(user);
