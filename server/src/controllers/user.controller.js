@@ -429,6 +429,7 @@ const getImageById = async (req, res) => {
   }
 };
 
+//get user by code
 const getUserByCode = async (req, res, next) => {
   try {
     const { code } = req.params;
@@ -451,12 +452,36 @@ const getUserByCode = async (req, res, next) => {
   }
 };
 
+// Get role name
 const getRoleName = async (req, res, next) => {
   try {
     const role = await Role.find();
     res.status(200).json({ message: "Get role name successfully", data: role });
   } catch (error) {
     console.error("Error getting role name", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//Filter user by isActive
+const getUserByIsActive = async (req, res, next) => {
+  try {
+    const { isActive } = req.params;
+    const user = await User.find({ isActive: isActive });
+    console.log(user);
+    if (!user) {
+      return res.status(404).json({
+        message: "No user found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      message: "Get user by isActive successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error getting user by isActive", error);
     res.status(500).send({ message: error.message });
   }
 };
@@ -477,5 +502,6 @@ const UserController = {
   updateUserByAdmin,
   getImageById,
   getUserByCode,
+  getUserByIsActive,
 };
 module.exports = UserController;
