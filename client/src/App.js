@@ -46,6 +46,7 @@ import Fines from "./pages/Fines";
 import Chart from "./pages/Chart";
 import ListFines from "./pages/ListFines";
 import ScrollTop from "./components/ScrollTop";
+import Breadcrumb from "./components/Breadcrumb";
 function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
@@ -165,12 +166,12 @@ const ProtectedRoute = ({ roles, children }) => {
   if (!roles.includes(user.role?.name)) {
     return <Navigate to="/unauthorized" replace />;
   }
-
   return (
     <>
       {/* Render Sidebar only after login */}
       <Sidebar menuItems={menuItems[user.role?.name] || []} />
       <div className="content-area col-10">
+        <Breadcrumb/>
         {children}
       </div>
     </>

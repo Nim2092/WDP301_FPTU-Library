@@ -25,6 +25,9 @@ const CatalogList = () => {
     semester: ""
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Adjust number of items per page as needed
+
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
@@ -151,6 +154,15 @@ const CatalogList = () => {
     }));
   };
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between">
@@ -218,8 +230,8 @@ const CatalogList = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((catalog, index) => (
+            {currentItems.length > 0 ? (
+              currentItems.map((catalog, index) => (
                 <tr key={catalog._id}>
                   <td>{index + 1}</td>
                   <td>{catalog.name}</td>
@@ -246,6 +258,44 @@ const CatalogList = () => {
             )}
           </tbody>
         </table>
+      )}
+
+      {filteredData.length > 0 && (
+        <nav aria-label="Catalog pagination">
+          <ul className="pagination justify-content-center">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+            </li>
+            {[...Array(totalPages)].map((_, index) => (
+              <li
+                key={index + 1}
+                className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
+              >
+                <button
+                  className="page-link"
+                  onClick={() => handlePageChange(index + 1)}
+                >
+                  {index + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </nav>
       )}
 
       {/* Modal for creating or updating catalog */}
