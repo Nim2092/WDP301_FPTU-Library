@@ -101,10 +101,8 @@ async function updateNews(req, res, next) {
     const { title, content, updatedBy } = req.body;
     const thumbnail = req.file;
 
-    if (!title || !content || !thumbnail) {
-      return res
-        .status(400)
-        .send({ message: "Title, content and thumbnail are required" });
+    if (!title || !content) {
+      return res.status(400).send({ message: "Title, content are required" });
     }
     const news = await News.findById(id);
     if (!news) {

@@ -28,10 +28,11 @@ function ListFines() {
                         <th>#</th>
                         <th>Book</th>
                         <th>User</th>
-                        <th>Reason</th>
-                        {/* <th>Penalty Amount</th> */}
+                        <th>Book Condition</th>
                         <th>Total Fine Amount</th>
                         <th>Status</th>
+                        <th>Reason</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -39,13 +40,14 @@ function ListFines() {
                         <tr key={fine._id}>
                             <td>{index + 1}</td>
                             <td>
-                                {fine.order_id?.book_id || "N/A"}
+                                {fine.book_id.bookSet_id.title || "N/A"}
                             </td>
                             <td>{fine.user_id.code || "N/A"}</td>
-                            <td>{fine.reason || fine.fineReason_id.reasonName}</td>
-                            {/* <td>{fine.fineReason_id.penaltyAmount || "N/A"}</td> */}
+                            <td>{fine.book_id.condition || "N/A"}</td>
                             <td>{fine.totalFinesAmount || "N/A"}</td>
                             <td>{fine.status}</td>
+                            <td>{fine.reason || fine.fineReason_id.reasonName}</td>
+
                         </tr>
                     ))}
                 </tbody>

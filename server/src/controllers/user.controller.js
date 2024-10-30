@@ -7,22 +7,26 @@ const { GridFSBucket } = require("mongodb");
 //Get all user
 const getAllUser = async (req, res, next) => {
   try {
-    const user = await User.find({});
+    // Populate the role_id field and retrieve only the name field from the role document
+    const users = await User.find({}).populate({
+      path: "role_id",
+      select: "name", // Only get the "name" field from the role
+    });
 
-    if (!user) {
+    if (!users || users.length === 0) {
       return res.status(404).json({
-        message: "Get all user failed",
+        message: "No users found",
         data: null,
       });
     }
 
     res.status(200).json({
-      message: "Get all user successfully",
-      data: user,
+      message: "Get all users successfully",
+      data: users,
     });
   } catch (error) {
-    console.error("Error listing user", error);
-    res.status(500).send({ message: error.message });
+    console.error("Error listing users", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -30,8 +34,7 @@ const getAllUser = async (req, res, next) => {
 const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId);
-    console.log(user);
+    const user = await User.findById(userId).populate("role_id");
     if (!user) {
       return res.status(404).json({
         message: "User not found",
@@ -107,6 +110,14 @@ const addNewUser = async (req, res, next) => {
       });
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
@@ -164,10 +175,24 @@ const updateUserByAdmin = async (req, res) => {
   const { role_id, fullName, email, phoneNumber, isActive } = req.body;
   const image = req.file;
 
+  if (!role_id || !email) {
+    return res.status(400).json({
+      message: "Data are required fields",
+    });
+  }
+
   try {
     let user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
     }
 
     if (role_id) user.role_id = role_id;
@@ -320,10 +345,18 @@ const activateDeactivateUser = async (req, res, next) => {
         data: null,
       });
     }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: "Tài khoản bị khóa, vui lòng liên hệ thư viện để xử lý.",
+        data: null,
+      });
+    }
+
     user.isActive = !user.isActive;
     const updatedUser = await user.save();
     res.status(200).json({
-      message: "User status updated successfully",
+      message: "Trạng thái người dùng đã được cập nhật thành công.",
       data: updatedUser,
     });
   } catch (error) {
@@ -417,6 +450,7 @@ const getImageById = async (req, res) => {
   }
 };
 
+//get user by code
 const getUserByCode = async (req, res, next) => {
   try {
     const { code } = req.params;
@@ -439,7 +473,42 @@ const getUserByCode = async (req, res, next) => {
   }
 };
 
+// Get role name
+const getRoleName = async (req, res, next) => {
+  try {
+    const role = await Role.find();
+    res.status(200).json({ message: "Get role name successfully", data: role });
+  } catch (error) {
+    console.error("Error getting role name", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+//Filter user by isActive
+const getUserByIsActive = async (req, res, next) => {
+  try {
+    const { isActive } = req.params;
+    const user = await User.find({ isActive: isActive });
+    console.log(user);
+    if (!user) {
+      return res.status(404).json({
+        message: "No user found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      message: "Get user by isActive successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error getting user by isActive", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+
 const UserController = {
+  getRoleName,
   viewProfile,
   editProfile,
   deleteUserById,
@@ -454,5 +523,6 @@ const UserController = {
   updateUserByAdmin,
   getImageById,
   getUserByCode,
+  getUserByIsActive,
 };
 module.exports = UserController;

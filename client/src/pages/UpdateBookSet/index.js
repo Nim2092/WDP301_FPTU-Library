@@ -9,7 +9,7 @@ const UpdateBookSet = () => {
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [formData, setFormData] = useState({
-    catalog_id: "", // Holds the ID of the catalog
+    catalog_id: "",
     isbn: "",
     code: "",
     shelfLocationCode: "",
@@ -20,8 +20,9 @@ const UpdateBookSet = () => {
     physicalDescription: "",
     totalCopies: "",
     availableCopies: "",
+    price: "", // Add price to the formData state
   });
-  const [currentCatalogName, setCurrentCatalogName] = useState(""); // Holds the catalog name for display
+  const [currentCatalogName, setCurrentCatalogName] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -31,7 +32,6 @@ const UpdateBookSet = () => {
     });
   };
 
-  // Fetch catalogs for the dropdown list
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
@@ -44,7 +44,6 @@ const UpdateBookSet = () => {
     fetchCatalogs();
   }, []);
 
-  // Fetch existing book set data for editing
   useEffect(() => {
     const fetchBookSet = async () => {
       try {
@@ -65,9 +64,10 @@ const UpdateBookSet = () => {
             physicalDescription: bookSet.physicalDescription || "",
             totalCopies: bookSet.totalCopies || "",
             availableCopies: bookSet.availableCopies || "",
+            price: bookSet.price || "", // Set initial value for price if available
           });
           setImage(`http://localhost:9999${bookSet.image}`);
-          setCurrentCatalogName(bookSet.catalog_id.name); // Set current catalog name
+          setCurrentCatalogName(bookSet.catalog_id.name);
         }
       } catch (error) {
         console.error("Error fetching book set data:", error);
@@ -129,17 +129,12 @@ const UpdateBookSet = () => {
             value={formData.catalog_id}
             onChange={(e) => handleInputChange(e)}
           >
-            {/* Display current catalog name as selected option */}
-            <option value={formData.catalog_id}>
-              {currentCatalogName || "Select Catalog"}
-            </option>
-            {catalogData
-              .filter((catalog) => catalog._id !== formData.catalog_id) // Exclude current catalog from options
-              .map((catalog) => (
-                <option key={catalog._id} value={catalog._id}>
-                  {catalog.name}
-                </option>
-              ))}
+            <option value="">{currentCatalogName || "Select Catalog"}</option>
+            {catalogData.map((catalog) => (
+              <option key={catalog._id} value={catalog._id}>
+                {catalog.name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -167,6 +162,20 @@ const UpdateBookSet = () => {
             id="isbn"
             name="isbn"
             value={formData.isbn}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+
+        {/* Price */}
+        <div className="mb-3">
+          <label htmlFor="price" className="form-label">Price:</label>
+          <input
+            type="number"
+            className="form-control"
+            id="price"
+            name="price"
+            value={formData.price || ""}
             onChange={handleInputChange}
             required
           />
@@ -202,9 +211,7 @@ const UpdateBookSet = () => {
 
         {/* Author */}
         <div className="mb-3">
-          <label htmlFor="author" className="form-label">
-            Author:
-          </label>
+          <label htmlFor="author" className="form-label">Author:</label>
           <input
             type="text"
             className="form-control"
@@ -218,9 +225,7 @@ const UpdateBookSet = () => {
 
         {/* Published Year */}
         <div className="mb-3">
-          <label htmlFor="publishedYear" className="form-label">
-            Published Year:
-          </label>
+          <label htmlFor="publishedYear" className="form-label">Published Year:</label>
           <input
             type="date"
             className="form-control"
@@ -234,9 +239,7 @@ const UpdateBookSet = () => {
 
         {/* Publisher */}
         <div className="mb-3">
-          <label htmlFor="publisher" className="form-label">
-            Publisher:
-          </label>
+          <label htmlFor="publisher" className="form-label">Publisher:</label>
           <input
             type="text"
             className="form-control"
@@ -250,9 +253,7 @@ const UpdateBookSet = () => {
 
         {/* Physical Description */}
         <div className="mb-3">
-          <label htmlFor="physicalDescription" className="form-label">
-            Physical Description:
-          </label>
+          <label htmlFor="physicalDescription" className="form-label">Physical Description:</label>
           <input
             type="text"
             className="form-control"
@@ -266,9 +267,7 @@ const UpdateBookSet = () => {
 
         {/* Shelf Location Code */}
         <div className="mb-3">
-          <label htmlFor="shelfLocationCode" className="form-label">
-            Shelf Location Code:
-          </label>
+          <label htmlFor="shelfLocationCode" className="form-label">Shelf Location Code:</label>
           <input
             type="text"
             className="form-control"
@@ -282,9 +281,7 @@ const UpdateBookSet = () => {
 
         {/* Total Copies */}
         <div className="mb-3">
-          <label htmlFor="totalCopies" className="form-label">
-            Total Copies:
-          </label>
+          <label htmlFor="totalCopies" className="form-label">Total Copies:</label>
           <input
             type="number"
             className="form-control"
@@ -298,9 +295,7 @@ const UpdateBookSet = () => {
 
         {/* Available Copies */}
         <div className="mb-3">
-          <label htmlFor="availableCopies" className="form-label">
-            Available Copies:
-          </label>
+          <label htmlFor="availableCopies" className="form-label">Available Copies:</label>
           <input
             type="number"
             className="form-control"

@@ -1,5 +1,5 @@
 const { default: mongoose } = require("mongoose");
-const axios = require('axios');
+const axios = require("axios");
 const db = require("../models");
 const {
   user: User,
@@ -11,13 +11,28 @@ const {
   notification: Notification,
   bookset: BookSet,
 } = db;
+const nodemailer = require("nodemailer");
+
+//for send email
+let transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "titi2024hd@gmail.com",
+    pass: "mrwm vfbp dprc qwyu",
+  },
+});
 
 //get All fines
 const getAllFines = async (req, res, next) => {
   try {
     const fines = await Fines.find({})
       .populate("user_id")
-      // .populate("book_id")
+      .populate({
+        path: "book_id",
+        populate: {
+          path: "bookSet_id",
+        },
+      })
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -82,7 +97,7 @@ const getFinesByUserId = async (req, res, next) => {
 
     const fines = await Fines.find({ user_id: userId })
       .populate("user_id")
-      // .populate("book_id")
+      .populate("book_id")
       .populate("order_id")
       .populate("fineReason_id")
       .populate("createBy")
@@ -95,6 +110,62 @@ const getFinesByUserId = async (req, res, next) => {
   } catch (error) {
     console.error("Error getting a fines", error);
     res.status(500).send({ message: error.message });
+  }
+};
+
+// get fines by user code
+const getFinesByUserCode = async (req, res, next) => {
+  try {
+    const { userCode } = req.params;
+
+    const user = await User.findOne({ code: userCode });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    const fines = await Fines.find({ user_id: user._id })
+      .populate({
+        path: "user_id",
+        select: "code fullName email",
+      })
+      .populate({
+        path: "book_id",
+        select: "title condition",
+      })
+      .populate({
+        path: "order_id",
+        select: "borrowDate dueDate returnDate",
+      })
+      .populate({
+        path: "fineReason_id",
+        select: "reasonName penaltyAmount",
+      })
+      .populate({
+        path: "createBy",
+        select: "fullName email",
+      })
+      .populate({
+        path: "updateBy",
+        select: "fullName email",
+      });
+
+    if (!fines || fines.length === 0) {
+      return res.status(404).json({
+        message: "No fines found for this user",
+        data: [],
+      });
+    }
+
+    res.status(200).json({
+      message: "Get fines successfully",
+      data: fines,
+    });
+  } catch (error) {
+    console.error("Error getting fines:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -158,7 +229,7 @@ const createFines = async (req, res, next) => {
 
     if (existingFines) {
       return res.status(400).json({
-        message: "Fines for this order already exists.",
+        message: "Đã tồn tại khoản phạt cho đơn hàng này.",
         data: null,
       });
     }
@@ -167,13 +238,14 @@ const createFines = async (req, res, next) => {
       const returnDateObj = new Date(order.returnDate);
       const dueDateObj = new Date(order.dueDate);
 
-      const daysLate = Math.floor((returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24));
+      const daysLate = Math.floor(
+        (returnDateObj - dueDateObj) / (1000 * 60 * 60 * 24)
+      );
       totalAmount = daysLate * penaltyReason.penaltyAmount;
-
     } else {
-        const book = await Book.findById(order.book_id);
-        const bookSet = await BookSet.findById(book.bookSet_id);
-        totalAmount = penaltyReason.penaltyAmount * bookSet.price / 100;
+      const book = await Book.findById(order.book_id);
+      const bookSet = await BookSet.findById(book.bookSet_id);
+      totalAmount = (penaltyReason.penaltyAmount * bookSet.price) / 100;
     }
     const fines = new Fines({
       user_id,
@@ -193,9 +265,23 @@ const createFines = async (req, res, next) => {
     const notification = new Notification({
       userId: user_id,
       type: "Fines",
-      message: `You have been penalized ${penaltyReason.penaltyAmount}k for book #${order.book_id.identifier_code} for reason ${penaltyReason.reasonName}. Please pay to avoid additional fees.`,
+      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount}k cho sách #${order.book_id.identifier_code} vì lý do ${penaltyReason.reasonName}. Vui lòng thanh toán để tránh các khoản phí bổ sung.`,
     });
     await notification.save();
+
+    // Gửi email thông báo cho người dùng
+    const userEmail = user.email;
+    let info = await transporter.sendMail({
+      from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
+      to: userEmail,
+      subject: "Thông Báo Phạt Khi Mượn Sách",
+      text: `Xin chào, đã bị phạt ${penaltyReason.penaltyAmount} VND cho sách có mã số #${order.book_id.identifier_code}. Lý do phạt là: ${penaltyReason.reasonName}.Vui lòng thực hiện thanh toán khoản phạt này sớm để tránh các khoản phí bổ sung trong tương lai. Nếu bạn cần hỗ trợ thêm, xin vui lòng liên hệ với thư viện.Trân trọng!`,
+      html: `<b>Xin chào</b>, bạn đã bị phạt <strong>${penaltyReason.penaltyAmount} VND</strong> cho sách có mã số <strong>#${order.book_id.identifier_code}</strong>. Lý do phạt là: <strong>${penaltyReason.reasonName}</strong>.<br><br> Vui lòng thực hiện thanh toán khoản phạt này sớm để tránh các khoản phí bổ sung trong tương lai.<br><br> Nếu bạn cần hỗ trợ thêm, xin vui lòng liên hệ với thư viện`,
+    });
+
+    console.log(
+      `Sent lost book fine email to ${userEmail} for order ${order_id}`
+    );
 
     res.status(201).json({
       message: "Create fines successfully",
@@ -347,58 +433,62 @@ const deleteFines = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+//check payment
 const checkPayment = async (req, res, next) => {
   const { paymentKey } = req.params;
   const { fineId } = req.body;
-  const sheetId = '1KnvznxmaALff3bQN0Nv4hU55MpnkhcOjJ8URzco6iL4';
-  const apiKey = 'AIzaSyDrXD0uTwJImmMV_A7mrOXUPKbZOr8nBC8';
-  const range = 'Casso!A2:F100';
+  const sheetId = "1KnvznxmaALff3bQN0Nv4hU55MpnkhcOjJ8URzco6iL4";
+  const apiKey = "AIzaSyDrXD0uTwJImmMV_A7mrOXUPKbZOr8nBC8";
+  const range = "Casso!A2:F100";
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
 
   try {
     const response = await axios.get(url);
-
     console.log("Data from Google Sheets API:", response.data);
 
     if (response.status === 200 && response.data.values) {
       let message = false;
       let amount = 0;
 
-      response.data.values.forEach(value => {
-        const matches = value[1].match(/start(.*?)end/);
-        if (matches && paymentKey === matches[1].trim()) {
+      response.data.values.forEach((value) => {
+        const matches = value[1].toLowerCase().match(/start(.*?)end/i);
+        if (matches && paymentKey.toLowerCase() === matches[1].trim()) {
           message = true;
           amount = parseInt(value[2], 10) * 1000;
         }
       });
 
       if (message) {
-        const fine = await Fines.findById(fineId);
-        if (!fine) {
-          return res.status(404).json({ error: "Fine not found" });
-        }
+        // Cập nhật tất cả các fines có _id trong mảng fineId
+        const result = await Fines.updateMany(
+          { _id: { $in: Array.isArray(fineId) ? fineId : [fineId] } },
+          {
+            status: "Paid",
+            paymentMethod: "Casso",
+            paymentDate: new Date(),
+          }
+        );
 
-        fine.status = 'Paid';
-        fine.paymentMethod = 'Casso';
-        fine.paymentDate = new Date();
-        await fine.save();
-
-        return res.status(200).json({ message: "OK", data: fine });
+        return res.status(200).json({ message: "OK", data: result });
       } else {
-        return res.status(500).json({ error: 'Không có giao dịch', data: response.data.values });
+        return res
+          .status(500)
+          .json({ error: "Không có giao dịch", data: response.data.values });
       }
     }
 
-    return res.status(500).json({ error: 'Không thể lấy dữ liệu từ Google Sheets', data: response.data.values });
-
+    return res.status(500).json({
+      error: "Không thể lấy dữ liệu từ Google Sheets",
+      data: response.data.values,
+    });
   } catch (error) {
     console.error("Error occurred:", error);
-    return res.status(500).json({ error: 'Đã xảy ra lỗi trong quá trình xử lý' });
+    return res
+      .status(500)
+      .json({ error: "Đã xảy ra lỗi trong quá trình xử lý" });
   }
 };
-
-
-
 
 //chart fines by month
 const ChartFinesbyMonth = async (req, res, next) => {
@@ -441,7 +531,10 @@ const ChartFinesbyMonth = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Error charting fines by month:", error);
-    res.status(500).json({ message: "Error retrieving monthly fines stats", error: error.message });
+    res.status(500).json({
+      message: "Error retrieving monthly fines stats",
+      error: error.message,
+    });
   }
 };
 
@@ -450,6 +543,7 @@ const FinesController = {
   getFinesById,
   getFinesByUserId,
   getFinesByOrderId,
+  getFinesByUserCode,
   createFines,
   updateFines,
   deleteFines,

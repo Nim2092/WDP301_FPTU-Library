@@ -12,9 +12,13 @@ userRouter.get("/get/:userId", userController.getUserById);
 
 userRouter.get("/role/:roleName", userController.getUserByRole);
 
+userRouter.get("/active/:isActive", userController.getUserByIsActive);
+
 userRouter.delete("/delete/:userId", userController.deleteUserById);
 
 userRouter.post("/add", upload.single("image"), userController.addNewUser);
+
+userRouter.get("/all-role", userController.getRoleName);
 
 userRouter.put(
   "/update/:id",

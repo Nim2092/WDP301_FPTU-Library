@@ -10,10 +10,10 @@ function Home() {
       <Search />
       <News />
       {/* Các phần khác của trang chủ */}
-      <div className="container">
+      <div className="container mb-5">
         <div className="row">
           <div className="col-md-6">
-            <h4>Video giới thiệu</h4>
+            <h2>Video giới thiệu</h2>
             <div className="embed-responsive embed-responsive-16by9">
               <iframe
                 width="100%"

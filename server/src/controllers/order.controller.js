@@ -193,9 +193,9 @@ const createBorrowOrder = async (req, res, next) => {
         data: null,
       });
     }
-    if (book.status !== 'Available') {
+    if (book.status !== "Available") {
       return res.status(500).json({
-        message: "Book is borrowed or is not good enough to borrow.",
+        message: "Sách đã được mượn hoặc không đủ điều kiện để mượn.",
         data: null,
       });
     }
@@ -204,7 +204,7 @@ const createBorrowOrder = async (req, res, next) => {
     const bookSet = await BookSet.findById(book.bookSet_id);
     if (!bookSet || bookSet.availableCopies < 1) {
       return res.status(400).json({
-        message: "No available copies left for this book set",
+        message: "Không còn quyển sách nào có sẵn cho bộ sách này",
         data: null,
       });
     }
@@ -219,7 +219,8 @@ const createBorrowOrder = async (req, res, next) => {
 
     if (existingOrder) {
       return res.status(400).json({
-        message: "This book is already borrowed or reserved by another user",
+        message:
+          "Sách này đã được mượn hoặc đã được đặt trước bởi người dùng khác",
         data: null,
       });
     }
@@ -227,7 +228,7 @@ const createBorrowOrder = async (req, res, next) => {
     // Check if borrow date and due date are valid
     if (!borrowDate || !dueDate) {
       return res.status(400).json({
-        message: "Borrow date and due date are required",
+        message: "Ngày mượn và ngày trả sách là bắt buộc",
         data: null,
       });
     }
@@ -240,21 +241,21 @@ const createBorrowOrder = async (req, res, next) => {
 
     if (differenceInDays > 14) {
       return res.status(400).json({
-        message: "The maximum term for borrowing books is 14 days",
+        message: "Thời hạn mượn sách tối đa là 14 ngày",
         data: null,
       });
     }
 
     if (isNaN(borrowDateObj.getTime()) || isNaN(dueDateObj.getTime())) {
       return res.status(400).json({
-        message: "Invalid borrow date or due date",
+        message: "Ngày mượn hoặc ngày trả sách không hợp lệ",
         data: null,
       });
     }
 
     if (dueDateObj <= borrowDateObj) {
       return res.status(400).json({
-        message: "Due date must be after borrow date",
+        message: "Ngày trả sách phải sau ngày mượn sách",
         data: null,
       });
     }
@@ -265,7 +266,7 @@ const createBorrowOrder = async (req, res, next) => {
 
     if (dueDateObj > maxDueDate) {
       return res.status(400).json({
-        message: "Due date must not be more than 14 days after the borrow date",
+        message: "Ngày trả sách không được quá 14 ngày sau ngày mượn sách",
         data: null,
       });
     }
@@ -297,7 +298,7 @@ const createBorrowOrder = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Pending",
-      message: `You have successfully requested to borrow the book. Your book loan is due today ${dueDateObj.toDateString()}.`,
+      message: `Bạn đã yêu cầu mượn sách thành công. Ngày trả sách của bạn là ${dueDateObj.toDateString()}.`,
     });
 
     await notification.save();
@@ -305,19 +306,19 @@ const createBorrowOrder = async (req, res, next) => {
     // send email
     const userEmail = user.email;
     let info = await transporter.sendMail({
-      from: '"Library Notification" <titi2024hd@gmail.com>',
+      from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
       to: userEmail,
-      subject: "Book Borrow Request Confirmation",
-      text: `Hello, you have successfully requested to borrow the book with identifier code ${
+      subject: "Xác Nhận Yêu Cầu Mượn Sách",
+      text: `Xin chào, bạn đã yêu cầu mượn sách với mã định danh #${
         book.identifier_code
-      }. Your book loan is due on ${dueDateObj.toDateString()}. Thank you for using our library service.`,
-      html: `<b>Hello</b>, you have successfully requested to borrow the book with identifier code <strong>${
+      } thành công. Ngày trả sách của bạn là ${dueDateObj.toDateString()}. Cảm ơn bạn đã sử dụng dịch vụ của thư viện.`,
+      html: `<b>Xin chào</b>, bạn đã yêu cầu mượn sách với mã định danh <strong>#${
         book.identifier_code
-      }</strong>.<br>Your book loan is due on <strong>${dueDateObj.toDateString()}</strong>.<br><br>Thank you for using our library service.`,
+      }</strong> thành công.<br>Ngày trả sách của bạn là <strong>${dueDateObj.toDateString()}</strong>.<br><br>Cảm ơn bạn đã sử dụng dịch vụ của thư viện.`,
     });
 
     console.log(
-      `Sent borrow request confirmation email to ${userEmail} for order ${newOrder._id}`
+      `Đã gửi email xác nhận yêu cầu mượn sách tới ${userEmail} cho đơn hàng ${newOrder._id}`
     );
 
     res.status(201).json({
@@ -358,17 +359,17 @@ async function changeOrderStatus(req, res, next) {
       "Renew Pending",
     ];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status update." });
+      return res
+        .status(400)
+        .json({ message: "Trạng thái cập nhật không hợp lệ." });
     }
 
-    // Handle rejection with reason
+    // Xử lý từ chối với lý do
     if (status === "Rejected") {
       if (!reason_order || reason_order.trim() === "") {
-        return res
-          .status(400)
-          .json({ message: "Rejection reason is required." });
+        return res.status(400).json({ message: "Lý do từ chối là bắt buộc." });
       }
-      order.reason_order = reason_order; // Set the reason for rejection
+      order.reason_order = reason_order;
     }
 
     // Check if the order is overdue or lost and the status is being changed to Renew Pending
@@ -378,13 +379,13 @@ async function changeOrderStatus(req, res, next) {
     ) {
       return res
         .status(400)
-        .json({ message: "Lost or overdue books cannot be renewed" });
+        .json({ message: "Không thể gia hạn sách bị mất hoặc quá hạn" });
     }
 
     //Check can not renew a returned order
     if (order.status === "Returned" && status === "Renew Pending") {
       return res.status(400).json({
-        message: "Cannot renew a returned order",
+        message: "Không thể gia hạn đơn hàng đã trả",
       });
     }
 
@@ -392,22 +393,39 @@ async function changeOrderStatus(req, res, next) {
     const cancelableStatuses = ["Pending", "Renew Pending"];
     if (status === "Canceled" && !cancelableStatuses.includes(status)) {
       return res.status(400).json({
-        message: `Just orders with status ${cancelableStatuses.join(
-          " or "
-        )} can be cancel.`,
+        message: `Chỉ có thể hủy đơn hàng với trạng thái ${cancelableStatuses.join(
+          " hoặc "
+        )}.`,
       });
     }
 
     //Order cancellation limits
-    const user = order.created_by;
     if (status === "Canceled") {
-      if (user.cancelCount >= 3) {
+      const user = order.created_by;
+      const startOfMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1
+      );
+      const endOfMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() + 1,
+        0
+      );
+
+      // Find all canceled orders by the user in the current month
+      const cancellationsThisMonth = await Order.countDocuments({
+        created_by: user._id,
+        status: "Canceled",
+        updatedAt: { $gte: startOfMonth, $lte: endOfMonth },
+      });
+
+      if (cancellationsThisMonth >= 3) {
         return res.status(400).json({
-          message: "You have reached the maximum number of cancellations.",
+          message:
+            "Bạn đã đạt đến giới hạn số lần hủy đơn hàng trong tháng này.",
         });
       }
-      user.cancelCount += 1;
-      await user.save();
     }
 
     // Update the order status
@@ -419,32 +437,32 @@ async function changeOrderStatus(req, res, next) {
 
     // Determine the notification type based on the status
     let notificationType = "Status Change";
-    let notificationMessage = `Your order #${order._id} status has been changed to ${status}.`;
+    let notificationMessage = `Trạng thái đơn hàng #${order._id} của bạn đã được cập nhật thành ${status}.`;
 
     switch (status) {
       case "Approved":
-        notificationMessage = `Your request to borrow book #${order.book_id.identifier_code} has been approved. The due date is ${order.dueDate}.`;
+        notificationMessage = `Yêu cầu mượn sách #${order.book_id.identifier_code} của bạn đã được chấp thuận. Ngày trả sách là ${order.dueDate}.`;
         break;
       case "Rejected":
-        notificationMessage = `Your order #${order._id} has been rejected. Reason: ${reason_order}.`;
+        notificationMessage = `Đơn hàng của bạn #${order._id} đã bị từ chối. Lý do: ${reason_order}.`;
         break;
       case "Received":
-        notificationMessage = `You have received book #${order.book_id.identifier_code}.`;
+        notificationMessage = `Bạn đã nhận sách với mã định danh #${order.book_id.identifier_code}.`;
         break;
       case "Returned":
-        notificationMessage = `You have successfully returned book #${order.book_id.identifier_code}.`;
+        notificationMessage = `Bạn đã trả sách với mã định danh #${order.book_id.identifier_code} thành công.`;
         break;
       case "Overdue":
-        notificationMessage = `Your book #${order.book_id.identifier_code} is overdue. Please return it as soon as possible.`;
+        notificationMessage = `Sách #${order.book_id.identifier_code} của bạn đã quá hạn. Vui lòng trả sách sớm nhất có thể.`;
         break;
       case "Lost":
-        notificationMessage = `Book #${order.book_id.identifier_code} has been reported lost. Reason: ${reason_order}.`;
+        notificationMessage = `Sách #${order.book_id.identifier_code} đã được báo mất. Lý do: ${reason_order}.`;
         break;
       case "Renew Pending":
-        notificationMessage = `Your request to renew book #${order.book_id.identifier_code} is being processed.`;
+        notificationMessage = `Yêu cầu gia hạn sách #${order.book_id.identifier_code} của bạn đang được xử lý.`;
         break;
       case "Canceled":
-        notificationMessage = `Your order #${order._id} has been canceled.`;
+        notificationMessage = `Đơn hàng của bạn #${order._id} đã bị hủy.`;
         break;
     }
 
@@ -522,15 +540,14 @@ async function renewOrder(req, res, next) {
   try {
     const { orderId } = req.params;
     const { dueDate, renew_reason, userId } = req.body;
-
     if (!dueDate) {
       return res.status(400).json({
-        message: "Please provide a new due date.",
+        message: "Vui lòng cung cấp ngày trả sách mới.",
       });
     }
     if (!renew_reason) {
       return res.status(400).json({
-        message: "Please provide a reason for renewal.",
+        message: "Vui lòng cung cấp lý do gia hạn.",
       });
     }
 
@@ -541,13 +558,13 @@ async function renewOrder(req, res, next) {
     );
     if (!order) {
       return res.status(404).json({
-        message: "Order not found.",
+        message: "Không tìm thấy đơn hàng.",
       });
     }
 
     if (order.status !== "Received") {
       return res.status(400).json({
-        message: "Only orders with status 'Received' can be renewed.",
+        message: "Chỉ có thể gia hạn đơn hàng với trạng thái 'Đã nhận'.",
       });
     }
 
@@ -558,14 +575,14 @@ async function renewOrder(req, res, next) {
       (dueDateObj - oldDueDateObj) / (1000 * 60 * 60 * 24);
     if (differenceInDays > 14) {
       return res.status(400).json({
-        message: "The maximum term for borrowing books is 14 days",
+        message: "Thời hạn gia hạn sách tối đa là 14 ngày",
         data: null,
       });
     }
 
     if (order.renewalCount >= 3) {
       return res.status(400).json({
-        message: "Order cannot be renewed more than 3 times.",
+        message: "Đơn hàng không thể gia hạn quá 3 lần.",
       });
     }
 
@@ -581,7 +598,7 @@ async function renewOrder(req, res, next) {
     const notification = new Notification({
       userId: userId,
       type: "Renew Pending",
-      message: `Your request to renew book #${order.book_id.identifier_code} is being processed. The new book return date is ${dueDate}.`,
+      message: `Yêu cầu gia hạn sách #${order.book_id.identifier_code} của bạn đang được xử lý. Ngày trả sách mới là ${dueDate}.`,
     });
 
     await notification.save();
@@ -595,11 +612,11 @@ async function renewOrder(req, res, next) {
     // Gửi email thông báo cho người dùng
     const userEmail = user.email;
     let info = await transporter.sendMail({
-      from: '"Library Notification" <titi2024hd@gmail.com>',
+      from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
       to: userEmail,
-      subject: "Book Renewal Request Received",
-      text: `Hello, your request to renew the book with identifier code ${order.book_id.identifier_code} is being processed. The new return date for the book is ${dueDate}. Thank you for using our service.`,
-      html: `<b>Hello</b>, your request to renew the book with identifier code <strong>${order.book_id.identifier_code}</strong> is being processed. <br>The new return date for the book is <strong>${dueDate}</strong>.<br><br>Thank you for using our service.`,
+      subject: "Yêu Cầu Gia Hạn Sách Đã Được Tiếp Nhận",
+      text: `Xin chào, yêu cầu gia hạn sách với mã định danh ${order.book_id.identifier_code} của bạn đang được xử lý. Ngày trả sách mới là ${dueDate}. Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.`,
+      html: `<b>Xin chào</b>, yêu cầu gia hạn sách với mã định danh <strong>${order.book_id.identifier_code}</strong> của bạn đang được xử lý. <br>Ngày trả sách mới là <strong>${dueDate}</strong>.<br><br>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.`,
     });
 
     console.log(
@@ -649,7 +666,7 @@ async function returnOrder(req, res, next) {
 
     if (order.returnDate) {
       return res.status(400).json({
-        message: "Book has already been returned.",
+        message: "Sách đã được trả trước đó.",
       });
     }
     const book = await Book.findById(order.book_id);
@@ -704,7 +721,7 @@ async function returnOrder(req, res, next) {
       finesApplied.push({
         type: "Condition Fine",
         amount: totalAmount,
-        message: `Applied fine for book condition: ${book_condition}`,
+        message: `Áp dụng phạt cho tình trạng sách: ${book_condition}`,
       });
     }
     const returnDateObj = new Date(returnDate);
@@ -731,11 +748,10 @@ async function returnOrder(req, res, next) {
       });
 
       await fines.save();
-
       finesApplied.push({
         type: "Overdue Fine",
         amount: fineAmount,
-        message: `Applied fine for overdue of ${daysLate} days`,
+        message: `Áp dụng phạt cho việc trả sách quá hạn ${daysLate} ngày`,
       });
     }
     if (order.status === "Lost" || isDestroyed) {
@@ -760,7 +776,7 @@ async function returnOrder(req, res, next) {
     const notification = new Notification({
       userId: userId,
       type: "Returned",
-      message: `You have successfully returned the book with identifier code #${order.book_id.identifier_code} on ${order.returnDate} . Book condition is: ${order.book_id.condition}. Thank you!`,
+      message: `Bạn đã trả sách thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${order.book_id.condition}. Cảm ơn bạn!`,
     });
 
     await notification.save();
@@ -774,24 +790,24 @@ async function returnOrder(req, res, next) {
     // send email
     const userEmail = user.email;
     const fineDetails = finesApplied
-      .map((fine) => `${fine.message} with amount: ${fine.amount} VND`)
+      .map((fine) => `${fine.message} với số tiền: ${fine.amount} VND`)
       .join("<br>");
     let info = await transporter.sendMail({
-      from: '"Library Notification" <titi2024hd@gmail.com>',
+      from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
       to: userEmail,
-      subject: "Book Return Confirmation",
-      text: `Hello, you have successfully returned the book with identifier code #${
+      subject: "Xác Nhận Trả Sách",
+      text: `Xin chào, bạn đã trả sách thành công với mã định danh #${
         order.book_id.identifier_code
-      } on ${order.returnDate}. Book condition is: ${book_condition}. ${
-        fineDetails ? `You have been fined: ${fineDetails}` : ""
+      } vào ngày ${order.returnDate}. Tình trạng sách: ${book_condition}. ${
+        fineDetails ? `Bạn đã bị phạt: ${fineDetails}` : ""
       }`,
-      html: `<b>Hello</b>, you have successfully returned the book with identifier code <strong>#${
+      html: `<b>Xin chào</b>, bạn đã trả sách thành công với mã định danh <strong>#${
         order.book_id.identifier_code
-      }</strong> on ${
+      }</strong> vào ngày ${
         order.returnDate
-      }.<br>Book condition is: <strong>${book_condition}</strong>.<br>${
-        fineDetails ? `<br>You have been fined:<br>${fineDetails}` : ""
-      }<br><br>Thank you!`,
+      }.<br>Tình trạng sách: <strong>${book_condition}</strong>.<br>${
+        fineDetails ? `<br>Bạn đã bị phạt:<br>${fineDetails}` : ""
+      }<br><br>Cảm ơn bạn!`,
     });
 
     console.log(
@@ -908,7 +924,8 @@ const reportLostBook = async (req, res, next) => {
     // Check if the order status is "Received" before allowing it to be reported as "Lost"
     if (order.status !== "Received") {
       return res.status(400).json({
-        message: "Only orders with status 'Received' can be reported as lost.",
+        message:
+          "Chỉ có thể báo mất sách cho các đơn hàng có trạng thái 'Đã nhận'.",
       });
     }
 
@@ -920,7 +937,7 @@ const reportLostBook = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Lost",
-      message: `Book ${order.book_id.identifier_code} has been reported lost.`,
+      message: `Sách với mã định danh ${order.book_id.identifier_code} đã được báo mất.`,
     });
     await notification.save();
 
@@ -992,24 +1009,24 @@ const applyFinesForLostBook = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Fines",
-      message: `You have been penalized ${penaltyReason.penaltyAmount} VND for losing the book "${order.book_id.bookSet_id.title}".`,
+      message: `Bạn đã bị phạt ${penaltyReason.penaltyAmount} VND vì làm mất sách "${order.book_id.bookSet_id.title}".`,
     });
     await notification.save();
 
     // Tìm thông tin người dùng để gửi email
     const user = await User.findById(userId).populate("email");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ message: "Không tìm thấy người dùng." });
     }
 
     // Gửi email thông báo cho người dùng
     const userEmail = user.email;
     let info = await transporter.sendMail({
-      from: '"Library Notification" <titi2024hd@gmail.com>',
+      from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
       to: userEmail,
-      subject: "Lost Book Fine Notification",
-      text: `Hello, you have been penalized ${penaltyReason.penaltyAmount} VND for losing the book "${order.book_id.bookSet_id.title}". Please contact the library for further assistance if needed.`,
-      html: `<b>Hello</b>, you have been penalized <strong>${penaltyReason.penaltyAmount}</strong> VND for losing the book <strong>#${order.book_id.bookSet_id.title}</strong>. <br><br>Please contact the library for further assistance if needed.`,
+      subject: "Thông Báo Phạt Mất Sách",
+      text: `Xin chào, bạn đã bị phạt ${penaltyReason.penaltyAmount} VND vì làm mất sách "${order.book_id.bookSet_id.title}". Vui lòng liên hệ với thư viện để được hỗ trợ thêm nếu cần.`,
+      html: `<b>Xin chào</b>, bạn đã bị phạt <strong>${penaltyReason.penaltyAmount}</strong> VND vì làm mất sách <strong>"${order.book_id.bookSet_id.title}"</strong>. <br><br>Vui lòng liên hệ với thư viện để được hỗ trợ thêm nếu cần.`,
     });
 
     console.log(
@@ -1028,8 +1045,8 @@ const applyFinesForLostBook = async (req, res, next) => {
   }
 };
 
-//Reject overdue orders which are not picked up by users
-const rejectOverdueOrders = async (req, res, next) => {
+//Cancel overdue orders which are not picked up by users
+const cancelOverdueOrders = async (req, res, next) => {
   try {
     // const { orderId } = req.params;
 
@@ -1057,25 +1074,26 @@ const rejectOverdueOrders = async (req, res, next) => {
       // If the order is overdue by more than 3 days, reject the order
       if (daysDiff > 3) {
         order.status = "Canceled";
-        order.reason_order = "User did not pick up the book within 3 days.";
+        order.reason_order =
+          "Người dùng không đến nhận sách trong vòng 3 ngày.";
         await order.save();
 
         // Send a notification to the user
         const notification = new Notification({
           userId: order.created_by,
-          type: "Rejected",
-          message: `Your order #${order._id} has been rejected because you did not pick up the book within 3 days.`,
+          type: "Canceled",
+          message: `Đơn hàng #${order._id} của bạn đã bị hủy vì bạn không đến nhận sách trong vòng 3 ngày.`,
         });
         await notification.save();
 
         // Send an email to the user
         const userEmail = order.created_by.email;
         let info = await transporter.sendMail({
-          from: '"Library Notification" <titi2024hd@gmail.com>',
+          from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
           to: userEmail,
-          subject: "Order Canceled - Book Not Picked Up",
-          text: `Hello, your order for the book "${order.book_id.bookSet_id.title}" (Order ID: ${order._id}) has been canceled because it was not picked up within 3 days. Please contact the library for further assistance if needed.`,
-          html: `<b>Hello</b>, your order for the book "<strong>${order.book_id.bookSet_id.title}</strong>" (Order ID: ${order._id}) has been canceled because it was not picked up within 3 days. <br><br>Please contact the library for further assistance if needed.`,
+          subject: "Đơn Hàng Bị Hủy - Không Nhận Sách",
+          text: `Xin chào, đơn hàng của bạn cho cuốn sách "${order.book_id.bookSet_id.title}" (Mã Đơn Hàng: ${order._id}) đã bị hủy vì bạn không đến nhận sách trong vòng 3 ngày. Vui lòng liên hệ với thư viện để được hỗ trợ thêm nếu cần.`,
+          html: `<b>Xin chào</b>, đơn hàng của bạn cho cuốn sách "<strong>${order.book_id.bookSet_id.title}</strong>" (Mã Đơn Hàng: ${order._id}) đã bị hủy vì bạn không đến nhận sách trong vòng 3 ngày. <br><br>Vui lòng liên hệ với thư viện để được hỗ trợ thêm nếu cần.`,
         });
 
         // Lưu lại các thông tin về thông báo đã gửi
@@ -1091,18 +1109,18 @@ const rejectOverdueOrders = async (req, res, next) => {
       }
     }
     res.status(200).json({
-      message: "Overdue orders rejected successfully and email sent.",
+      message: "Overdue orders Canceled successfully and email sent.",
       data: emailSent,
     });
-    console.log("Checking and rejecting overdue orders...");
+    console.log("Checking and Canceled overdue orders...");
   } catch (error) {
     res.status(500).json({ message: error.message });
     console.error("Error in rejecting overdue orders:", error);
   }
 };
 
-// Check due dates and send notifications to users
-const checkDueDatesAndReminder = async (req, res, next) => {
+// Reminder due dates orders for users
+const reminderDueDatesOrder = async (req, res, next) => {
   try {
     // const { orderId } = req.params; //testing
     const now = new Date();
@@ -1132,25 +1150,25 @@ const checkDueDatesAndReminder = async (req, res, next) => {
           userId: order.created_by,
           orderId: order._id,
           type: "Reminder",
-          message: `Your book is due in ${daysUntilDue} days! Please return it by ${dueDate.toDateString()}.`,
+          message: `Sách của bạn sẽ đến hạn trong ${daysUntilDue} ngày! Vui lòng trả sách trước ngày ${dueDate.toDateString()}.`,
         });
         await reminderNotification.save();
         console.log(
-          `Sent reminder to user ${order.created_by} for order ${order._id}`
+          `Đã gửi nhắc nhở đến người dùng ${order.created_by} cho đơn hàng ${order._id}`
         );
 
         //send email
         const userEmail = order.created_by.email;
         let info = await transporter.sendMail({
-          from: '"Library Reminder" <titi2024hd@gmail.com>',
+          from: '"Thư Viện Nhắc Nhở" <titi2024hd@gmail.com>',
           to: userEmail,
-          subject: "Book Return Reminder",
-          text: `Hello, just a reminder that your book "${
+          subject: "Nhắc Nhở Trả Sách",
+          text: `Xin chào, đây là lời nhắc rằng sách "${
             order.book_id.bookSet_id.title
-          }" is due in ${daysUntilDue} days on ${dueDate.toDateString()}. Please return it on time to avoid fines.`,
-          html: `<b>Hello</b>, just a reminder that your book "${
+          }" của bạn sẽ đến hạn trong ${daysUntilDue} ngày vào ngày ${dueDate.toDateString()}. Vui lòng trả sách đúng hạn để tránh bị phạt.`,
+          html: `<b>Xin chào</b>, đây là lời nhắc rằng sách "${
             order.book_id.bookSet_id.title
-          }" is due in <strong>${daysUntilDue}</strong> days on <strong>${dueDate.toDateString()}</strong>. <br><br>Please return it on time to avoid fines.`,
+          }" của bạn sẽ đến hạn trong <strong>${daysUntilDue}</strong> ngày vào ngày <strong>${dueDate.toDateString()}</strong>. <br><br>Vui lòng trả sách đúng hạn để tránh bị phạt.`,
         });
 
         emailSent.push({
@@ -1173,8 +1191,8 @@ const checkDueDatesAndReminder = async (req, res, next) => {
   }
 };
 
-// Check overdue orders and apply fines
-const checkOverdueAndApplyFines = async (req, res, next) => {
+// Reminder overdue orders for users
+const reminderOverdueOrder = async (req, res, next) => {
   try {
     const now = new Date();
     const orders = await Order.find({
@@ -1190,7 +1208,7 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
         },
       });
 
-    let finesApplied = [];
+    let emailSent = [];
 
     for (const order of orders) {
       const dueDate = new Date(order.dueDate);
@@ -1202,45 +1220,30 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
         });
 
         if (penaltyReason) {
-          const totalFineAmount = daysOverdue * penaltyReason.penaltyAmount;
-
-          // create a new fine record for overdue book
-          const fine = new Fines({
-            user_id: order.created_by._id,
-            book_id: order.book_id._id,
-            order_id: order._id,
-            fineReason_id: penaltyReason._id,
-            totalFinesAmount: totalFineAmount,
-            status: "Pending",
-            reason: "Overdue",
-          });
-          await fine.save();
-
           // Create a notification for the user
-          const fineNotification = new Notification({
+          const overdueNotification = new Notification({
             userId: order.created_by._id,
             orderId: order._id,
-            type: "Fines",
-            message: `Your book is overdue by ${daysOverdue} days. You have been fined ${totalFineAmount} VND.`,
+            type: "Reminder",
+            message: `Sách của bạn đã quá hạn ${daysOverdue} ngày. Vui lòng trả sách để tránh bị phạt thêm.`,
           });
-          await fineNotification.save();
+          await overdueNotification.save();
 
           // Send an email to the user
           const userEmail = order.created_by.email;
           let info = await transporter.sendMail({
-            from: '"Library Notification" <titi2024hd@gmail.com>',
+            from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
             to: userEmail,
-            subject: "Overdue Fine Notification",
-            text: `Hello, your book "${order.book_id.bookSet_id.title}" is overdue by ${daysOverdue} days. You have been fined ${totalFineAmount} VND. Please return the book and pay the fine to avoid further penalties.`,
-            html: `<b>Hello</b>, your book "<strong>${order.book_id.bookSet_id.title}</strong>" is overdue by <strong>${daysOverdue}</strong> days. <br>You have been fined <strong>${totalFineAmount}</strong> VND. <br><br>Please return the book and pay the fine to avoid further penalties.`,
+            subject: "Thông Báo Phạt Quá Hạn",
+            text: `Xin chào, sách "${order.book_id.bookSet_id.title}" của bạn đã quá hạn ${daysOverdue} ngày. Vui lòng trả sách và thanh toán tiền phạt để tránh bị phạt thêm.`,
+            html: `<b>Xin chào</b>, sách "<strong>${order.book_id.bookSet_id.title}</strong>" của bạn đã quá hạn <strong>${daysOverdue}</strong> ngày. <br><br>Vui lòng trả sách và thanh toán tiền phạt để tránh bị phạt thêm.`,
           });
 
           // Lưu lại các thông tin về phạt đã áp dụng
-          finesApplied.push({
+          emailSent.push({
             userEmail,
             orderId: order._id,
-            fineAmount: totalFineAmount,
-            message: `Sent fine email for "${order.book_id.bookSet_id.title}" overdue by ${daysOverdue} days.`,
+            message: `Sent email for "${order.book_id.bookSet_id.title}" overdue by ${daysOverdue} days.`,
           });
 
           console.log(`Sent fine email to ${userEmail} for order ${order._id}`);
@@ -1255,13 +1258,13 @@ const checkOverdueAndApplyFines = async (req, res, next) => {
     }
 
     res.status(200).json({
-      message: "Overdue orders checked and fines applied.",
-      data: finesApplied,
+      message: "Reminder for overdue orders sent successfully.",
+      data: emailSent,
     });
-    console.log("Checking overdue orders and applying fines...");
+    console.log("Reminder for overdue orders...");
   } catch (error) {
     res.status(500).json({ message: error.message });
-    console.error("Error checking due dates and applying fines:", error);
+    console.error("Error reminder for overdue orders", error);
   }
 };
 
@@ -1323,13 +1326,13 @@ const ChartOrderbyMonth = async (req, res, next) => {
 // Schedule a cron job to run every day at midnight to check overdue orders
 cron.schedule("0 0 * * *", () => {
   console.log("Running cron job to check overdue orders...");
-  rejectOverdueOrders();
+  cancelOverdueOrders();
 
   console.log("Running cron job to check due dates and send notifications...");
-  checkDueDatesAndReminder();
+  reminderDueDatesOrder();
 
   console.log("Running cron job to check overdue orders and apply fines...");
-  checkOverdueAndApplyFines();
+  reminderOverdueOrder();
 });
 
 const OrderController = {
@@ -1345,9 +1348,9 @@ const OrderController = {
   reportLostBook,
   applyFinesForLostBook,
   getOrderByIdentifierCode,
-  rejectOverdueOrders,
-  checkDueDatesAndReminder,
-  checkOverdueAndApplyFines,
-  ChartOrderbyMonth
+  cancelOverdueOrders,
+  reminderDueDatesOrder,
+  reminderOverdueOrder,
+  ChartOrderbyMonth,
 };
 module.exports = OrderController;
