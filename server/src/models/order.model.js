@@ -29,6 +29,7 @@ const orderSchema = new Schema(
     reason_order: String,
     renewalCount: Number,
     renewalDate: Date,
+    book_condition_detail: String,
   },
   { timestamps: true }
 );

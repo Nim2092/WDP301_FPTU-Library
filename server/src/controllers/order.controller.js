@@ -646,6 +646,7 @@ async function returnOrder(req, res, next) {
       createBy,
       updateBy,
       fine_reason,
+      condition_detail
     } = req.body;
 
     const order = await Order.findById(orderId)
@@ -757,10 +758,12 @@ async function returnOrder(req, res, next) {
     if (order.status === "Lost" || isDestroyed) {
       book.status = "Destroyed";
       book.condition = book_condition;
+      if(condition_detail) book.condition_detail = condition_detail;
       await book.save();
     } else {
       book.status = "Available";
       book.condition = book_condition;
+      if(condition_detail) book.condition_detail = condition_detail;
       await book.save();
       const bookSet = await BookSet.findById(book.bookSet_id);
       console.log(book);
@@ -770,6 +773,7 @@ async function returnOrder(req, res, next) {
 
     order.status = "Returned";
     order.returnDate = new Date(returnDate);
+    if(condition_detail) order.book_condition_detail = condition_detail;
 
     await order.save();
 
@@ -792,23 +796,23 @@ async function returnOrder(req, res, next) {
     const fineDetails = finesApplied
       .map((fine) => `${fine.message} với số tiền: ${fine.amount} VND`)
       .join("<br>");
+    const formatCurrency = (amount) => {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    };
+
+    const fineDetailsFormatted = finesApplied
+        .map((fine) => `${fine.message} với số tiền: ${formatCurrency(fine.amount)}`)
+        .join("<br>");
+
+// Gửi email với fineDetails đã định dạng
     let info = await transporter.sendMail({
       from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
       to: userEmail,
       subject: "Xác Nhận Trả Sách",
-      text: `Xin chào, bạn đã trả sách thành công với mã định danh #${
-        order.book_id.identifier_code
-      } vào ngày ${order.returnDate}. Tình trạng sách: ${book_condition}. ${
-        fineDetails ? `Bạn đã bị phạt: ${fineDetails}` : ""
-      }`,
-      html: `<b>Xin chào</b>, bạn đã trả sách thành công với mã định danh <strong>#${
-        order.book_id.identifier_code
-      }</strong> vào ngày ${
-        order.returnDate
-      }.<br>Tình trạng sách: <strong>${book_condition}</strong>.<br>${
-        fineDetails ? `<br>Bạn đã bị phạt:<br>${fineDetails}` : ""
-      }<br><br>Cảm ơn bạn!`,
+      text: `Xin chào, bạn đã trả sách thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${condition_detail}. ${fineDetailsFormatted}`,
+      html: `<b>Xin chào</b>, bạn đã trả sách thành công với mã định danh <strong>#${order.book_id.identifier_code}</strong> vào ngày ${order.returnDate}.<br>Tình trạng sách: <strong>${condition_detail}</strong>.<br>${fineDetailsFormatted}<br><br>Cảm ơn bạn!`,
     });
+
 
     console.log(
       `Sent return confirmation email to ${userEmail} for order ${orderId}`
