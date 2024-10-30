@@ -445,6 +445,7 @@ const checkPayment = async (req, res, next) => {
 
   try {
     const response = await axios.get(url);
+
     console.log("Data from Google Sheets API:", response.data);
 
     if (response.status === 200 && response.data.values) {
