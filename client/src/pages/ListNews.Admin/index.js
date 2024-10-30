@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { toast, ToastContainer } from "react-toastify";
 const ListNews = () => {
   const navigate = useNavigate();
   const [newsData, setNewsData] = useState([]); // State for storing news data
   const [message, setMessage] = useState(""); // State for messages
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5); // Số item trên mỗi trang
 
   // Fetch news data from the API when the component is mounted
   useEffect(() => {
@@ -13,10 +15,9 @@ const ListNews = () => {
         const response = await fetch("http://localhost:9999/api/news/list");
         const data = await response.json();
         setNewsData(data.data);
-        console.log(data.data); // Assuming 'data.data' contains the news items
       } catch (error) {
         console.error("Error fetching news:", error);
-        setMessage("Error fetching news");
+        toast.error("Error fetching news");
       }
     };
 
@@ -39,13 +40,13 @@ const ListNews = () => {
           setNewsData((prevNewsData) =>
             prevNewsData.filter((news) => news._id !== id)
           ); // Ensure you're using the correct 'id'
-          setMessage("News deleted successfully");
+          toast.success("News deleted successfully");
         } else {
-          setMessage("Failed to delete news");
+          toast.error("Failed to delete news");
         }
       } catch (error) {
         console.error("Error deleting news:", error);
-        setMessage("Error deleting news");
+        toast.error("Error deleting news");
       }
     }
   };
@@ -72,8 +73,26 @@ const ListNews = () => {
     return content;
   };
 
+  // Tính toán các item cho trang hiện tại
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // Sort news data by createdAt before slicing
+  const sortedNewsData = [...newsData].sort((a, b) => 
+    new Date(b.createdAt) - new Date(a.createdAt)
+  );
+  const currentItems = sortedNewsData.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Tính tổng số trang
+  const totalPages = Math.ceil(newsData.length / itemsPerPage);
+
+  // Xử lý thay đổi trang
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div className="container mt-4">
+      <ToastContainer />
       <div className="d-flex justify-content-between mb-3">
         <h2>List News</h2>
         <button
@@ -107,10 +126,10 @@ const ListNews = () => {
           </tr>
         </thead>
         <tbody>
-          {newsData.length > 0 ? (
-            newsData.slice().reverse().map((news, index) => ( // Reverse the order
+          {currentItems.length > 0 ? (
+            currentItems.map((news, index) => (
               <tr key={news._id}>
-                <td>{index + 1}</td> 
+                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                 <td>
                   <img
                     src={`http://localhost:9999/api/news/thumbnail/${news.thumbnail
@@ -158,6 +177,47 @@ const ListNews = () => {
           )}
         </tbody>
       </table>
+
+      {/* Thêm phân trang Bootstrap */}
+      {newsData.length > 0 && (
+        <nav aria-label="Page navigation">
+          <ul className="pagination justify-content-center">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+            </li>
+            
+            {[...Array(totalPages)].map((_, index) => (
+              <li
+                key={index}
+                className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
+              >
+                <button
+                  className="page-link"
+                  onClick={() => handlePageChange(index + 1)}
+                >
+                  {index + 1}
+                </button>
+              </li>
+            ))}
+
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </nav>
+      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-
+import { toast, ToastContainer } from "react-toastify";
 function UpdateNews() {
   const { id } = useParams(); // Get the news ID from the URL
   const navigate = useNavigate(); // Hook to navigate to another route
@@ -36,7 +36,7 @@ function UpdateNews() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("content", data.content); // Save CKEditor HTML content
@@ -44,7 +44,7 @@ function UpdateNews() {
     if (data.thumbnail instanceof File) {
       formData.append("thumbnail", data.thumbnail); // Send selected image file only if updated
     }
-  
+
     try {
       const response = await axios.put(
         `http://localhost:9999/api/news/update/${id}`,
@@ -55,22 +55,24 @@ function UpdateNews() {
           },
         }
       );
-  
+
       if (response.status === 200) {
-        alert("News updated successfully");
-        navigate("/list-news-admin"); // Navigate back to the news list
+        toast.success("News updated successfully");
+        setTimeout(() => {
+          navigate("/list-news-admin"); // Navigate back to the news list
+        }, 1000);
       } else {
-        alert("Failed to update news");
+        toast.error("Failed to update news");
       }
     } catch (error) {
       console.error(
         "Error updating news:",
         error.response ? error.response.data : error.message
       );
-      alert("Error updating news");
+      toast.error("Error updating news");
     }
   };
-  
+
 
   if (loading) {
     return <div>Loading...</div>;
@@ -78,6 +80,7 @@ function UpdateNews() {
 
   return (
     <div className="container mt-4">
+      <ToastContainer />
       <div className="row">
         <div className="col-md-12 text-center">
           <h1>Update News</h1>
@@ -121,37 +124,44 @@ function UpdateNews() {
               />
             </div>
           </div>
-          <div className="col-md-9">
-          <label htmlFor="title">Title</label>
-          <input
-            type="text"
-            className="form-control"
-            id="title"
-            value={data.title}
-            onChange={(e) => setData({ ...data, title: e.target.value })}
-              required
-            />
+ 
+        </div>
+        <div className="">
+            <div className="form-group mt-3">
+              <div >
+                <label htmlFor="title">Title</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="title"
+                  value={data.title}
+                  onChange={(e) => setData({ ...data, title: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group mt-3">
+              <div >
+                <label htmlFor="content">Content</label>
+                <CKEditor
+                  editor={ClassicEditor}
+                  data={data.content} // Initial content for CKEditor
+                  onChange={(event, editor) => {
+                    const content = editor.getData();
+                    setData({ ...data, content: content }); // Update content on change
+                  }}
+                />
+              </div>
+
+                <button type="submit" className="btn btn-primary mt-3">
+                  Update
+                </button>
+            </div>
           </div>
-        </div>
-
-        <div className="form-group mt-3">
-          <label htmlFor="content">Content</label>
-          <CKEditor
-            editor={ClassicEditor}
-            data={data.content} // Initial content for CKEditor
-            onChange={(event, editor) => {
-              const content = editor.getData();
-              setData({ ...data, content: content }); // Update content on change
-            }}
-          />
-        </div>
-
-        <button type="submit" className="btn btn-primary mt-3">
-          Update
-        </button>
       </form>
     </div>
-  );
+  );  
 }
 
 export default UpdateNews;

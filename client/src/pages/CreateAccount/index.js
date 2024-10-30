@@ -1,34 +1,33 @@
 import React, { useState } from "react";
+import axios from "axios";
 const CreateAccount = () => {
   const [image, setImage] = useState(null);
   const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [cccd, setCccd] = useState("");
-  const [role, setRole] = useState("ADMIN");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [accountName, setAccountName] = useState("");
+  const [role, setRole] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleImageChange = (e) => {
     setImage(URL.createObjectURL(e.target.files[0]));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const accountData = {
       image,
       name,
-      address,
       phoneNumber,
-      cccd,
       role,
-      dateOfBirth,
-      accountName,
+      email,
       password,
     };
-    console.log("Account Created:", accountData);
-    // Add your submission logic here
+    try {
+      const response = await axios.post("http://localhost:9999/api/user/add", accountData);
+      console.log("Account Created:", response.data);
+    } catch (error) {
+      console.error("Error creating account:", error);
+    }
   };
 
   return (
@@ -75,17 +74,6 @@ const CreateAccount = () => {
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="address">Address</label>
-              <input
-                type="text"
-                className="form-control"
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Enter address"
-              />
-            </div>
-            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="phoneNumber">Phone number</label>
               <input
                 type="text"
@@ -94,17 +82,6 @@ const CreateAccount = () => {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="Enter phone number"
-              />
-            </div>
-            <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="cccd">CCCD/CMT</label>
-              <input
-                type="text"
-                className="form-control"
-                id="cccd"
-                value={cccd}
-                onChange={(e) => setCccd(e.target.value)}
-                placeholder="Enter CCCD/CMT"
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
@@ -133,24 +110,14 @@ const CreateAccount = () => {
               </div>
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="dateOfBirth">Date of Birth</label>
-              <input
-                type="date"
-                className="form-control"
-                id="dateOfBirth"
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-              />
-            </div>
-            <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="accountName">Account Name</label>
+              <label htmlFor="email">Email</label>
               <input
                 type="text"
                 className="form-control"
-                id="accountName"
-                value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
-                placeholder="Enter account name"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email"
               />
             </div>
             <div className="create-account-form-group form-group mt-3">

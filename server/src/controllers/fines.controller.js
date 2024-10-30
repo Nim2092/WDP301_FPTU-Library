@@ -133,7 +133,9 @@ const getFinesByUserCode = async (req, res, next) => {
       })
       .populate({
         path: "book_id",
-        select: "title condition",
+        populate: {
+          path: "bookSet_id",
+        },
       })
       .populate({
         path: "order_id",
@@ -304,7 +306,18 @@ const filterFinesByStatus = async (req, res, next) => {
         data: null,
       });
     }
-    const fines = await Fines.find({ status }).populate("user_id");
+    const fines = await Fines.find({ status })
+      .populate("user_id")
+      .populate({
+        path: "book_id",
+        populate: {
+          path: "bookSet_id",
+        },
+      })
+      .populate("order_id")
+      .populate("fineReason_id")
+      .populate("createBy")
+      .populate("updateBy");
 
     if (!fines || fines.length === 0) {
       return res.status(404).json({
