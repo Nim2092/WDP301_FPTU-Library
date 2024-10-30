@@ -14,7 +14,7 @@ const bookSetSchema = new Schema(
     physicalDescription: { type: String, required: true },
     totalCopies: { type: Number, required: true },
     availableCopies: { type: Number, required: true },
-    image: { type: String, required: true },
+    image: String,
     price: { type: Number, required: true },
   },
   { timestamps: true }
