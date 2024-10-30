@@ -34,8 +34,8 @@ function News() {
       <div className="row">
         {Array.isArray(newsItems) && newsItems.length > 0 ? (
           newsItems.slice(-3).map((item) => ( // Take the last 3 items
-            <div key={item._id} className="col-md-4 mb-4">
-              <div className="card h-100">
+            <div key={item._id} className="col-md-4 mb-4" >
+              <div className="card h-100" onClick={() => handleClick(item._id)}>
                 <img
                   src={`http://localhost:9999/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
                   className="card-img-top"
@@ -43,14 +43,14 @@ function News() {
                   style={{ width: "100%", height: "200px", objectFit: "cover", cursor: "pointer" }}
                 />
                 <div className="card-body">
-                  <h5 className="card-title" style={{ cursor: "pointer" }} onClick={() => handleClick(item._id)}>
+                  <h5 className="card-title" style={{ cursor: "pointer" }}>
                     {item.title}
                   </h5>
-                  {/* <div
+                  <div
                     className="card-text content-preview"
                     style={{ marginTop: "20px" }}
                     dangerouslySetInnerHTML={{ __html: item.content }}
-                  /> */}
+                  />
                 </div>
               </div>
             </div>
