@@ -225,16 +225,16 @@ const createFines = async (req, res, next) => {
       return res.status(404).json({ message: "Penalty reason not found" });
     }
 
-    const existingFines = await Fines.findOne({
-      order_id,
-    });
+    // const existingFines = await Fines.findOne({
+    //   order_id,
+    // });
 
-    if (existingFines) {
-      return res.status(400).json({
-        message: "Đã tồn tại khoản phạt cho đơn hàng này.",
-        data: null,
-      });
-    }
+    // if (existingFines) {
+    //   return res.status(400).json({
+    //     message: "Đã tồn tại khoản phạt cho đơn hàng này.",
+    //     data: null,
+    //   });
+    // }
     var totalAmount = 0;
     if (penaltyReason.type === "PN1") {
       const returnDateObj = new Date(order.returnDate);
@@ -344,7 +344,7 @@ const updateFinesStatus = async (req, res, next) => {
     const validStatuses = ["Pending", "Paid", "Overdue"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
-        message: `Invalid status. Allowed statuses are: ${validStatuses.join(
+        message: `Trạng thái không hợp lệ. Các trạng thái hợp lệ là: ${validStatuses.join(
           ", "
         )}`,
       });
@@ -361,7 +361,7 @@ const updateFinesStatus = async (req, res, next) => {
     await fines.save();
 
     res.status(200).json({
-      message: "Update fines status successfully",
+      message: "Cập nhật trạng thái khoản phạt thành công",
       data: fines,
     });
   } catch (error) {

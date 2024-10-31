@@ -102,11 +102,13 @@ async function updateNews(req, res, next) {
     const thumbnail = req.file;
 
     if (!title || !content) {
-      return res.status(400).send({ message: "Title, content are required" });
+      return res
+        .status(400)
+        .send({ message: "Tiêu đề và nội dung là bắt buộc" });
     }
     const news = await News.findById(id);
     if (!news) {
-      return res.status(404).send({ message: "News not found" });
+      return res.status(404).send({ message: "Không tìm thấy bài viết" });
     }
 
     if (title) news.title = title;
@@ -161,10 +163,10 @@ async function deleteNews(req, res, next) {
     const { id } = req.params;
     const news = await News.findByIdAndDelete(id);
     if (!news) {
-      return res.status(404).send({ message: "News not found" });
+      return res.status(404).send({ message: "Không tìm thấy bài viết" });
     }
     res.status(200).json({
-      message: "News deleted successfully",
+      message: "Xóa bài viết thành công",
       data: news,
     });
   } catch (error) {

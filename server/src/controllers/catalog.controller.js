@@ -5,13 +5,13 @@ async function createCatalog(req, res, next) {
     const { name, code, major, semester, isTextbook } = req.body;
 
     if (!name || !code) {
-      return res.status(400).json({ message: "Name and code are required." });
+      return res.status(400).json({ message: "Tên và mã là bắt buộc." });
     }
 
-    // Check if a catalog with the same code already exists
+    // Kiểm tra xem một catalog với mã này đã tồn tại chưa
     const existingCatalog = await Catalog.findOne({ code });
     if (existingCatalog) {
-      return res.status(400).json({ message: "Catalog code already exists." });
+      return res.status(400).json({ message: "Mã bộ sách đã tồn tại." });
     }
 
     const newCatalog = new Catalog({
@@ -27,7 +27,7 @@ async function createCatalog(req, res, next) {
     return res.status(201).json(savedCatalog);
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({ message: "Catalog code already exists." });
+      return res.status(400).json({ message: "Mã bộ sách đã tồn tại." });
     }
 
     return res.status(500).json({ message: "An error occurred", error });
@@ -51,7 +51,7 @@ async function updateCatalog(req, res, next) {
     // Check if another catalog with the same code exists
     const existingCatalog = await Catalog.findOne({ code, _id: { $ne: id } });
     if (existingCatalog) {
-      return res.status(400).json({ message: "Catalog code already exists." });
+      return res.status(400).json({ message: "Mã bộ sách đã tồn tại." });
     }
 
     const updatedCatalog = await Catalog.findByIdAndUpdate(
@@ -77,10 +77,10 @@ async function deleteCatalog(req, res, next) {
     const deletedCatalog = await Catalog.findByIdAndDelete(id);
 
     if (!deletedCatalog) {
-      return res.status(404).json({ message: "Catalog not found" });
+      return res.status(404).json({ message: "Không tìm thấy bộ sách" });
     }
 
-    return res.status(200).json({ message: "Catalog deleted successfully" });
+    return res.status(200).json({ message: "Xóa bộ sách thành công" });
   } catch (error) {
     return res.status(500).json({ message: "An error occurred", error });
   }
