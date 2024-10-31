@@ -72,7 +72,7 @@ const updatePenaltyReasons = async (req, res) => {
     penaltyReason.penaltyAmount = penaltyAmount;
     await penaltyReason.save();
     res.status(200).json({
-      message: "Update penalty reason successfully",
+      message: "Cập nhật lý do phạt thành công",
       data: penaltyReason,
     });
   } catch (error) {
@@ -87,10 +87,10 @@ const deletePenaltyReasons = async (req, res) => {
     const { id } = req.params;
     const penaltyReason = await PenaltyReason.findByIdAndDelete(id);
     if (!penaltyReason) {
-      return res.status(404).send({ message: "Penalty reason not found" });
+      return res.status(404).send({ message: "Không tìm thấy lý do phạt" });
     }
     res.status(200).json({
-      message: "Delete penalty reason successfully",
+      message: "Xóa lý do phạt thành công",
       data: penaltyReason,
     });
   } catch (error) {

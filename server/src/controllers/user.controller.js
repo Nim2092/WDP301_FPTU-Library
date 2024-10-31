@@ -225,7 +225,7 @@ const updateUserByAdmin = async (req, res) => {
     } else {
       await user.save();
       res.status(200).json({
-        message: "User updated successfully",
+        message: "Cập nhật người dùng thành công",
         user,
       });
     }
@@ -316,7 +316,7 @@ const changePassword = async (req, res, next) => {
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({
-        message: "Old password is incorrect",
+        message: "Mật khẩu cũ không chính xác",
       });
     }
 
@@ -325,7 +325,7 @@ const changePassword = async (req, res, next) => {
     const newPass = await user.save();
 
     res.status(200).json({
-      message: "Change password successfully",
+      message: "Đổi mật khẩu thành công",
       data: newPass,
     });
   } catch (error) {
