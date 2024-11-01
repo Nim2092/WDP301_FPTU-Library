@@ -107,7 +107,7 @@ async function deleteRule(req, res, next) {
     const { id } = req.params;
     const rule = await Rule.findByIdAndDelete(id);
     if (!rule) {
-      return res.status(404).send({ message: "Rule not found" });
+      return res.status(404).send({ message: "Không tìm thấy quy định" });
     }
     res.status(200).json({
       message: "Xóa quy định thành công",
