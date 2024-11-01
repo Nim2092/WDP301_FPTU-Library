@@ -46,6 +46,7 @@ import Fines from "./pages/Fines";
 import Chart from "./pages/Chart";
 import ListFines from "./pages/ListFines";
 import ScrollTop from "./components/ScrollTop";
+import Breadcrumb from "./components/Breadcrumb";
 function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
@@ -61,7 +62,7 @@ function App() {
                 <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><HomePage /></ProtectedRoute>} />
                 <Route path="/advanced-search" element={<ProtectedRoute roles={["borrower", "librarian"]}><AdvancedSearch /></ProtectedRoute>} />
                 <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
-                <Route path="/book-detail" element={<ProtectedRoute roles={["borrower", "librarian"]}><BookDetail /></ProtectedRoute>} />
+                <Route path="/book-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><BookDetail /></ProtectedRoute>} />
                 <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><UserProfile /></ProtectedRoute>} />
                 <Route path="/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
                 <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
@@ -165,12 +166,12 @@ const ProtectedRoute = ({ roles, children }) => {
   if (!roles.includes(user.role?.name)) {
     return <Navigate to="/unauthorized" replace />;
   }
-
   return (
     <>
       {/* Render Sidebar only after login */}
       <Sidebar menuItems={menuItems[user.role?.name] || []} />
       <div className="content-area col-10">
+        <Breadcrumb/>
         {children}
       </div>
     </>

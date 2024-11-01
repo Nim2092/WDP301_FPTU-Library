@@ -76,18 +76,70 @@ function ListBookBorrowed() {
     return <p>Loading borrowed books...</p>;
   }
 
+
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      await axios.put(`http://localhost:9999/api/orders/change-status/${orderId}`, {
+        status: "Canceled",
+      },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Order has been canceled successfully.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to cancel the order. Please try again.");
+    }
+  };
+
+  const handleRenewBook = async (orderId) => {
+    try {
+      await axios.post(`http://localhost:9999/api/orders/renew/${orderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      alert("Book has been renewed successfully.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to renew the book. Please try again.");
+    }
+  };
+
+  // Add this function before the return statement
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Received':
+        return 'text-success';
+      case 'Pending':
+        return 'text-warning';
+      case 'Canceled':
+        return 'text-danger';
+      case 'Lost':
+        return 'text-danger';
+      case 'Returned':
+        return 'text-info';
+      default:
+        return 'text-secondary';
+    }
+  };
+
   return (
     <div className="container mt-5">
-      {/* <div className="d-flex justify-content-end mb-3">
-        <button className="btn btn-primary">Order</button>
-      </div> */}
-
       {error && <p className="text-danger">{error}</p>}
-
       {!error && borrowedBooks.length === 0 && (
-        <p>No borrowed books found for this user.</p>
+        <p>No borrowed books found.</p>
       )}
-
+      <div className="row">
+        <div className="col-md-6">
+          <h2>Borrowed Books</h2>
+        </div>
+        <div className="col-md-6"></div>
+      </div>
       {borrowedBooks.length > 0 && (
         <table className="table table-bordered">
           <thead>
@@ -96,8 +148,9 @@ function ListBookBorrowed() {
               <th>Book</th>
               <th>Borrow date</th>
               <th>Due date</th>
-              <th>Status</th> 
+              <th>Status</th>
               <th>Identifi Code</th>
+              <th>renewCount</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -111,30 +164,42 @@ function ListBookBorrowed() {
                 {/* Displaying the book title from the nested bookSet */}
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
-                <td>{order.status || "Unknown Status"}</td> 
+                <td className={getStatusColor(order.status)}>
+                  {order.status || "Unknown Status"}
+                </td>
                 <td>{order.book_id.identifier_code}</td>
+                <td>{order.renewalCount}</td>
                 <td>
-                  <button
-                    onClick={() =>
-                      handleReportLostBook(order._id, order.status)
-                    } // Pass the order ID and current status
-                    className="btn btn-outline-primary me-2"
-                  >
-                    Report lost book
-                  </button>
-
-                  <Link
-                    to={`/renew-book/${order._id}`}
-                    className="btn btn-outline-primary me-2"
-                  >
-                    Renew Book
-                  </Link>
+                  {order.status === "Received" && (
+                    <>
+                      <button
+                        onClick={() => handleReportLostBook(order._id, order.status)}
+                        className="btn btn-outline-primary me-2"
+                      >
+                        Report lost book
+                      </button>
+                      <button
+                        className="btn btn-outline-primary me-2"
+                        onClick={() => handleRenewBook(order._id)}
+                      >
+                        Renew Book
+                      </button>
+                    </>
+                  )}
                   <Link
                     to={`/order-book-detail/${order._id}`}
                     className="btn btn-outline-primary"
                   >
                     Detail
                   </Link>
+                  {order.status === "Pending" && (
+                    <button
+                      onClick={() => handleCancelOrder(order._id)}
+                      className="btn btn-outline-danger"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

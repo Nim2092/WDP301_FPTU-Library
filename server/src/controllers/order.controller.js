@@ -35,13 +35,13 @@ const getAllOrder = async (req, res, next) => {
 
     if (!order || order.length === 0) {
       return res.status(404).json({
-        message: "Get all order failed",
+        message: "Lấy tất cả đơn hàng thất bại",
         data: null,
       });
     }
 
     res.status(200).json({
-      message: "Get all order successfully",
+      message: "Lấy tất cả đơn hàng thành công",
       data: order,
     });
   } catch (error) {
@@ -78,7 +78,7 @@ const getOrderById = async (req, res, next) => {
 
     // Return the order with the populated data
     res.status(200).json({
-      message: "Get order successfully",
+      message: "Lấy đơn hàng thành công",
       data: order,
     });
   } catch (error) {
@@ -113,7 +113,7 @@ const getOrderByIdentifierCode = async (req, res, next) => {
 
     // Kiểm tra xem đơn hàng có tồn tại không
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
 
     // Trả về thông tin đơn hàng đã tìm thấy
@@ -646,7 +646,7 @@ async function returnOrder(req, res, next) {
       createBy,
       updateBy,
       fine_reason,
-      condition_detail
+      condition_detail,
     } = req.body;
 
     const order = await Order.findById(orderId)
@@ -758,12 +758,12 @@ async function returnOrder(req, res, next) {
     if (order.status === "Lost" || isDestroyed) {
       book.status = "Destroyed";
       book.condition = book_condition;
-      if(condition_detail) book.condition_detail = condition_detail;
+      if (condition_detail) book.condition_detail = condition_detail;
       await book.save();
     } else {
       book.status = "Available";
       book.condition = book_condition;
-      if(condition_detail) book.condition_detail = condition_detail;
+      if (condition_detail) book.condition_detail = condition_detail;
       await book.save();
       const bookSet = await BookSet.findById(book.bookSet_id);
       console.log(book);
@@ -773,7 +773,7 @@ async function returnOrder(req, res, next) {
 
     order.status = "Returned";
     order.returnDate = new Date(returnDate);
-    if(condition_detail) order.book_condition_detail = condition_detail;
+    if (condition_detail) order.book_condition_detail = condition_detail;
 
     await order.save();
 
@@ -797,14 +797,19 @@ async function returnOrder(req, res, next) {
       .map((fine) => `${fine.message} với số tiền: ${fine.amount} VND`)
       .join("<br>");
     const formatCurrency = (amount) => {
-      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(amount);
     };
 
     const fineDetailsFormatted = finesApplied
-        .map((fine) => `${fine.message} với số tiền: ${formatCurrency(fine.amount)}`)
-        .join("<br>");
+      .map(
+        (fine) => `${fine.message} với số tiền: ${formatCurrency(fine.amount)}`
+      )
+      .join("<br>");
 
-// Gửi email với fineDetails đã định dạng
+    // Gửi email với fineDetails đã định dạng
     let info = await transporter.sendMail({
       from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
       to: userEmail,
@@ -812,7 +817,6 @@ async function returnOrder(req, res, next) {
       text: `Xin chào, bạn đã trả sách thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${condition_detail}. ${fineDetailsFormatted}`,
       html: `<b>Xin chào</b>, bạn đã trả sách thành công với mã định danh <strong>#${order.book_id.identifier_code}</strong> vào ngày ${order.returnDate}.<br>Tình trạng sách: <strong>${condition_detail}</strong>.<br>${fineDetailsFormatted}<br><br>Cảm ơn bạn!`,
     });
-
 
     console.log(
       `Sent return confirmation email to ${userEmail} for order ${orderId}`
@@ -850,7 +854,8 @@ const filterOrdersByStatus = async (req, res, next) => {
     // Check invalid status
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
-        message: "Invalid status. Please provide a valid order status.",
+        message:
+          "Trạng thái không hợp lệ. Vui lòng cung cấp trạng thái đơn hàng hợp lệ.",
       });
     }
 
@@ -869,13 +874,13 @@ const filterOrdersByStatus = async (req, res, next) => {
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({
-        message: "No orders found with the provided status.",
+        message: "Không tìm thấy đơn hàng với trạng thái được cung cấp.",
         data: null,
       });
     }
 
     return res.status(200).json({
-      message: `Orders with status '${status}' retrieved successfully.`,
+      message: `Đã lấy thành công các đơn hàng với trạng thái '${status}'.`,
       data: orders,
     });
   } catch (error) {
@@ -1328,16 +1333,16 @@ const ChartOrderbyMonth = async (req, res, next) => {
 };
 
 // Schedule a cron job to run every day at midnight to check overdue orders
-cron.schedule("0 0 * * *", () => {
-  console.log("Running cron job to check overdue orders...");
-  cancelOverdueOrders();
+// cron.schedule("0 0 * * *", () => {
+//   console.log("Running cron job to check overdue orders...");
+//   cancelOverdueOrders();
 
-  console.log("Running cron job to check due dates and send notifications...");
-  reminderDueDatesOrder();
+//   console.log("Running cron job to check due dates and send notifications...");
+//   reminderDueDatesOrder();
 
-  console.log("Running cron job to check overdue orders and apply fines...");
-  reminderOverdueOrder();
-});
+//   console.log("Running cron job to check overdue orders and apply fines...");
+//   reminderOverdueOrder();
+// });
 
 const OrderController = {
   getOrderByUserId,

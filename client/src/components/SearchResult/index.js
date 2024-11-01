@@ -1,74 +1,85 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
-import { Modal, Button, Form } from "react-bootstrap";
 import AuthContext from "../../contexts/UserContext";
 import { toast, ToastContainer } from "react-toastify";
+import ReactPaginate from "react-paginate";
+import { Modal, Button, Form, Container } from "react-bootstrap";
 
 function SearchResults({ books }) {
-  const { user } = useContext(AuthContext); // Get user information from context
-  const [selectedBookId, setSelectedBookId] = useState(null); // Store selected book ID
-  const [showModal, setShowModal] = useState(false); // State for modal visibility
-  const [borrowDate, setBorrowDate] = useState(""); // State for borrow date
-  const [dueDate, setDueDate] = useState(""); // State for due date
-  const [bookSet, setBookSet] = useState(null); // Store book set info
-  const [book, setBook] = useState([]); // Store available books
+  const { user } = useContext(AuthContext);
+  const [selectedBookId, setSelectedBookId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [borrowDate, setBorrowDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [bookSet, setBookSet] = useState(null);
+  const [book, setBook] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [loading, setLoading] = useState(false);
 
+  const itemsPerPage = 5; // Số sách hiển thị trên mỗi trang
+
+  // Lấy dữ liệu sách cho phân trang
+  const offset = currentPage * itemsPerPage;
+  const currentBooks = books.slice(offset, offset + itemsPerPage);
+
+  // Mở Modal mượn sách và lấy thông tin sách
   const openBorrowModal = async (bookId) => {
-    console.log("Opening modal for book ID:", bookId); // Debug
     setSelectedBookId(bookId);
-
+    setLoading(true);
     try {
       const response = await axios.get(`http://localhost:9999/api/book-sets/available/${bookId}`);
-      console.log("API response:", response.data); // Debug response
-
       setBookSet(response.data.bookSet);
       setBook(response.data.availableBooks);
-
-      // Cập nhật trực tiếp state `showModal` sau khi lấy được dữ liệu
       setShowModal(true);
-      setBorrowDate(new Date().toISOString().slice(0, 10)); // Set current date as default
-      setDueDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)); // Set default due date 14 days later
-
+      setBorrowDate(new Date().toISOString().slice(0, 10));
+      setDueDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
     } catch (error) {
-      console.error("Error fetching book availability:", error);
-      toast.error("Error fetching book availability.");
+      console.error("Lỗi khi lấy dữ liệu sách:", error);
+      toast.error("Lỗi khi lấy dữ liệu sách.");
     }
+    setLoading(false);
   };
 
+  // Xử lý yêu cầu mượn sách
   const handleBorrowSubmit = async () => {
+    if (!bookSet || book.length === 0) {
+      toast.error("Thông tin về bộ sách bị thiếu.");
+      return;
+    }
+
+    setLoading(true);
     try {
       const booksetCurrent = bookSet._id;
       const ordersResponse = await axios.get(`http://localhost:9999/api/orders/by-user/${user.id}`);
       const orders = ordersResponse.data.data;
-      const hasDifferentBookSet = orders.some(order => order.book_id.bookSet_id._id === booksetCurrent);
+      const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
 
       if (hasDifferentBookSet) {
-        toast.error("You cannot borrow books from a different book set.");
+        toast.error("Bạn không thể mượn sách từ bộ sách khác.");
         return;
       }
 
-      if (book?.length > 0) {
-        const firstBook = book[0];
-        const response = await axios.post(`http://localhost:9999/api/orders/create-borrow/${firstBook._id}`, {
-          book_id: firstBook._id,
-          userId: user.id,
-          borrowDate: borrowDate,
-          dueDate: dueDate,
-        });
+      const firstBook = book[0];
+      const response = await axios.post(`http://localhost:9999/api/orders/create-borrow/${firstBook._id}`, {
+        book_id: firstBook._id,
+        userId: user.id,
+        borrowDate: borrowDate,
+        dueDate: dueDate,
+      });
 
-        if (response.status === 201) {
-          toast.success("Book borrowed successfully!");
-          setShowModal(false);
-        } else {
-          console.error("Error borrowing the book:", response.data.message);
-          toast.error("Error borrowing the book:", response.data.message);
-        }
+      if (response.status === 201) {
+        toast.success("Đã mượn sách thành công!");
+        setShowModal(false);
+      } else {
+        console.error("Lỗi khi mượn sách:", response.data.message);
+        toast.error(response.data.message);
       }
     } catch (error) {
-      const message = error.response?.data?.message || "An error occurred.";
+      const message = error.response?.data?.message || "Đã xảy ra lỗi.";
       console.error(error);
       toast.error(message);
     }
+    setLoading(false);
   };
 
   const closeModal = () => {
@@ -77,15 +88,17 @@ function SearchResults({ books }) {
     setDueDate("");
   };
 
-  console.log("showModal state:", showModal); // Debug showModal state
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected);
+  };
 
   return (
-    <div className="container mt-4">
+    <Container className="mt-4">
       <ToastContainer />
       {books.length === 0 ? (
-        <p>No books found</p>
+        <p>Không tìm thấy sách</p>
       ) : (
-        books.map((book) => (
+        currentBooks.map((book) => (
           <div className="card mb-4 p-3" key={book._id}>
             <div className="row no-gutters">
               <div className="col-md-3">
@@ -98,32 +111,20 @@ function SearchResults({ books }) {
               <div className="col-md-9">
                 <div className="card-body">
                   <h5 className="card-title">{book.title}</h5>
-                  <p className="card-text">
-                    <strong>Author:</strong> {book.author}
-                  </p>
-                  <p className="card-text">
-                    <strong>Publisher:</strong> {book.publisher}
-                  </p>
-                  <p className="card-text">
-                    <strong>Year:</strong> {new Date(book.publishedYear).getFullYear()}
-                  </p>
-                  <p className="card-text">
-                    <strong>ISBN:</strong> {book.isbn}
-                  </p>
-                  <p className="card-text">
-                    <strong>Total Copies:</strong> {book.totalCopies}
-                  </p>
-                  <p className="card-text">
-                    <strong>Available Copies:</strong> {book.availableCopies}
-                  </p>
-                  <p className="card-text">
-                    <strong>Borrowed Copies:</strong> {book.totalCopies - book.availableCopies}
-                  </p>
+                  <p className="card-text"><strong>Tác giả:</strong> {book.author}</p>
+                  <p className="card-text"><strong>Nhà xuất bản:</strong> {book.publisher}</p>
+                  <p className="card-text"><strong>Năm xuất bản:</strong> {new Date(book.publishedYear).getFullYear()}</p>
+                  <p className="card-text"><strong>ISBN:</strong> {book.isbn}</p>
+                  <p className="card-text"><strong>Tổng số bản:</strong> {book.totalCopies}</p>
+                  <p className="card-text"><strong>Số bản có sẵn:</strong> {book.availableCopies}</p>
+                  <p className="card-text"><strong>Số bản đã mượn:</strong> {book.totalCopies - book.availableCopies}</p>
+
                   <button
                     className="btn btn-primary float-end"
                     onClick={() => openBorrowModal(book._id)}
+                    disabled={loading}
                   >
-                    Borrow this book
+                    {loading ? "Đang xử lý..." : "Mượn sách"}
                   </button>
                 </div>
               </div>
@@ -132,15 +133,36 @@ function SearchResults({ books }) {
         ))
       )}
 
-      {/* Borrow Modal */}
+      {/* Phân trang */}
+      <ReactPaginate
+        previousLabel={"Trước"}
+        nextLabel={"Tiếp"}
+        breakLabel={"..."}
+        pageCount={Math.ceil(books.length / itemsPerPage)}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageClick}
+        containerClassName={"pagination justify-content-center"}
+        pageClassName={"page-item"}
+        pageLinkClassName={"page-link"}
+        previousClassName={"page-item"}
+        previousLinkClassName={"page-link"}
+        nextClassName={"page-item"}
+        nextLinkClassName={"page-link"}
+        breakClassName={"page-item"}
+        breakLinkClassName={"page-link"}
+        activeClassName={"active"}
+      />
+
+      {/* Modal mượn sách */}
       <Modal show={showModal} onHide={closeModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Borrow Book</Modal.Title>
+          <Modal.Title>Mượn sách</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group controlId="borrowDate">
-              <Form.Label>Borrow Date</Form.Label>
+              <Form.Label>Ngày mượn</Form.Label>
               <Form.Control
                 type="date"
                 value={borrowDate}
@@ -148,7 +170,7 @@ function SearchResults({ books }) {
               />
             </Form.Group>
             <Form.Group controlId="dueDate" className="mt-3">
-              <Form.Label>Due Date</Form.Label>
+              <Form.Label>Ngày trả</Form.Label>
               <Form.Control
                 type="date"
                 value={dueDate}
@@ -159,14 +181,14 @@ function SearchResults({ books }) {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={closeModal}>
-            Cancel
+            Hủy
           </Button>
-          <Button variant="primary" onClick={handleBorrowSubmit}>
-            Confirm Borrow
+          <Button variant="primary" onClick={handleBorrowSubmit} disabled={loading}>
+            {loading ? "Đang xử lý..." : "Xác nhận mượn"}
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 }
 

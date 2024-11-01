@@ -5,7 +5,7 @@ import { Modal, Button, Form } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-
+import Search from "../../components/Search";
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
@@ -18,6 +18,8 @@ function SearchResultsPage() {
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [borrowDate, setBorrowDate] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [booksPerPage] = useState(5); // Number of books per page
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -83,11 +85,23 @@ function SearchResultsPage() {
     setDueDate("");
   };
 
+  // Calculate the current books to display
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = books.slice(indexOfFirstBook, indexOfLastBook);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="container mt-4">
       <ToastContainer />
-      {books.length > 0 ? (
-        books.map((book) => (
+      <div className="row mb-4">
+        <div className="col-12">
+          <Search />
+        </div>
+      </div>
+      {currentBooks.length > 0 ? (
+        currentBooks.map((book) => (
           <div className="card mb-4 p-3" key={book._id}>
             <div className="row no-gutters">
               <div className="col-md-3">
@@ -104,12 +118,17 @@ function SearchResultsPage() {
                   <p className="card-text"><strong>Publisher:</strong> {book.publisher}</p>
                   <p className="card-text"><strong>Year:</strong> {new Date(book.publishedYear).getFullYear()}</p>
                   <p className="card-text"><strong>ISBN:</strong> {book.isbn}</p>
-                  <button
-                    className="btn btn-primary float-end"
-                    onClick={() => openBorrowModal(book._id)}
-                  >
-                    Borrow this book
-                  </button>
+                  <p className="card-text"><strong>Total Copies:</strong> {book.totalCopies}</p>
+                  <p className="card-text"><strong>Available Copies:</strong> {book.availableCopies}</p>
+                  <p className="card-text"><strong>Borrowed Copies:</strong> {book.totalCopies - book.availableCopies}</p>
+                  {book.availableCopies > 0 && (
+                    <button
+                      className="btn btn-primary float-end"
+                      onClick={() => openBorrowModal(book._id)}
+                    >
+                      Borrow this book
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -118,6 +137,19 @@ function SearchResultsPage() {
       ) : (
         <p>No results found.</p>
       )}
+
+      {/* Pagination */}
+      <nav>
+        <ul className="pagination float-end">
+          {Array.from({ length: Math.ceil(books.length / booksPerPage) }, (_, index) => (
+            <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+              <button onClick={() => paginate(index + 1)} className="page-link">
+                {index + 1}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       {/* Borrow Modal */}
       <Modal show={showModal} onHide={closeModal}>

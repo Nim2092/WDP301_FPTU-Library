@@ -1,121 +1,104 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
 
 const UpdateAccount = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [roleId, setRoleId] = useState(""); // role_id của người dùng
-  const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [roles, setRoles] = useState([]); // Danh sách các role
+  const [roles, setRoles] = useState([]);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    role_id: "",
+    image: "",
+    code: "",
+    password: "",
+  });
 
-  // Lấy tất cả các role
   useEffect(() => {
-    axios.get("http://localhost:9999/api/user/all-role").then((res) => {
-      setRoles(res.data.data);
-    });
-  }, []);
-
-  // Lấy dữ liệu người dùng bao gồm role hiện tại
-  useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:9999/api/user/get/${id}`);
-        const { fullName, email, phoneNumber, role_id, image } = response.data.data;
-        setFullName(fullName || "");
-        setEmail(email || "");
-        setPhoneNumber(phoneNumber || "");
-        setRoleId(role_id._id || ""); // Set current role_id bằng _id
-        setImagePreview(image ? `http://localhost:9999${image}` : null);
+        // Fetch roles
+        const rolesResponse = await axios.get("http://localhost:9999/api/user/all-role");
+        setRoles(rolesResponse.data.data);
+
+        // Fetch user data
+        const userResponse = await axios.get(`http://localhost:9999/api/user/get/${id}`);
+        const { fullName, email, phoneNumber, role_id, image, code } = userResponse.data.data;
+
+        setFormData({
+          fullName: fullName || "",
+          email: email || "",
+          phoneNumber: phoneNumber || "",
+          role_id: role_id?._id || "",
+          code: code || "",
+          password: "",
+          image: image || "",
+        });
+
+        if (image) {
+          setImagePreview(`http://localhost:9999/api/user/image/${image.split("/").pop()}`);
+        }
       } catch (error) {
-        console.error("Error fetching user data:", error);
-        setMessage("Failed to load user data.");
+        toast.error("Failed to load data.");
       }
     };
 
-    fetchUserData();
+    fetchData();
   }, [id]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file);
+      setFormData((prevData) => ({ ...prevData, image: file }));
       setImagePreview(URL.createObjectURL(file));
     }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "fullName") setFullName(value);
-    else if (name === "email") setEmail(value);
-    else if (name === "phoneNumber") setPhoneNumber(value);
-    else if (name === "roleId") setRoleId(value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
     const data = new FormData();
-    data.append("fullName", fullName);
-    data.append("email", email);
-    data.append("phoneNumber", phoneNumber);
-    data.append("role_id", roleId);
-
-    if (image) {
-      data.append("image", image);
-    }
+    Object.keys(formData).forEach((key) => {
+      if (formData[key]) data.append(key, formData[key]);
+    });
 
     try {
-      const response = await axios.put(`http://localhost:9999/api/user/update/${id}`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await axios.put(`http://localhost:9999/api/user/update/${id}`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (response.status !== 200) {
-        throw new Error("Network response was not ok");
-      }
-
-      navigate("/account-list");
+      toast.success("Account updated successfully");
+      setTimeout(() => navigate("/account-list"), 1000);
     } catch (error) {
-      setMessage("Đã xảy ra lỗi trong quá trình cập nhật.");
-      console.error("Error updating account:", error);
+      toast.error("Error updating account.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="update-account-container mt-4"
-      style={{ margin: "100px 100px" }}
-    >
+    <div className="update-account-container mt-4" style={{ margin: "100px 100px" }}>
+      <ToastContainer />
       <h2 className="text-center">Update Account</h2>
-      {message && <p className="text-center">{message}</p>}
       <form onSubmit={handleSubmit}>
         <div className="row">
-          {/* Image Upload Section */}
           <div className="col-md-3">
             <div className="update-account-image-upload form-group">
               {imagePreview ? (
                 <img src={imagePreview} alt="Selected" className="img-thumbnail" />
               ) : (
-                <div
-                  className="img-thumbnail d-flex justify-content-center align-items-center"
-                  style={{
-                    height: "200px",
-                    width: "100%",
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
+                <div className="img-thumbnail d-flex justify-content-center align-items-center" style={{ height: "200px", width: "100%", backgroundColor: "#f0f0f0" }}>
                   Add img
                 </div>
               )}
@@ -128,51 +111,32 @@ const UpdateAccount = () => {
           </div>
 
           <div className="col-md-9">
-            <div className="update-account-form-group form-group">
-              <label htmlFor="fullName">Full Name</label>
-              <input
-                type="text"
-                className="form-control"
-                id="fullName"
-                name="fullName"
-                value={fullName}
-                onChange={handleChange}
-                placeholder="Enter full name"
-              />
-            </div>
-            <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="email">Email address</label>
-              <input
-                type="text"
-                className="form-control"
-                id="email"
-                name="email"
-                value={email}
-                onChange={handleChange}
-                placeholder="Enter email"
-              />
-            </div>
-            <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="phoneNumber">Phone number</label>
-              <input
-                type="text"
-                className="form-control"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={phoneNumber}
-                onChange={handleChange}
-                placeholder="Enter phone number"
-              />
-            </div>
-            <div className="update-account-form-group form-group mt-3">
-              <label htmlFor="roleId">Role Name</label>
+            {["fullName", "email", "phoneNumber", "code"].map((field) => (
+              <div className="form-group mt-3" key={field}>
+                <label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id={field}
+                  name={field}
+                  value={formData[field]}
+                  onChange={handleInputChange}
+                  placeholder={`Enter ${field}`}
+                />
+              </div>
+            ))}
+
+            {/* Role Selection - Only Rendered Once */}
+            <div className="form-group mt-3">
+              <label htmlFor="role_id">Role</label>
               <select
                 className="form-control"
-                id="roleId"
-                name="roleId"
-                value={roleId} // Chọn role hiện tại
-                onChange={handleChange}
+                id="role_id"
+                name="role_id"
+                value={formData.role_id}
+                onChange={handleInputChange}
               >
+                <option value="">Select Role</option>
                 {roles.map((role) => (
                   <option key={role._id} value={role._id}>
                     {role.name}
@@ -180,16 +144,24 @@ const UpdateAccount = () => {
                 ))}
               </select>
             </div>
+
+            <div className="form-group mt-3">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                className="form-control"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Enter new password (leave empty to keep current)"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Save Button */}
         <div className="d-flex justify-content-center mt-4">
-          <button
-            type="submit"
-            className="btn btn-primary btn-lg"
-            disabled={loading}
-          >
+          <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
             {loading ? "Saving..." : "Save"}
           </button>
         </div>

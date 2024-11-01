@@ -60,9 +60,7 @@ function Notification() {
             </Card.Body>
           </Card>
         ))
-      ) : (
-        <p>Loading notifications...</p>
-      )}
+      ) : null}
     </Container>
   );
 }

@@ -15,7 +15,7 @@ async function createBookSet(req, res, next) {
       publisher,
       physicalDescription,
       totalCopies,
-      price
+      price,
     } = req.body;
     const image = req.file;
 
@@ -32,7 +32,9 @@ async function createBookSet(req, res, next) {
       !totalCopies ||
       !price
     ) {
-      return res.status(400).json({ message: "All fields are required." });
+      return res
+        .status(400)
+        .json({ message: "Tất cả các trường đều bắt buộc phải điền." });
     }
 
     const catalog = await Catalog.findById(catalog_id);
@@ -54,7 +56,7 @@ async function createBookSet(req, res, next) {
       physicalDescription,
       totalCopies,
       availableCopies,
-      price
+      price,
     });
 
     if (image) {
@@ -88,16 +90,15 @@ async function createBookSet(req, res, next) {
 
       // Tạo sách
       await createBooksForBookSet(newBookSet, catalogCode, code, totalCopies);
-
       res.status(201).json({
-        message: "BookSet and Books created successfully",
+        message: "Bộ sách và các cuốn sách đã được tạo thành công",
         bookSet: newBookSet,
       });
     }
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
-        message: "Book with this ISBN or identifier code already exists.",
+        message: "Sách với ISBN hoặc mã định danh này đã tồn tại.",
       });
     }
 
@@ -154,7 +155,7 @@ async function updateBookSet(req, res, next) {
       physicalDescription,
       totalCopies,
       availableCopies,
-      price
+      price,
     } = req.body;
     const image = req.file;
 
@@ -171,12 +172,12 @@ async function updateBookSet(req, res, next) {
     ) {
       return res
         .status(400)
-        .json({ message: "All required fields must be filled." });
+        .json({ message: "Tất cả các trường bắt buộc phải được điền." });
     }
 
     const catalog = await Catalog.findById(catalog_id);
     if (!catalog) {
-      return res.status(404).json({ message: "Catalog not found." });
+      return res.status(404).json({ message: "Không tìm thấy danh mục." });
     }
 
     const updatedFields = {
@@ -191,7 +192,7 @@ async function updateBookSet(req, res, next) {
       physicalDescription,
       totalCopies,
       availableCopies,
-      price
+      price,
     };
 
     if (image) {
@@ -232,7 +233,7 @@ async function updateBookSet(req, res, next) {
         );
 
         return res.status(200).json({
-          message: "BookSet updated successfully with new image",
+          message: "Bộ sách đã được cập nhật thành công với hình ảnh mới",
           updatedBookSet,
         });
       });
@@ -253,18 +254,18 @@ async function updateBookSet(req, res, next) {
       );
 
       if (!updatedBookSet) {
-        return res.status(404).json({ message: "BookSet not found." });
+        return res.status(404).json({ message: "Không tìm thấy bộ sách." });
       }
 
       return res.status(200).json({
-        message: "BookSet updated successfully",
+        message: "Bộ sách đã được cập nhật thành công",
         updatedBookSet,
       });
     }
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
-        message: "BookSet with this ISBN already exists.",
+        message: "Bộ sách với ISBN này đã tồn tại.",
       });
     }
 
@@ -278,13 +279,15 @@ async function updateBookSet(req, res, next) {
 // Hàm loại bỏ dấu tiếng Việt
 function removeVietnameseDiacritics(str) {
   return str
-      .normalize('NFD') // Tách các ký tự có dấu thành ký tự cơ bản + dấu
-      .replace(/[\u0300-\u036f]/g, ''); // Loại bỏ dấu
+    .normalize("NFD") // Tách các ký tự có dấu thành ký tự cơ bản + dấu
+    .replace(/[\u0300-\u036f]/g, ""); // Loại bỏ dấu
 }
 
 // Hàm chuẩn hóa chuỗi (bao gồm cả việc loại bỏ dấu)
 function normalizeString(str) {
-  return removeVietnameseDiacritics(str.toLowerCase().replace(/\s+/g, ' ').trim());
+  return removeVietnameseDiacritics(
+    str.toLowerCase().replace(/\s+/g, " ").trim()
+  );
 }
 
 async function listBookSet(req, res, next) {
@@ -306,7 +309,9 @@ async function listBookSet(req, res, next) {
     }
 
     // Lấy tất cả các bản ghi bookSet
-    const allBookSets = await BookSet.find(query).populate("catalog_id").sort({ createdAt: -1 });
+    const allBookSets = await BookSet.find(query)
+      .populate("catalog_id")
+      .sort({ createdAt: -1 });
 
     // Chuẩn hóa các tham số tìm kiếm
     const normalizedTitle = title ? normalizeString(title) : null;
@@ -314,21 +319,30 @@ async function listBookSet(req, res, next) {
     const normalizedPublisher = publisher ? normalizeString(publisher) : null;
 
     // Lọc danh sách các bản ghi
-    const filteredBookSets = allBookSets.filter(bookSet => {
+    const filteredBookSets = allBookSets.filter((bookSet) => {
       const normalizedBookTitle = normalizeString(bookSet.title);
       const normalizedBookAuthor = normalizeString(bookSet.author);
       const normalizedBookPublisher = normalizeString(bookSet.publisher);
 
-      const titleMatch = normalizedTitle ? normalizedBookTitle.includes(normalizedTitle) : true;
-      const authorMatch = normalizedAuthor ? normalizedBookAuthor.includes(normalizedAuthor) : true;
-      const publisherMatch = normalizedPublisher ? normalizedBookPublisher.includes(normalizedPublisher) : true;
+      const titleMatch = normalizedTitle
+        ? normalizedBookTitle.includes(normalizedTitle)
+        : true;
+      const authorMatch = normalizedAuthor
+        ? normalizedBookAuthor.includes(normalizedAuthor)
+        : true;
+      const publisherMatch = normalizedPublisher
+        ? normalizedBookPublisher.includes(normalizedPublisher)
+        : true;
 
       return titleMatch && authorMatch && publisherMatch;
     });
 
     // Phân trang
     const skip = (page - 1) * limit;
-    const paginatedBookSets = filteredBookSets.slice(skip, skip + parseInt(limit));
+    const paginatedBookSets = filteredBookSets.slice(
+      skip,
+      skip + parseInt(limit)
+    );
     const totalBookSets = filteredBookSets.length;
 
     return res.status(200).json({
@@ -339,12 +353,11 @@ async function listBookSet(req, res, next) {
       totalPages: Math.ceil(totalBookSets / limit),
     });
   } catch (error) {
-    return res.status(500).json({ message: "An error occurred", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "An error occurred", error: error.message });
   }
 }
-
-
-
 
 async function getBookSetDetail(req, res, next) {
   try {
@@ -377,7 +390,7 @@ const addBooks = async (req, res, next) => {
     if (!bookSet_id || !numberOfCopies) {
       return res
         .status(400)
-        .json({ message: "BookSet ID and number of copies are required." });
+        .json({ message: "ID của bộ sách và số lượng bản sao là bắt buộc." });
     }
 
     const bookSet = await BookSet.findById(bookSet_id);
@@ -450,7 +463,9 @@ async function deleteBookSet(req, res, next) {
 
     return res
       .status(200)
-      .json({ message: "BookSet and related Books deleted successfully." });
+      .json({
+        message: "Bộ sách và các cuốn sách liên quan đã được xóa thành công.",
+      });
   } catch (error) {
     return res
       .status(500)

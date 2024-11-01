@@ -1,38 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
 const CreateAccount = () => {
+  const navigate = useNavigate();
   const [image, setImage] = useState(null);
   const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [cccd, setCccd] = useState("");
-  const [role, setRole] = useState("ADMIN");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [accountName, setAccountName] = useState("");
+  const [role, setRole] = useState("");
+  const [roles, setRoles] = useState([]); // State to hold role options
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  useEffect(() => {
+    // Fetch roles from the backend
+    const fetchRoles = async () => {
+      try {
+        const response = await axios.get("http://localhost:9999/api/user/all-role");
+        setRoles(response.data.data);
+      } catch (error) {
+        console.error("Error fetching roles:", error);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const handleImageChange = (e) => {
-    setImage(URL.createObjectURL(e.target.files[0]));
+    setImage(e.target.files[0]); // Use File object directly for form data
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const accountData = {
-      image,
-      name,
-      address,
-      phoneNumber,
-      cccd,
-      role,
-      dateOfBirth,
-      accountName,
-      password,
-    };
-    console.log("Account Created:", accountData);
-    // Add your submission logic here
+    
+    // Prepare form data with an image file if provided
+    const formData = new FormData();
+    formData.append("image", image);
+    formData.append("fullName", name);
+    formData.append("phoneNumber", phoneNumber);
+    formData.append("role_id", role);
+    formData.append("email", email);
+    formData.append("code", code);
+    formData.append("password", password);
+    try {
+      const response = await axios.post("http://localhost:9999/api/user/add", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.success("Account created successfully");
+      setTimeout(() => {
+        navigate("/account-list");
+      }, 1000);
+    } catch (error) {
+      console.error("Error creating account:", error);
+    }
   };
 
   return (
     <div className="create-account-container mt-4" style={{ margin: "100px 100px" }}>
+      <ToastContainer />
       <h2 className="text-center">Create Account</h2>
       <form onSubmit={handleSubmit}>
         <div className="row">
@@ -40,7 +66,7 @@ const CreateAccount = () => {
           <div className="col-md-3">
             <div className="create-account-image-upload form-group">
               {image ? (
-                <img src={image} alt="Selected" className="img-thumbnail" />
+                <img src={URL.createObjectURL(image)} alt="Selected" className="img-thumbnail" />
               ) : (
                 <div
                   className="img-thumbnail d-flex justify-content-center align-items-center"
@@ -75,14 +101,14 @@ const CreateAccount = () => {
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="address">Address</label>
+              <label htmlFor="code">Code</label>
               <input
                 type="text"
                 className="form-control"
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Enter address"
+                id="code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Enter code"
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
@@ -97,60 +123,30 @@ const CreateAccount = () => {
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="cccd">CCCD/CMT</label>
-              <input
-                type="text"
-                className="form-control"
-                id="cccd"
-                value={cccd}
-                onChange={(e) => setCccd(e.target.value)}
-                placeholder="Enter CCCD/CMT"
-              />
-            </div>
-            <div className="create-account-form-group form-group mt-3">
               <label htmlFor="role">Role</label>
-              <div>
-                <input
-                  type="radio"
-                  id="admin"
-                  name="role"
-                  value="ADMIN"
-                  checked={role === "ADMIN"}
-                  onChange={(e) => setRole(e.target.value)}
-                />
-                <label htmlFor="admin" className="mr-3" style={{ marginRight: "10px" }}>
-                  ADMIN
-                </label>
-                <input
-                  type="radio"
-                  id="librarian"
-                  name="role"
-                  value="Librarian"
-                  checked={role === "Librarian"}
-                  onChange={(e) => setRole(e.target.value)}
-                />
-                <label htmlFor="librarian">Librarian</label>
-              </div>
-            </div>
-            <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="dateOfBirth">Date of Birth</label>
-              <input
-                type="date"
+              <select
                 className="form-control"
-                id="dateOfBirth"
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-              />
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="">Select a role</option>
+                {roles.map((r) => (
+                  <option key={r._id} value={r._id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="accountName">Account Name</label>
+              <label htmlFor="email">Email</label>
               <input
                 type="text"
                 className="form-control"
-                id="accountName"
-                value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
-                placeholder="Enter account name"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email"
               />
             </div>
             <div className="create-account-form-group form-group mt-3">

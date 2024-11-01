@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Modal, Button, Container } from "react-bootstrap";
+import { Modal, Button, Container, Pagination } from "react-bootstrap";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
 import { toast, ToastContainer } from "react-toastify";
@@ -14,48 +14,32 @@ const BorrowBookList = () => {
   const { user } = useContext(AuthContext); // Get the user context
   const [selectedBooks, setSelectedBooks] = useState([]); // For storing selected books' IDs
   const [identifierCode, setIdentifierCode] = useState(""); // Holds the identifier code for search
-  const [sortOrder, setSortOrder] = useState("asc"); // Holds the sort order
-
-const callOrderAPIs = async () => {
-  try {
-    await axios.get('http://localhost:9999/api/orders/cancel-overdue');
-    await axios.get('http://localhost:9999/api/orders/reminder-due-date');
-    await axios.get('http://localhost:9999/api/orders/reminder-overdue');
-  } catch (error) {
-    console.error("Error calling order APIs:", error);
-    // toast.error("An error occurred while calling order APIs.");
-  }
-};
-
-// Call the function to execute the API requests
-callOrderAPIs();
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 10; // Number of items per page
 
   // Fetch books function with identifierCode parameter
   const fetchBooks = async (identifierCode = "") => {
-    
     try {
       let response;
       
-      // Kiểm tra nếu có identifierCode (tức là yêu cầu tìm kiếm)
       if (identifierCode) {
         response = await axios.get(`http://localhost:9999/api/orders/by-identifier-code/${identifierCode}`);
       } else if (status === "") {
         response = await axios.get(`http://localhost:9999/api/orders/getAll`);
-        
       } else {
         response = await axios.get(`http://localhost:9999/api/orders/filter?status=${status}`);
       }
 
       const data = response.data.data || [];
-
-      // Nếu dữ liệu trả về là một đối tượng thay vì mảng, bao bọc nó trong mảng
       const formattedData = Array.isArray(data) ? data : [data];
 
       if (formattedData.length === 0) {
         toast.info("No books found with the specified criteria.");
       }
 
-      setBorrowBooks(formattedData);
+      // Sắp xếp borrowBooks theo ngày gần nhất
+      const sortedData = formattedData.sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate));
+      setBorrowBooks(sortedData);
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "An error occurred while fetching borrow books.";
       toast.error(errorMessage);
@@ -64,19 +48,16 @@ callOrderAPIs();
     }
   };
 
-
   useEffect(() => {
     fetchBooks();
   }, [status]);
 
-  // Handle the actions for approve/reject/receive
   const handleActionClick = (book, type) => {
     setSelectedBook(book);
-    setModalType(type); // Set the type of modal (approve/reject/receive)
+    setModalType(type);
     setShowModal(true);
   };
 
-  // Submit approval, rejection, or other status changes
   const handleSubmit = async () => {
     try {
       let newStatus = "";
@@ -90,23 +71,8 @@ callOrderAPIs();
         case "receive":
           newStatus = "Received";
           break;
-        case "cancel":
-          newStatus = "Canceled";
-          break;
-        case "return":
-          newStatus = "Returned";
-          break;
-        case "overdue":
-          newStatus = "Overdue";
-          break;
-        case "lost":
-          newStatus = "Lost";
-          break;
-        case "renew_pending":
-          newStatus = "Renew Pending";
-          break;
         default:
-          newStatus = "Pending"; // Default to Pending if no modalType
+          newStatus = "Pending";
           break;
       }
 
@@ -115,13 +81,13 @@ callOrderAPIs();
         updated_by: user.id,
       };
 
-      if (modalType === "reject") updateData.reason_order = reason; // Add reason if rejecting
+      if (modalType === "reject") updateData.reason_order = reason;
 
       await axios.put(`http://localhost:9999/api/orders/change-status/${selectedBook._id}`, updateData);
 
       setShowModal(false);
-      setReason(""); // Clear the reason input after action
-      fetchBooks();  // Refresh the list after updating status
+      setReason("");
+      fetchBooks();
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "An error occurred while updating the book status.";
       toast.error(errorMessage);
@@ -129,32 +95,23 @@ callOrderAPIs();
     }
   };
 
-  // Select or unselect all books
   const handleSelectAll = () => {
     if (selectedBooks.length === borrowBooks.length) {
-      // Unselect all if all are selected
       setSelectedBooks([]);
     } else {
-      // Select all books
       const allBookIds = borrowBooks.map((book) => book._id);
       setSelectedBooks(allBookIds);
     }
   };
 
-  // Handle individual book selection
   const handleSelectBook = (bookId) => {
-    console.log(bookId);
-
     if (selectedBooks.includes(bookId)) {
-      // If already selected, remove it
       setSelectedBooks(selectedBooks.filter((id) => id !== bookId));
     } else {
-      // Otherwise, add it to the selected books
       setSelectedBooks([...selectedBooks, bookId]);
     }
   };
 
-  // Bulk approve selected orders
   const handleApproveSelected = async () => {
     if (selectedBooks.length === 0) {
       toast.error("No orders selected.");
@@ -163,14 +120,13 @@ callOrderAPIs();
 
     try {
       const updateData = {
-        orderIds: selectedBooks, // Send the selected order IDs
+        orderIds: selectedBooks,
         updated_by: user.id,
       };
-      console.log(updateData);
-      await axios.put(`http://localhost:9999/api/orders/approve-all`, updateData); // Use the bulk approval endpoint
+      await axios.put(`http://localhost:9999/api/orders/approve-all`, updateData);
       toast.success("Selected orders approved successfully!");
-      fetchBooks(); // Refresh the list after approval
-      setSelectedBooks([]); // Clear selection
+      fetchBooks();
+      setSelectedBooks([]);
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "An error occurred while approving the selected books.";
       toast.error(errorMessage);
@@ -178,41 +134,21 @@ callOrderAPIs();
     }
   };
 
-  // Search by identifier code
   const handleSearchByIdentifierCode = () => {
-    fetchBooks(identifierCode); // Call fetchBooks with identifierCode
+    fetchBooks(identifierCode);
   };
 
-  const handleSortByBookTitle = () => {
-    const sortedBooks = [...borrowBooks].sort((a, b) => {
-      const titleA = a.book_id.bookSet_id.title.toLowerCase();
-      const titleB = b.book_id.bookSet_id.title.toLowerCase();
-      return sortOrder === "asc" ? titleA.localeCompare(titleB) : titleB.localeCompare(titleA);
-    });
+  const offset = currentPage * itemsPerPage;
+  const currentBooks = borrowBooks.slice(offset, offset + itemsPerPage);
 
-    setBorrowBooks(sortedBooks);
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-  };
-
-  const handleSortByBorrowDate = () => {
-    const sortedBooks = [...borrowBooks].sort((a, b) => {
-      return sortOrder === "asc" ? new Date(a.borrowDate) - new Date(b.borrowDate) : new Date(b.borrowDate) - new Date(a.borrowDate);
-    });
-
-    setBorrowBooks(sortedBooks);
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-  }
+  const totalPages = Math.ceil(borrowBooks.length / itemsPerPage);
 
   return (
     <Container className="mt-4">
       <ToastContainer />
-
       <div className="d-flex justify-content-between">
-        <div>
-          <h2 className="mb-4">List of Borrowed Books</h2>
-        </div>
+        <h2 className="mb-4">List of Borrowed Books</h2>
         <div className="d-flex align-items-center">
-          {/* Status Filter Dropdown */}
           <select
             className="form-select mb-4"
             value={status}
@@ -231,15 +167,17 @@ callOrderAPIs();
           </select>
         </div>
       </div>
-      <div className="d-flex justify-content-between " style={{ marginBottom: "10px" }}>
-        {/* Search Bar */}
-        <div className="search-bar d-flex align-items-center" >
-          <input type="text" style={{ width: "300px", height: "40px", borderRadius: "10px", border: "1px solid #ccc" }}
-            placeholder=" Search by book identifier code" value={identifierCode} onChange={(e) => setIdentifierCode(e.target.value)} />
+      <div className="d-flex justify-content-between mb-3">
+        <div className="search-bar d-flex align-items-center">
+          <input
+            type="text"
+            style={{ width: "300px", height: "40px", borderRadius: "10px", border: "1px solid #ccc" }}
+            placeholder="Search by book identifier code"
+            value={identifierCode}
+            onChange={(e) => setIdentifierCode(e.target.value)}
+          />
           <Button variant="primary" style={{ marginLeft: "10px" }} onClick={handleSearchByIdentifierCode}>Search</Button>
         </div>
-        {/* Approve and Select All */}
-
         <div>
           <Button variant="primary" style={{ marginRight: "10px" }} onClick={handleSelectAll}>
             {selectedBooks.length === borrowBooks.length ? "Unselect All" : "Select All"}
@@ -249,24 +187,23 @@ callOrderAPIs();
           </Button>
         </div>
       </div>
-      {/* Borrowed Books Table */}
       <table className="table table-bordered">
         <thead>
           <tr>
             <th>Select</th>
             <th>ID</th>
-            <th onClick={handleSortByBookTitle}>Book Title <i className={`fa fa-sort-${sortOrder === "asc" ? "up" : "down"}`}></i></th>
-            <th onClick={handleSortByBorrowDate}>Borrow Date <i className={`fa fa-sort-${sortOrder === "asc" ? "up" : "down"}`}></i></th>
+            <th>Book Title</th>
+            <th>Borrow Date</th>
             <th>Due Date</th>
             <th>Identify Book Code</th>
             <th>Status</th>
-            <th>Book Status</th>
+            <th>Book Condition</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {borrowBooks.length > 0 ? (
-            borrowBooks.map((book, index) => (
+          {currentBooks.length > 0 ? (
+            currentBooks.map((book, index) => (
               <tr key={book._id}>
                 <td>
                   <input
@@ -285,35 +222,18 @@ callOrderAPIs();
                     {book.status}
                   </span>
                 </td>
-                <td>
-                  {book.book_id.condition}
-                </td>
+                <td>{book.book_id.condition}</td>
                 {book.status === "Pending" && (
-                  <td className="d-flex justify-content-center">
-                    <Button
-                      variant="success"
-                      className="me-2"
-                      onClick={() => handleActionClick(book, "approve")}
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={() => handleActionClick(book, "reject")}
-                    >
-                      Reject
-                    </Button>
+                  <td>
+                    <Button variant="success" className="me-2" onClick={() => handleActionClick(book, "approve")}>Approve</Button>
+                    <Button variant="danger" onClick={() => handleActionClick(book, "reject")}>Reject</Button>
                   </td>
                 )}
                 {book.status === "Approved" && (
-                  <td className="d-flex justify-content-center">
-                    <Button variant="primary" onClick={() => handleActionClick(book, "receive")}> Receive</Button>
-                  </td>
+                  <td><Button variant="primary" onClick={() => handleActionClick(book, "receive")}>Loaned</Button></td>
                 )}
                 {book.status === "Renew Pending" && (
-                  <td className="d-flex justify-content-center">
-                    <Button variant="primary" onClick={() => handleActionClick(book, "receive")}> Approve Renew</Button>
-                  </td>
+                  <td><Button variant="primary" onClick={() => handleActionClick(book, "receive")}>Approve Renew</Button></td>
                 )}
               </tr>
             ))
@@ -325,7 +245,22 @@ callOrderAPIs();
         </tbody>
       </table>
 
-      {/* Modal for approval/rejection/receiving */}
+      <Pagination className="float-end">
+        <Pagination.First onClick={() => setCurrentPage(0)} disabled={currentPage === 0} />
+        <Pagination.Prev onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 0} />
+        {[...Array(totalPages)].map((_, index) => (
+          <Pagination.Item
+            key={index}
+            active={index === currentPage}
+            onClick={() => setCurrentPage(index)}
+          >
+            {index + 1}
+          </Pagination.Item>
+        ))}
+        <Pagination.Next onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages - 1} />
+        <Pagination.Last onClick={() => setCurrentPage(totalPages - 1)} disabled={currentPage === totalPages - 1} />
+      </Pagination>
+
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>{modalType === "approve" ? "Confirm Approval" : modalType === "receive" ? "Confirm Receive" : "Reason for Rejection"}</Modal.Title>
@@ -350,12 +285,8 @@ callOrderAPIs();
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSubmit}>
-            {modalType === "approve" || modalType === "receive" ? "Confirm" : "Submit"}
-          </Button>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit}>{modalType === "approve" || modalType === "receive" ? "Confirm" : "Submit"}</Button>
         </Modal.Footer>
       </Modal>
     </Container>
