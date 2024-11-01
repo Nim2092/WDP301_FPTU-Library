@@ -35,13 +35,13 @@ const getAllOrder = async (req, res, next) => {
 
     if (!order || order.length === 0) {
       return res.status(404).json({
-        message: "Get all order failed",
+        message: "Lấy tất cả đơn hàng thất bại",
         data: null,
       });
     }
 
     res.status(200).json({
-      message: "Get all order successfully",
+      message: "Lấy tất cả đơn hàng thành công",
       data: order,
     });
   } catch (error) {
@@ -78,7 +78,7 @@ const getOrderById = async (req, res, next) => {
 
     // Return the order with the populated data
     res.status(200).json({
-      message: "Get order successfully",
+      message: "Lấy đơn hàng thành công",
       data: order,
     });
   } catch (error) {
@@ -113,7 +113,7 @@ const getOrderByIdentifierCode = async (req, res, next) => {
 
     // Kiểm tra xem đơn hàng có tồn tại không
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
 
     // Trả về thông tin đơn hàng đã tìm thấy
