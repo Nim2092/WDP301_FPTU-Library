@@ -10,6 +10,11 @@ const AccountList = () => {
   const accountsPerPage = 20;
   const navigate = useNavigate();
 
+  // Add new state for search, role, and status filters
+  const [searchKey, setSearchKey] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+
   // Calculate the indices for slicing the account data
   const indexOfLastAccount = currentPage * accountsPerPage;
   const indexOfFirstAccount = indexOfLastAccount - accountsPerPage;
@@ -22,12 +27,11 @@ const AccountList = () => {
 
   const handleAccountStatusChange = (id, isActive) => {
     axios
-      .put(`http://localhost:9999/api/user/update/${id}`, { isActive })
+      .put(`http://localhost:9999/api/user/status/${id}`, { isActive })
       .then(() => {
-        // Thông báo thành công
         toast.success("Account status changed successfully");
-        
-        // Cập nhật state trực tiếp mà không reload trang
+
+        // Update state directly without reloading the page
         setAccountData((prevData) =>
           prevData.map((account) =>
             account._id === id ? { ...account, isActive } : account
@@ -41,15 +45,16 @@ const AccountList = () => {
   };
 
   const handleCreateNewAccount = () => {
-    console.log("Create new account");
     navigate("/create-account");
   };
 
   useEffect(() => {
     Axios.get("http://localhost:9999/api/user/getAll")
       .then((response) => {
-        setAccountData(response.data.data);
-        console.log(response.data.data);
+        const sortedData = response.data.data.sort((a, b) => {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        setAccountData(sortedData);
       })
       .catch((error) => {
         console.error("Error fetching account list:", error);
@@ -60,20 +65,124 @@ const AccountList = () => {
     setCurrentPage(pageNumber);
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    axios.get(`http://localhost:9999/api/user/search?searchKey=${searchKey}`)
+      .then((response) => {
+        setAccountData(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error searching accounts:", error);
+        toast.error("Failed to search accounts");
+      });
+  };
+
+  const handleRoleChange = (e) => {
+    const role = e.target.value;
+    setSelectedRole(role);
+    if (role) {
+      axios.get(`http://localhost:9999/api/user/role/${role}`)
+        .then((response) => {
+          const sortedData = response.data.data.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          setAccountData(sortedData);
+        })
+        .catch((error) => {
+          console.error("Error filtering by role:", error);
+          toast.error("Failed to filter by role");
+        });
+    } else {
+      Axios.get("http://localhost:9999/api/user/getAll")
+        .then((response) => {
+          const sortedData = response.data.data.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          setAccountData(sortedData);
+        });
+    }
+  };
+
+  const handleStatusChange = (e) => {
+    const status = e.target.value;
+    setSelectedStatus(status);
+    if (status) {
+      axios.get(`http://localhost:9999/api/user/active/${status}`)
+        .then((response) => {
+          const sortedData = response.data.data.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          setAccountData(sortedData);
+        })
+        .catch((error) => {
+          console.error("Error filtering by status:", error);
+          toast.error("Failed to filter by status");
+        });
+    } else {
+      Axios.get("http://localhost:9999/api/user/getAll")
+        .then((response) => {
+          const sortedData = response.data.data.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          setAccountData(sortedData);
+        });
+    }
+  };
+
+  const handleSearchInputChange = (e) => {
+    setSearchKey(e.target.value);
+  };
+
   return (
     <div className="container mt-4 mb-4">
       <ToastContainer />
-      <div className="d-flex justify-content-between">
-        <h2>Account List</h2>
-        <button className="btn btn-primary" onClick={handleCreateNewAccount}>
+      <div className="d-flex justify-content-between align-items-center">
+        <div>
+          <h2>Account List</h2>
+        </div>
+        <div className="d-flex gap-2">
+          {/* Role Filter */}
+          <select className="form-select" style={{ width: "auto" }} value={selectedRole} onChange={handleRoleChange}>
+            <option value="">Filter by Role</option>
+            <option value="admin">Admin</option>
+            <option value="librarian">Librarian</option>
+            <option value="borrower">Borrower</option>
+          </select>
+
+          {/* Status Filter */}
+          <select className="form-select" style={{ width: "auto" }} value={selectedStatus} onChange={handleStatusChange}>
+            <option value="">Filter by Status</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+
+      </div>
+      <div className="row mt-4">
+        <div className="col-md-4">
+          <form className="d-flex" onSubmit={handleSearch}>
+            <input
+            type="text"
+            className="form-control me-2"
+            placeholder="Search by name, email, or code"
+            value={searchKey}
+            onChange={handleSearchInputChange}
+          />
+            <button type="submit" className="btn btn-outline-primary">Search</button>
+          </form>
+        </div>
+        <div className="col-md-8 text-end">
+          <button className="btn btn-primary" onClick={handleCreateNewAccount}>
           Create new account
-        </button>
+          </button>
+        </div>
       </div>
       <table className="table table-bordered mt-4">
         <thead>
           <tr>
             <th>ID</th>
             <th>Full Name</th>
+            <th>Code</th>
             <th>Email</th>
             <th>Phone</th>
             <th>Role</th>
@@ -85,6 +194,7 @@ const AccountList = () => {
             <tr key={account._id}>
               <td>{indexOfFirstAccount + index + 1}</td>
               <td>{account.fullName}</td>
+              <td>{account.code}</td>
               <td>{account.email}</td>
               <td>{account.phoneNumber}</td>
               <td>{account.role_id.name}</td>
@@ -92,7 +202,6 @@ const AccountList = () => {
                 <button className="btn btn-warning" onClick={() => handleEdit(account._id)}>
                   Update
                 </button>
-             
                 {account.isActive ? (
                   <button
                     className="btn btn-danger"

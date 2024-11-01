@@ -230,7 +230,7 @@ const BorrowBookList = () => {
                   </td>
                 )}
                 {book.status === "Approved" && (
-                  <td><Button variant="primary" onClick={() => handleActionClick(book, "receive")}>Receive</Button></td>
+                  <td><Button variant="primary" onClick={() => handleActionClick(book, "receive")}>Loaned</Button></td>
                 )}
                 {book.status === "Renew Pending" && (
                   <td><Button variant="primary" onClick={() => handleActionClick(book, "receive")}>Approve Renew</Button></td>

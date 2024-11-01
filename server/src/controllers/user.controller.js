@@ -64,7 +64,7 @@ const getUserByRole = async (req, res, next) => {
       });
     }
 
-    const user = await User.find({ role_id: role._id });
+    const user = await User.find({ role_id: role._id }).populate("role_id");
 
     if (!user) {
       return res.status(404).json({
@@ -346,12 +346,12 @@ const activateDeactivateUser = async (req, res, next) => {
       });
     }
 
-    if (!user.isActive) {
-      return res.status(403).json({
-        message: "Tài khoản bị khóa, vui lòng liên hệ thư viện để xử lý.",
-        data: null,
-      });
-    }
+    // if (user.isActive) {
+    //   return res.status(403).json({
+    //     message: "Tài khoản bị khóa, vui lòng liên hệ thư viện để xử lý.",
+    //     data: null,
+    //   });
+    // }
 
     user.isActive = !user.isActive;
     const updatedUser = await user.save();
@@ -376,7 +376,7 @@ const searchUser = async (req, res, next) => {
         { fullName: { $regex: trimSearchKey, $options: "i" } },
         { email: { $regex: trimSearchKey, $options: "i" } },
       ],
-    });
+    }).populate("role_id");
 
     if (!user) {
       return res.status(404).json({
@@ -488,7 +488,7 @@ const getRoleName = async (req, res, next) => {
 const getUserByIsActive = async (req, res, next) => {
   try {
     const { isActive } = req.params;
-    const user = await User.find({ isActive: isActive });
+    const user = await User.find({ isActive: isActive }).populate("role_id");
     console.log(user);
     if (!user) {
       return res.status(404).json({

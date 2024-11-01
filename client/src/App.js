@@ -62,7 +62,7 @@ function App() {
                 <Route path="/" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><HomePage /></ProtectedRoute>} />
                 <Route path="/advanced-search" element={<ProtectedRoute roles={["borrower", "librarian"]}><AdvancedSearch /></ProtectedRoute>} />
                 <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
-                <Route path="/book-detail" element={<ProtectedRoute roles={["borrower", "librarian"]}><BookDetail /></ProtectedRoute>} />
+                <Route path="/book-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><BookDetail /></ProtectedRoute>} />
                 <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><UserProfile /></ProtectedRoute>} />
                 <Route path="/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
                 <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />

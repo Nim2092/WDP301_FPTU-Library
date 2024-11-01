@@ -147,6 +147,9 @@ function ListBookSet() {
                       <button className="btn btn-danger btn-sm" onClick={() => handleDelete(bookSet._id)}>
                         Xóa
                       </button>
+                      <Link to={`/book-detail/${bookSet._id}`} className="btn btn-info btn-sm">
+                        Chi tiết
+                      </Link>
                     </td>
                   </tr>
                 ))}

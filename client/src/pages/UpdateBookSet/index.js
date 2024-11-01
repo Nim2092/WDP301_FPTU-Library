@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-
+import { ToastContainer, toast } from "react-toastify";
 const UpdateBookSet = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const [currentCatalogName, setCurrentCatalogName] = useState("");
   const [catalogData, setCatalogData] = useState([]);
   const [image, setImage] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     catalog_id: "",
     isbn: "",
@@ -20,17 +22,9 @@ const UpdateBookSet = () => {
     physicalDescription: "",
     totalCopies: "",
     availableCopies: "",
-    price: "", // Add price to the formData state
+    price: "",
+    image: "",
   });
-  const [currentCatalogName, setCurrentCatalogName] = useState("");
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value ?? "",
-    });
-  };
 
   useEffect(() => {
     const fetchCatalogs = async () => {
@@ -48,268 +42,137 @@ const UpdateBookSet = () => {
     const fetchBookSet = async () => {
       try {
         const response = await axios.get(`http://localhost:9999/api/book-sets/${id}`);
-        if (response.data) {
-          const bookSet = response.data.bookSet;
-          setFormData({
-            catalog_id: bookSet.catalog_id._id || "",
-            isbn: bookSet.isbn || "",
-            code: bookSet.code || "",
-            shelfLocationCode: bookSet.shelfLocationCode || "",
-            title: bookSet.title || "",
-            author: bookSet.author || "",
-            publishedYear: bookSet.publishedYear
-              ? new Date(bookSet.publishedYear).toISOString().split("T")[0]
-              : "",
-            publisher: bookSet.publisher || "",
-            physicalDescription: bookSet.physicalDescription || "",
-            totalCopies: bookSet.totalCopies || "",
-            availableCopies: bookSet.availableCopies || "",
-            price: bookSet.price || "", // Set initial value for price if available
-          });
-          setImage(`http://localhost:9999${bookSet.image}`);
-          setCurrentCatalogName(bookSet.catalog_id.name);
+        const bookSetData = response.data.bookSet;
+        setFormData({
+          catalog_id: bookSetData.catalog_id._id,
+          isbn: bookSetData.isbn,
+          code: bookSetData.code,
+          shelfLocationCode: bookSetData.shelfLocationCode,
+          title: bookSetData.title,
+          author: bookSetData.author,
+          publishedYear: bookSetData.publishedYear.split('T')[0],
+          publisher: bookSetData.publisher,
+          physicalDescription: bookSetData.physicalDescription,
+          totalCopies: bookSetData.totalCopies,
+          availableCopies: bookSetData.availableCopies,
+          price: bookSetData.price,
+          image: bookSetData.image,
+        });
+        if (bookSetData.image) {
+          setImagePreview(`http://localhost:9999/api/book-sets/image/${bookSetData.image.split("/").pop()}`);
         }
       } catch (error) {
         console.error("Error fetching book set data:", error);
       }
     };
-    if (id) fetchBookSet();
+    fetchBookSet();
   }, [id]);
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedImage = e.target.files[0];
-      setImage(URL.createObjectURL(selectedImage));
-      setImageFile(selectedImage);
-    }
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const updatedFormData = new FormData();
+    const data = new FormData();
     Object.keys(formData).forEach((key) => {
-      updatedFormData.append(key, formData[key]);
+      data.append(key, formData[key]);
     });
-    if (imageFile) {
-      updatedFormData.append("image", imageFile);
+    if (image) {
+      data.append("image", image);
     }
 
     try {
       const response = await axios.put(
         `http://localhost:9999/api/book-sets/update/${id}`,
-        updatedFormData,
+        data,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
-
-      if (response.status === 200) {
-        alert("Book set updated successfully");
+      toast.success(response.data.message);
+      setTimeout(() => {
         navigate("/list-book-set");
-      } else {
-        alert("Failed to update book set");
-      }
+      }, 1000);
     } catch (error) {
       console.error("Error updating book set:", error);
-      alert("Error updating book set");
+      toast.error("Failed to update book set");
     }
   };
 
+
   return (
     <div className="container">
-      <h1 className="my-4">Update Book Set</h1>
+      <ToastContainer />
+      <h1 className="my-4 text-center">Update Book Set</h1>
       <form onSubmit={handleSubmit}>
-        {/* Catalog ID */}
-        <div className="mb-3">
-          <label htmlFor="catalog_id" className="form-label">Catalog:</label>
-          <select
-            className="form-select"
-            name="catalog_id"
-            value={formData.catalog_id}
-            onChange={(e) => handleInputChange(e)}
-          >
-            <option value="">{currentCatalogName || "Select Catalog"}</option>
-            {catalogData.map((catalog) => (
-              <option key={catalog._id} value={catalog._id}>
-                {catalog.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Image Preview */}
+        <div className="row">
+          <div className="col-md-3">
+            {imagePreview && (
+              <img src={imagePreview}
+                alt="Preview" style={{ maxWidth: "200px", maxHeight: "200px" }} />
+            )}
+            <input type="file" className="form-control mt-3" style={{ width: "80%" }} onChange={handleImageChange} />
+          </div>
 
-        {/* Image Upload */}
-        <div className="mb-3">
-          <label className="form-label">Book Set Image:</label>
-          {image && (
-            <div className="mt-3">
-              <img src={image} alt="Preview" style={{ maxWidth: "200px", maxHeight: "200px" }} />
+          <div className="col-md-9">
+            <div className="row">
+              <div className="col-md-6">
+                {/* Catalog Selection */}
+                <div className="mb-3">
+                  <label htmlFor="catalog_id" className="form-label">Catalog:</label>
+                  <select className="form-select" name="catalog_id" value={formData.catalog_id} onChange={handleInputChange}>
+                    <option value="">{currentCatalogName || "Select Catalog"}</option>
+                    {catalogData.map((catalog) => (
+                      <option key={catalog._id} value={catalog._id}>{catalog.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {/* Form Fields */}
+              {[
+                { label: "ISBN", id: "isbn", type: "text" },
+                { label: "Price", id: "price", type: "number" },
+                { label: "Code", id: "code", type: "text" },
+                { label: "Title", id: "title", type: "text" },
+                { label: "Author", id: "author", type: "text" },
+                { label: "Published Year", id: "publishedYear", type: "date" },
+                { label: "Publisher", id: "publisher", type: "text" },
+                { label: "Physical Description", id: "physicalDescription", type: "text" },
+                { label: "Shelf Location Code", id: "shelfLocationCode", type: "text" },
+                { label: "Total Copies", id: "totalCopies", type: "number" },
+                { label: "Available Copies", id: "availableCopies", type: "number" },
+              ].map(({ label, id, type }) => (
+                <div className="mb-3 col-md-6" key={id}>
+                  <label htmlFor={id} className="form-label">{label}:</label>
+                  <input
+                    type={type}
+                    className="form-control"
+                    id={id}
+                    name={id}
+                    value={formData[id] || ""}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              ))}
             </div>
-          )}
-          <input
-            type="file"
-            className="form-control"
-            onChange={handleImageChange}
-          />
+          </div>
         </div>
-
-        {/* ISBN */}
-        <div className="mb-3">
-          <label htmlFor="isbn" className="form-label">ISBN:</label>
-          <input
-            type="text"
-            className="form-control"
-            id="isbn"
-            name="isbn"
-            value={formData.isbn}
-            onChange={handleInputChange}
-            required
-          />
+        <div className="d-flex justify-content-center align-items-center">
+          <button type="submit" className="btn btn-primary mb-3 d-flex">Update Book Set</button>
         </div>
-
-        {/* Price */}
-        <div className="mb-3">
-          <label htmlFor="price" className="form-label">Price:</label>
-          <input
-            type="number"
-            className="form-control"
-            id="price"
-            name="price"
-            value={formData.price || ""}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Code */}
-        <div className="mb-3">
-          <label htmlFor="code" className="form-label">Code:</label>
-          <input
-            type="text"
-            className="form-control"
-            id="code"
-            name="code"
-            value={formData.code}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Title */}
-        <div className="mb-3">
-          <label htmlFor="title" className="form-label">Title:</label>
-          <input
-            type="text"
-            className="form-control"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Author */}
-        <div className="mb-3">
-          <label htmlFor="author" className="form-label">Author:</label>
-          <input
-            type="text"
-            className="form-control"
-            id="author"
-            name="author"
-            value={formData.author || ""}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Published Year */}
-        <div className="mb-3">
-          <label htmlFor="publishedYear" className="form-label">Published Year:</label>
-          <input
-            type="date"
-            className="form-control"
-            id="publishedYear"
-            name="publishedYear"
-            value={formData.publishedYear || ""}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Publisher */}
-        <div className="mb-3">
-          <label htmlFor="publisher" className="form-label">Publisher:</label>
-          <input
-            type="text"
-            className="form-control"
-            id="publisher"
-            name="publisher"
-            value={formData.publisher || ""}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Physical Description */}
-        <div className="mb-3">
-          <label htmlFor="physicalDescription" className="form-label">Physical Description:</label>
-          <input
-            type="text"
-            className="form-control"
-            id="physicalDescription"
-            name="physicalDescription"
-            value={formData.physicalDescription || ""}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Shelf Location Code */}
-        <div className="mb-3">
-          <label htmlFor="shelfLocationCode" className="form-label">Shelf Location Code:</label>
-          <input
-            type="text"
-            className="form-control"
-            id="shelfLocationCode"
-            name="shelfLocationCode"
-            value={formData.shelfLocationCode || ""}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Total Copies */}
-        <div className="mb-3">
-          <label htmlFor="totalCopies" className="form-label">Total Copies:</label>
-          <input
-            type="number"
-            className="form-control"
-            id="totalCopies"
-            name="totalCopies"
-            value={formData.totalCopies || ""}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        {/* Available Copies */}
-        <div className="mb-3">
-          <label htmlFor="availableCopies" className="form-label">Available Copies:</label>
-          <input
-            type="number"
-            className="form-control"
-            id="availableCopies"
-            name="availableCopies"
-            value={formData.availableCopies || ""}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <button type="submit" className="btn btn-primary">
-          Update Book Set
-        </button>
       </form>
     </div>
   );
