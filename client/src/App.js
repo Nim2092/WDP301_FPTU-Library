@@ -4,6 +4,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import AuthContext, { AuthProvider, isTokenExpired } from "./contexts/UserContext";
 import 'font-awesome/css/font-awesome.min.css';
 import './App.scss'; // Import the overall CSS
+import { ToastContainer } from 'react-toastify';
 
 // Import các trang
 import LoginPage from "./pages/Login";
@@ -47,6 +48,10 @@ import Chart from "./pages/Chart";
 import ListFines from "./pages/ListFines";
 import ScrollTop from "./components/ScrollTop";
 import Breadcrumb from "./components/Breadcrumb";
+import ListPenaltyReasons from "./pages/PenaltyReasons";
+import CreatePenaltyReason from "./pages/CreatePenaltyReasons";
+import UpdatePenaltyReason from "./pages/UpdatePenaltyReasons";
+
 function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
@@ -99,6 +104,10 @@ function App() {
                 <Route path="/list-rule" element={<ProtectedRoute roles={["admin"]}><ListRule /></ProtectedRoute>} />
                 <Route path="/create-new-rule" element={<ProtectedRoute roles={["admin"]}><CreateNewRule /></ProtectedRoute>} />
                 <Route path="/update-rule/:id" element={<ProtectedRoute roles={["admin"]}><UpdateRule /></ProtectedRoute>} />
+                <Route path="/list-penalty-reasons" element={<ProtectedRoute roles={["admin"]}><ListPenaltyReasons /></ProtectedRoute>} />
+                <Route path="/update-penalty-reason/:id" element={<ProtectedRoute roles={["admin"]}><UpdatePenaltyReason /></ProtectedRoute>} />
+                <Route path="/create-penalty-reason" element={<ProtectedRoute roles={["admin"]}><CreatePenaltyReason /></ProtectedRoute>} />
+
 
                 {/* Unauthorized and other routes */}
                 <Route path="/unauthorized" element={<Unauthorized />} />
@@ -108,6 +117,7 @@ function App() {
           </div>
           <Footer />
         </BrowserRouter>
+        <ToastContainer />
       </AuthProvider>
     </GoogleOAuthProvider>
   );
@@ -134,7 +144,7 @@ const ProtectedRoute = ({ roles, children }) => {
       { path: "/manage-return-book", label: "Quản lý trả sách", icon: "fa fa-undo" }, 
       { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper-o" }, 
       { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" }, 
-      { path: "/chart", label: "Thống kê", icon: "fa fa-chart-bar" }, 
+      { path: "/chart", label: "Thống kê", icon: "fa fa-bar-chart" }, 
       { path: "/list-fines", label: "Danh sách tiền phạt", icon: "fa fa-money" }, 
     ],
     admin: [
@@ -143,6 +153,7 @@ const ProtectedRoute = ({ roles, children }) => {
       { path: "/list-catalog", label: "Quản lý danh mục", icon: "fa fa-folder" },  
       { path: "/list-book-set", label: "Quản lý lô sách", icon: "fa fa-book" }, 
       { path: "/list-rule", label: "Quản lý quy định", icon: "fa fa-list" }, 
+      { path: "/list-penalty-reasons", label: "Quản lý mức phạt", icon: "fa fa fa-window-close-o" }, 
     ],
   };
   

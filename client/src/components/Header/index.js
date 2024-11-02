@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify'; // Import toast
 import AuthContext from '../../contexts/UserContext';
 import './Header.scss';
 
@@ -16,6 +17,7 @@ function Header() {
     const handleLogout = () => {
         logout(); // Perform logout
         navigate('/login');
+        toast("Đăng xuất thành công");
     };
 
     const handleProfileClick = () => {
@@ -59,6 +61,7 @@ function Header() {
                 ) : null}
             </div>
         </header>
+        
     );
 }
 
