@@ -8,4 +8,5 @@ bookRouter.use(bodyParser.json());
 bookRouter.put("/update/:id", bookController.updateBook);
 bookRouter.delete("/delete/:id", bookController.deleteBook);
 bookRouter.get("/:id", bookController.getBookDetail);
+bookRouter.post("/list", bookController.listBooks);
 module.exports = bookRouter;
