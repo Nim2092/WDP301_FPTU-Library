@@ -11,19 +11,21 @@ const updateBook = async (req, res, next) => {
     if (!book) {
       return res.status(404).json({ message: "Không tìm thấy sách." });
     }
-    if(book.status !== status && status === 'Destroyed') {
+    var update_status = status;
+    if(book.status !== 'Destroyed' && (condition === 'Lost' || condition === 'Hard')) {
       const bookSet = await BookSet.findById(book.bookSet_id);
       bookSet.availableCopies -= 1;
       bookSet.save();
+      update_status = 'Destroyed';
     }
-    if(book.status !== status && book.status === 'Destroyed') {
+    if(book.status === 'Destroyed' && (condition === 'Good' || condition === 'Light' || condition === 'Medium')) {
       const bookSet = await BookSet.findById(book.bookSet_id);
       bookSet.availableCopies += 1;
       bookSet.save();
     }
     book.condition = condition || book.condition;
     book.condition_detail = condition_detail || book.condition_detail;
-    book.status = status || book.status;
+    book.status = update_status || book.status;
     book.updated_by = updatedBy || book.updated_by;
 
     const updatedBook = await book.save();
@@ -55,6 +57,9 @@ const deleteBook = async (req, res, next) => {
     await book.deleteOne();
 
     bookSet.totalCopies -= 1;
+    if(book.condition !== 'Hard' && book.condition !== 'Lost') {
+      bookSet.availableCopies -= 1;
+    }
     await bookSet.save();
 
     return res
@@ -90,7 +95,7 @@ const getBookDetail = async (req, res, next) => {
 };
 const listBooks = async (req, res) => {
   try {
-    const { condition, status, bookSet_id, page = 1, limit = 10 } = req.body;
+    const { condition, status, bookSet_id, identifier_code, page = 1, limit = 10 } = req.body;
     let filter = {};
 
     // Kiểm tra từng điều kiện và thêm vào filter nếu có
@@ -102,6 +107,9 @@ const listBooks = async (req, res) => {
     }
     if (bookSet_id) {
       filter.bookSet_id = bookSet_id;
+    }
+    if (identifier_code) {
+      filter.identifier_code = identifier_code;
     }
 
     // Tính toán số lượng bản ghi cần skip dựa trên trang và giới hạn

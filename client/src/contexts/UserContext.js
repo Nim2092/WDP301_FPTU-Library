@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 export const isTokenExpired = (token) => {
   const decodedToken = jwtDecode(token);
-  if (decodedToken.exp * 1000 < Date.now()) {
+  if (decodedToken.exp * 10000 < Date.now()) {
     return true;
   }
   return false;

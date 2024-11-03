@@ -20,3 +20,15 @@
     line-height: 1.6em; /* Adjust line height to match your design */
   }
   
+  .new-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #f00; /* Màu đỏ */
+    color: #fff; /* Màu chữ trắng */
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 5px;
+  }
+  
