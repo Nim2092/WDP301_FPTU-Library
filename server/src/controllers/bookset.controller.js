@@ -16,6 +16,7 @@ async function createBookSet(req, res, next) {
       physicalDescription,
       totalCopies,
       price,
+      createdBy
     } = req.body;
     const image = req.file;
 
@@ -30,7 +31,8 @@ async function createBookSet(req, res, next) {
       !physicalDescription ||
       !shelfLocationCode ||
       !totalCopies ||
-      !price
+      !price ||
+      !createdBy
     ) {
       return res
         .status(400)
@@ -57,6 +59,8 @@ async function createBookSet(req, res, next) {
       totalCopies,
       availableCopies,
       price,
+      created_by: createdBy,
+      updated_by: createdBy
     });
 
     if (image) {
@@ -73,7 +77,7 @@ async function createBookSet(req, res, next) {
         await newBookSet.save();
 
         // Sau khi lưu BookSet, tiến hành tạo Books
-        await createBooksForBookSet(newBookSet, catalogCode, code, totalCopies);
+        await createBooksForBookSet(newBookSet, catalogCode, code, totalCopies, createdBy);
 
         res.status(201).json({
           message: "BookSet and Books created successfully",
@@ -89,7 +93,7 @@ async function createBookSet(req, res, next) {
       await newBookSet.save();
 
       // Tạo sách
-      await createBooksForBookSet(newBookSet, catalogCode, code, totalCopies);
+      await createBooksForBookSet(newBookSet, catalogCode, code, totalCopies, createdBy);
       res.status(201).json({
         message: "Bộ sách và các cuốn sách đã được tạo thành công",
         bookSet: newBookSet,
@@ -108,7 +112,7 @@ async function createBookSet(req, res, next) {
   }
 }
 
-async function createBooksForBookSet(bookSet, catalogCode, code, totalCopies) {
+async function createBooksForBookSet(bookSet, catalogCode, code, totalCopies, createdBy) {
   const books = [];
   for (let i = 0; i < totalCopies; i++) {
     let identifierCode;
@@ -131,6 +135,8 @@ async function createBooksForBookSet(bookSet, catalogCode, code, totalCopies) {
       identifier_code: identifierCode,
       condition: "Good",
       status: "Available",
+      created_by: createdBy,
+      updated_by: createdBy
     });
 
     books.push(newBook.save());
@@ -156,6 +162,7 @@ async function updateBookSet(req, res, next) {
       totalCopies,
       availableCopies,
       price,
+      updatedBy
     } = req.body;
     const image = req.file;
 
@@ -168,7 +175,8 @@ async function updateBookSet(req, res, next) {
       !publisher ||
       !physicalDescription ||
       !shelfLocationCode ||
-      !price
+      !price ||
+      !updatedBy
     ) {
       return res
         .status(400)
@@ -193,6 +201,8 @@ async function updateBookSet(req, res, next) {
       totalCopies,
       availableCopies,
       price,
+      created_by: updatedBy,
+      updated_by: updatedBy
     };
 
     if (image) {
@@ -385,7 +395,7 @@ async function getBookSetDetail(req, res, next) {
 
 const addBooks = async (req, res, next) => {
   try {
-    const { bookSet_id, numberOfCopies } = req.body;
+    const { bookSet_id, numberOfCopies, createdBy } = req.body;
 
     if (!bookSet_id || !numberOfCopies) {
       return res
@@ -427,6 +437,8 @@ const addBooks = async (req, res, next) => {
         identifier_code: identifierCode,
         condition: "Good",
         status: "Available",
+        created_by: createdBy,
+        updated_by: createdBy
       });
 
       books.push(newBook.save());

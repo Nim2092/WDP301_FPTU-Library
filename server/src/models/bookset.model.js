@@ -16,10 +16,11 @@ const bookSetSchema = new Schema(
     availableCopies: { type: Number, required: true },
     image: String,
     price: { type: Number, required: true },
+    created_by: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    updated_by: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
-
 const BookSet = mongoose.model("BookSet", bookSetSchema);
 
 module.exports = BookSet;
