@@ -10,12 +10,14 @@ const bookSchema = new Schema(
       enum: ["Good", "Light", 'Medium', 'Hard', 'Lost'],
       required: true,
     },
-      condition_detail: { type: String },
+    condition_detail: { type: String },
     status: {
       type: String,
       enum: ["Available", "Borrowed", 'Destroyed'],
       required: true,
     },
+    created_by: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    updated_by: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
