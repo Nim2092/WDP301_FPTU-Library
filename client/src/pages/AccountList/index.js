@@ -26,6 +26,11 @@ const AccountList = () => {
   };
 
   const handleAccountStatusChange = (id, isActive) => {
+    const account = accountData.find(account => account._id === id);
+    if (account.role_id.name === "admin" && !isActive) {
+      toast.error("Admin accounts cannot be deactivated");
+      return;
+    }
     axios
       .put(`http://localhost:9999/api/user/status/${id}`, { isActive })
       .then(() => {
@@ -187,6 +192,7 @@ const AccountList = () => {
             <th>Phone</th>
             <th>Role</th>
             <th>Action</th>
+            <th>Detail</th>
           </tr>
         </thead>
         <tbody>
@@ -202,21 +208,29 @@ const AccountList = () => {
                 <button className="btn btn-warning" onClick={() => handleEdit(account._id)}>
                   Update
                 </button>
-                {account.isActive ? (
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleAccountStatusChange(account._id, false)}
-                  >
-                    Inactive
-                  </button>
-                ) : (
-                  <button
-                    className="btn btn-success"
-                    onClick={() => handleAccountStatusChange(account._id, true)}
-                  >
-                    Active
-                  </button>
+                
+                {account.role_id.name !== "admin" && (
+                  account.isActive ? (
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleAccountStatusChange(account._id, false)}
+                    >
+                      Inactive
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-success"
+                      onClick={() => handleAccountStatusChange(account._id, true)}
+                    >
+                      Active
+                    </button>
+                  )
                 )}
+              </td>
+              <td>
+                <button className="btn btn-info" onClick={() => navigate(`/profile/${account._id}`)}>
+                  Detail
+                </button>
               </td>
             </tr>
           ))}

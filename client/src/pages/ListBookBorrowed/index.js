@@ -169,7 +169,7 @@ function ListBookBorrowed() {
                 </td>
                 <td>{order.book_id.identifier_code}</td>
                 <td>{order.renewalCount}</td>
-                <td>
+                <td className="d-flex justify-content-between">
                   {order.status === "Received" && (
                     <>
                       <button
