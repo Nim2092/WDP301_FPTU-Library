@@ -51,7 +51,7 @@ import Breadcrumb from "./components/Breadcrumb";
 import ListPenaltyReasons from "./pages/PenaltyReasons";
 import CreatePenaltyReason from "./pages/CreatePenaltyReasons";
 import UpdatePenaltyReason from "./pages/UpdatePenaltyReasons";
-
+import ReturnBook from "./pages/ReturnBook";
 function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
@@ -89,7 +89,7 @@ function App() {
                 <Route path="/create-news" element={<ProtectedRoute roles={["librarian"]}><CreateNews /></ProtectedRoute>} />
                 <Route path="/list-news-admin" element={<ProtectedRoute roles={["librarian"]}><ListNews /></ProtectedRoute>} />
                 <Route path="/update-news/:id" element={<ProtectedRoute roles={["librarian"]}><UpdateNews /></ProtectedRoute>} />
-                <Route path="/manage-return-book" element={<ProtectedRoute roles={["librarian"]}><ManageReturnBook /></ProtectedRoute>} />
+                <Route path="/return-book" element={<ProtectedRoute roles={["librarian"]}><ReturnBook /></ProtectedRoute>} />
                 <Route path="/chart" element={<ProtectedRoute roles={["librarian"]}><Chart /></ProtectedRoute>} />
                 <Route path="/list-fines" element={<ProtectedRoute roles={["librarian"]}><ListFines /></ProtectedRoute>} />
 
@@ -113,7 +113,7 @@ function App() {
                 <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </div>
-            <ScrollTop /> {/* Add ScrollTop component here */}
+            <ScrollTop /> 
           </div>
           <Footer />
         </BrowserRouter>
@@ -141,7 +141,7 @@ const ProtectedRoute = ({ roles, children }) => {
     librarian: [
       { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
       { path: "/manage-order", label: "Quản lý mượn sách", icon: "fa fa-tasks" }, 
-      { path: "/manage-return-book", label: "Quản lý trả sách", icon: "fa fa-undo" }, 
+      { path: "/return-book", label: "Quản lý trả sách", icon: "fa fa-undo" }, 
       { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper-o" }, 
       { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" }, 
       { path: "/chart", label: "Thống kê", icon: "fa fa-bar-chart" }, 

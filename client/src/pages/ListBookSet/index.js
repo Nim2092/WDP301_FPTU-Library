@@ -135,11 +135,15 @@ function ListBookSet() {
                 {currentItems.map((bookSet) => (
                   <tr key={bookSet._id} className="align-middle">
                     <td>
-                      <img
-                        src={`http://localhost:9999/api/book-sets/image/${bookSet.image.split("/").pop()}`}
-                        alt={bookSet.title}
-                        style={{ width: "100px", height: "auto" }}
-                      />
+                      {bookSet.image ? (
+                        <img
+                          src={`http://localhost:9999/api/book-sets/image/${bookSet.image.split("/").pop()}`}
+                          alt={bookSet.title}
+                          style={{ width: "100px", height: "auto" }}
+                        />
+                      ) : (
+                        <img src={"https://www.shutterstock.com/image-vector/default-ui-image-placeholder-wireframes-260nw-1037719192.jpg"} alt="Default" style={{ width: "100px", height: "auto" }} />
+                      )}
                     </td>
                     <td>{bookSet.title}</td>
                     <td>{bookSet.author}</td>

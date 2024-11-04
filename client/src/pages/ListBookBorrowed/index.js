@@ -167,7 +167,7 @@ function ListBookBorrowed() {
                 <td className={getStatusColor(order.status)}>
                   {order.status || "Unknown Status"}
                 </td>
-                <td>{order.book_id.identifier_code}</td>
+                <td>{order.book_id?.identifier_code}</td>
                 <td>{order.renewalCount}</td>
                 <td className="d-flex justify-content-between">
                   {order.status === "Received" && (

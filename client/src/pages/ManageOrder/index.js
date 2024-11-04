@@ -213,16 +213,16 @@ const BorrowBookList = () => {
                   />
                 </td>
                 <td>{index + 1}</td>
-                <td>{book.book_id.bookSet_id.title}</td>
+                <td>{book.book_id?.bookSet_id?.title}</td>
                 <td>{new Date(book.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(book.dueDate).toLocaleDateString()}</td>
-                <td>{book.book_id.identifier_code}</td>
+                <td>{book.book_id?.identifier_code}</td>
                 <td>
                   <span className={`text-${book.status === "Pending" ? "warning" : book.status === "Approved" ? "success" : "danger"}`}>
                     {book.status}
                   </span>
                 </td>
-                <td>{book.book_id.condition}</td>
+                <td>{book.book_id?.condition}</td>
                 {book.status === "Pending" && (
                   <td>
                     <Button variant="success" className="me-2" onClick={() => handleActionClick(book, "approve")}>Approve</Button>

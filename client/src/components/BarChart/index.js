@@ -8,7 +8,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 function MonthlyOrderChart() {
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
-
+    const [totalOrder, setTotalOrder] = useState(0);
     useEffect(() => {
         axios.get("http://localhost:9999/api/orders/chart-order-by-month")
             .then((res) => {
@@ -35,6 +35,13 @@ function MonthlyOrderChart() {
             });
     }, []);
 
+    useEffect(() => {
+        axios.get("http://localhost:9999/api/orders/getAll")
+            .then((res) => {
+                setTotalOrder(res.data.data.length);
+            });
+    }, []);
+
     const options = {
         responsive: true,
         plugins: {
@@ -47,7 +54,12 @@ function MonthlyOrderChart() {
         },
     };
 
-    return <Bar data={chartData} options={options} />;
+    return (
+        <div>
+            <p>Total Orders: {totalOrder}</p>
+            <Bar data={chartData} options={options} />
+        </div>
+    );
 }
 
 export default MonthlyOrderChart;

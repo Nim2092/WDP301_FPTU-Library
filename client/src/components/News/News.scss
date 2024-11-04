@@ -12,7 +12,7 @@
 
 .content-preview {
     display: -webkit-box;
-    -webkit-line-clamp: 4; /* Limit to 4 lines */
+    // -webkit-line-clamp: 4; /* Limit to 4 lines */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
