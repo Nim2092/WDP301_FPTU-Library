@@ -10,12 +10,19 @@ function ListBookSet() {
   const [bookSetData, setBookSetData] = useState([]);
   const [filteredBookSetData, setFilteredBookSetData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5); // Số lượng bộ sách hiển thị trên mỗi trang
+  const [itemsPerPage] = useState(5); // Number of book sets displayed per page
   const [catalogData, setCatalogData] = useState([]);
   const [selectedCatalog, setSelectedCatalog] = useState('all');
 
+  useEffect(() => {
+    axios.get("http://localhost:9999/api/catalogs/list")
+      .then((response) => {
+        setCatalogData(response.data);
+      })
+      .catch((error) => console.error("Error fetching catalog data:", error));
+  }, []);
 
-  // Lấy dữ liệu bộ sách và sắp xếp theo thời gian tạo
+  // Fetch and sort book sets
   useEffect(() => {
     axios.get("https://fptu-library.xyz/api/book-sets/list")
       .then((response) => {
@@ -23,47 +30,48 @@ function ListBookSet() {
           new Date(b.createdAt) - new Date(a.createdAt)
         );
         setBookSetData(sortedData);
-        setFilteredBookSetData(sortedData); // Thiết lập dữ liệu lọc ban đầu
+        setFilteredBookSetData(sortedData); // Initialize filtered data
       })
-      .catch((error) => console.error("Lỗi khi lấy dữ liệu bộ sách:", error));
+      .catch((error) => {
+        console.error("Error fetching book set data:", error);
+      });
   }, []);
 
-  // Xử lý tìm kiếm
+  // Handle catalog change
+  const handleCatalogChange = (e) => {
+    const selectedValue = e.target.value;
+    setSelectedCatalog(selectedValue);
+
+    if (selectedValue === 'all') {
+      setFilteredBookSetData(bookSetData);
+    } else {
+      const filtered = bookSetData.filter(book => book.catalog_id._id === selectedValue);
+      setFilteredBookSetData(filtered);
+    }
+  };
+
+  // Handle search
   const handleSearch = (results) => {
     setFilteredBookSetData(results);
   };
 
-  // Xử lý xóa bộ sách
+  // Handle delete
   const handleDelete = async (id) => {
-    const confirmed = window.confirm("Bạn có chắc chắn muốn xóa bộ sách này?");
+    const confirmed = window.confirm("Are you sure you want to delete this book set?");
     if (!confirmed) return;
 
     try {
       await axios.delete(`https://fptu-library.xyz/api/book-sets/delete/${id}`);
       const updatedData = filteredBookSetData.filter((bookSet) => bookSet._id !== id);
-      setBookSetData(updatedData);
       setFilteredBookSetData(updatedData);
-      toast.success("Đã xóa bộ sách thành công");
+      toast.success("Successfully deleted the book set");
     } catch (error) {
-      console.error("Lỗi khi xóa bộ sách:", error);
-      toast.error("Không thể xóa bộ sách");
+      console.error("Error deleting book set:", error);
+      toast.error("Unable to delete book set");
     }
   };
 
-  // Lọc sách theo catalog
-  const handleCatalogChange = (e) => {
-    const catalogId = e.target.value;
-    setSelectedCatalog(catalogId);
-
-    if (catalogId === 'all') {
-      setFilteredBookSetData(bookSetData);
-    } else {
-      const filtered = bookSetData.filter(book => book.catalogId === catalogId);
-      setFilteredBookSetData(filtered);
-    }
-  };
-
-  // Phân trang
+  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredBookSetData.slice(indexOfFirstItem, indexOfLastItem);
@@ -76,17 +84,17 @@ function ListBookSet() {
       <ToastContainer />
 
       <div className="row mb-3">
-        <div className="col-md-10">
-          <h1>Danh sách các bộ sách</h1>
+        <div className="col-md-9">
+          <h1>Book Set List</h1>
         </div>
-        <div className="col-md-2">
+        <div className="col-md-3">
           <select
             className="form-select"
             value={selectedCatalog}
             onChange={handleCatalogChange}
           >
-            <option value="all">Tất cả Catalog</option>
-            {catalogData && catalogData.map(catalog => (
+            <option value="all">All Catalogs</option>
+            {catalogData.map(catalog => (
               <option key={catalog._id} value={catalog._id}>
                 {catalog.name}
               </option>
@@ -101,7 +109,7 @@ function ListBookSet() {
         </div>
         <div className="col-md-2">
           <Link to="/create-book" className="btn btn-primary w-100">
-            Tạo bộ sách mới
+            Create New Book Set
           </Link>
         </div>
       </div>
@@ -112,26 +120,30 @@ function ListBookSet() {
             <table className="table table-bordered">
               <thead className="thead-light">
                 <tr>
-                  <th>Ảnh</th>
-                  <th>Tiêu đề</th>
-                  <th>Tác giả</th>
+                  <th>Image</th>
+                  <th>Title</th>
+                  <th>Author</th>
                   <th>ISBN</th>
-                  <th>Mã sách</th>
-                  <th>Mã vị trí kệ</th>
-                  <th>Nhà xuất bản</th>
-                  <th>Năm xuất bản</th>
-                  <th>Thao tác</th>
+                  <th>Code</th>
+                  <th>Shelf Location Code</th>
+                  <th>Publisher</th>
+                  <th>Published Year</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.map((bookSet) => (
                   <tr key={bookSet._id} className="align-middle">
                     <td>
-                      <img
-                        src={`https://fptu-library.xyz/api/book-sets/image/${bookSet.image.split("/").pop()}`}
-                        alt={bookSet.title}
-                        style={{ width: "100px", height: "auto" }}
-                      />
+                      {bookSet.image ? (
+                        <img
+                          src={`https://fptu-library.xyz/api/book-sets/image/${bookSet.image.split("/").pop()}`}
+                          alt={bookSet.title}
+                          style={{ width: "100px", height: "auto" }}
+                        />
+                      ) : (
+                        <img src={"https://www.shutterstock.com/image-vector/default-ui-image-placeholder-wireframes-260nw-1037719192.jpg"} alt="Default" style={{ width: "100px", height: "auto" }} />
+                      )}
                     </td>
                     <td>{bookSet.title}</td>
                     <td>{bookSet.author}</td>
@@ -142,13 +154,13 @@ function ListBookSet() {
                     <td>{new Date(bookSet.publishedYear).getFullYear()}</td>
                     <td className="d-flex justify-content-around">
                       <Link to={`/update-bookset/${bookSet._id}`} className="btn btn-primary btn-sm">
-                        Chỉnh sửa
+                        Edit
                       </Link>
                       <button className="btn btn-danger btn-sm" onClick={() => handleDelete(bookSet._id)}>
-                        Xóa
+                        Delete
                       </button>
                       <Link to={`/book-detail/${bookSet._id}`} className="btn btn-info btn-sm">
-                        Chi tiết
+                        Details
                       </Link>
                     </td>
                   </tr>
@@ -156,8 +168,8 @@ function ListBookSet() {
               </tbody>
             </table>
 
-            {/* Phân trang */}
-            <nav aria-label="Phân trang bộ sách">
+            {/* Pagination */}
+            <nav aria-label="Book Set Pagination">
               <ul className="pagination justify-content-center">
                 <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                   <button
@@ -165,7 +177,7 @@ function ListBookSet() {
                     onClick={() => paginate(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
-                    Trước
+                    Previous
                   </button>
                 </li>
 
@@ -189,14 +201,14 @@ function ListBookSet() {
                     onClick={() => paginate(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   >
-                    Tiếp
+                    Next
                   </button>
                 </li>
               </ul>
             </nav>
           </>
         ) : (
-          <p>Không tìm thấy bộ sách nào.</p>
+          <p>No book sets found.</p>
         )}
       </div>
     </div>

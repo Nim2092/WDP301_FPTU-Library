@@ -12,11 +12,23 @@
 
 .content-preview {
     display: -webkit-box;
-    -webkit-line-clamp: 4; /* Limit to 4 lines */
+    // -webkit-line-clamp: 4; /* Limit to 4 lines */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     max-height: 6.4em; /* Adjust based on line height */
     line-height: 1.6em; /* Adjust line height to match your design */
+  }
+  
+  .new-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #f00; /* Màu đỏ */
+    color: #fff; /* Màu chữ trắng */
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 5px;
   }
   

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import AuthContext from "../../contexts/UserContext";
 
 function CreateBookSet() {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [catalogData, setCatalogData] = useState([]);
   const [formData, setFormData] = useState({
     catalog_id: "",
@@ -19,6 +21,7 @@ function CreateBookSet() {
     availableCopies: "",
     price: "",
     image: null, // Sử dụng để lưu trữ file ảnh
+    createdBy: user.id,
   });
 
   const [imagePreview, setImagePreview] = useState(null); // Để hiển thị ảnh preview
@@ -252,6 +255,7 @@ function CreateBookSet() {
             required
           />
         </div>
+
 
         <button type="submit" className="btn btn-primary">Create Book Set</button>
       </form>
