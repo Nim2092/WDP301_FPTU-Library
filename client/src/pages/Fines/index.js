@@ -31,7 +31,7 @@ function Fines() {
 
   // Fetch fines on component mount
   useEffect(() => {
-    axios.get(`http://localhost:9999/api/fines/by-user/${user.id}`)
+    axios.get(`https://fptu-library.xyz/api/fines/by-user/${user.id}`)
       .then((response) => setFines(response.data.data))
       .catch((error) => console.error("Error fetching fines:", error));
   }, [user.id]);
@@ -73,7 +73,7 @@ function Fines() {
 
   // Polling function to check payment status
   const checkPayment = () => {
-    axios.post(`http://localhost:9999/api/fines/check-payment/${transactionCode}`, {
+    axios.post(`https://fptu-library.xyz/api/fines/check-payment/${transactionCode}`, {
       fineId: selectedFines,
     })
       .then((response) => {

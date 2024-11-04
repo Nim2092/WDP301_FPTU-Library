@@ -13,7 +13,7 @@ const ListPenaltyReasons = () => {
   useEffect(() => {
     const fetchPenaltyReasons = async () => {
       try {
-        const response = await fetch("http://localhost:9999/api/penalty-reasons/list");
+        const response = await fetch("https://fptu-library.xyz/api/penalty-reasons/list");
         const data = await response.json();
         setPenaltyReasons(data.data);
       } catch (error) {
@@ -30,7 +30,7 @@ const ListPenaltyReasons = () => {
     if (window.confirm("Are you sure you want to delete this penalty reason?")) {
       try {
         const response = await fetch(
-          `http://localhost:9999/api/penalty-reasons/delete/${id}`,
+          `https://fptu-library.xyz/api/penalty-reasons/delete/${id}`,
           {
             method: "DELETE",
           }

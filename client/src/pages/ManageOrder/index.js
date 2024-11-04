@@ -23,11 +23,11 @@ const BorrowBookList = () => {
       let response;
       
       if (identifierCode) {
-        response = await axios.get(`http://localhost:9999/api/orders/by-identifier-code/${identifierCode}`);
+        response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identifierCode}`);
       } else if (status === "") {
-        response = await axios.get(`http://localhost:9999/api/orders/getAll`);
+        response = await axios.get(`https://fptu-library.xyz/api/orders/getAll`);
       } else {
-        response = await axios.get(`http://localhost:9999/api/orders/filter?status=${status}`);
+        response = await axios.get(`https://fptu-library.xyz/api/orders/filter?status=${status}`);
       }
 
       const data = response.data.data || [];
@@ -83,7 +83,7 @@ const BorrowBookList = () => {
 
       if (modalType === "reject") updateData.reason_order = reason;
 
-      await axios.put(`http://localhost:9999/api/orders/change-status/${selectedBook._id}`, updateData);
+      await axios.put(`https://fptu-library.xyz/api/orders/change-status/${selectedBook._id}`, updateData);
 
       setShowModal(false);
       setReason("");
@@ -123,7 +123,7 @@ const BorrowBookList = () => {
         orderIds: selectedBooks,
         updated_by: user.id,
       };
-      await axios.put(`http://localhost:9999/api/orders/approve-all`, updateData);
+      await axios.put(`https://fptu-library.xyz/api/orders/approve-all`, updateData);
       toast.success("Selected orders approved successfully!");
       fetchBooks();
       setSelectedBooks([]);

@@ -26,12 +26,12 @@ function BookDetail() {
   useEffect(() => {
     const fetchBookDetail = async () => {
       try {
-        const response = await axios.get(`http://localhost:9999/api/book-sets/${id}`);
+        const response = await axios.get(`https://fptu-library.xyz/api/book-sets/${id}`);
         setBookSet(response.data.bookSet);
         setBooks(response.data.books);
         const image = response.data.bookSet.image;
         if (image) {
-          setImage(`http://localhost:9999/api/book-sets/image/${image.split("/").pop()}`);
+          setImage(`https://fptu-library.xyz/api/book-sets/image/${image.split("/").pop()}`);
         }
       } catch (error) {
         console.error("Error fetching book details:", error);

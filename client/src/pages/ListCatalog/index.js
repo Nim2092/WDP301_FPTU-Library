@@ -31,7 +31,7 @@ const CatalogList = () => {
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
-        const response = await fetch("http://localhost:9999/api/catalogs/list");
+        const response = await fetch("https://fptu-library.xyz/api/catalogs/list");
         if (!response.ok) throw new Error("Failed to fetch catalog data");
         const data = await response.json();
         setCatalogData(data);
@@ -85,7 +85,7 @@ const CatalogList = () => {
     
     if (confirmDelete) {
       try {
-        const response = await fetch(`http://localhost:9999/api/catalogs/delete/${id}`, {
+        const response = await fetch(`https://fptu-library.xyz/api/catalogs/delete/${id}`, {
           method: "DELETE",
         });
   
@@ -110,8 +110,8 @@ const CatalogList = () => {
     e.preventDefault();
 
     const endpoint = isEditMode
-      ? `http://localhost:9999/api/catalogs/update/${currentCatalogId}`
-      : "http://localhost:9999/api/catalogs/create";
+      ? `https://fptu-library.xyz/api/catalogs/update/${currentCatalogId}`
+      : "https://fptu-library.xyz/api/catalogs/create";
 
     const method = isEditMode ? "PUT" : "POST";
 
