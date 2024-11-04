@@ -1,12 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
+import AuthContext from "../../contexts/UserContext";
 import "./SideBar.scss"; // Import SCSS
 
 const Sidebar = ({ menuItems }) => {
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true); // Default sidebar is visible
-  const location = useLocation(); // Get the current route
+  const location = useLocation();
+  const { user } = useContext(AuthContext);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Function to toggle sidebar visibility
+  // Fetch unread notifications count
+  useEffect(() => {
+    if (user) {
+      axios
+        .get(`http://localhost:9999/api/notifications/unreadCount/${user.id}`)
+        .then((response) => {
+          setUnreadCount(response.data.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching unread notification count:", error);
+        });
+    }
+  }, [user]);
+
   return (
     <div className={`sidebar-container col-2`}>
       <nav className={`sidebar`}>
@@ -16,8 +32,12 @@ const Sidebar = ({ menuItems }) => {
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={location.pathname === item.path ? "active" : ""}>
+                  className={location.pathname === item.path ? "active" : ""}
+                >
                   <i className={item.icon}></i> {item.label}
+                  {item.label === "Thông báo" && unreadCount > 0 && (
+                    <span className="badge">{unreadCount}</span>
+                  )}
                 </Link>
               </li>
             ))}

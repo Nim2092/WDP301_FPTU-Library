@@ -8,11 +8,22 @@ function Notification() {
   const [notification, setNotification] = useState([]);
 
   useEffect(() => {
+    // Fetch notifications for the user
     axios
       .get(`http://localhost:9999/api/notifications/get/${user.id}`)
       .then((response) => {
         setNotification(response.data.data); // Set only the data array to state
         console.log(response.data);
+
+        // Mark all notifications as read once the user views them
+        axios
+          .put(`http://localhost:9999/api/notifications/markAsRead/${user.id}`)
+          .then(() => {
+            console.log("All notifications marked as read");
+          })
+          .catch((error) => {
+            console.error("Error marking notifications as read:", error);
+          });
       })
       .catch((error) => {
         console.error("Error fetching notification:", error);
@@ -60,7 +71,9 @@ function Notification() {
             </Card.Body>
           </Card>
         ))
-      ) : null}
+      ) : (
+        <p>No notifications available.</p>
+      )}
     </Container>
   );
 }

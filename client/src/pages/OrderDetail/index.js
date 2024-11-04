@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure Bootstrap is imported
+import './OrderDetail.scss';
+
 
 const OrderDetail = () => {
   const [order, setOrder] = useState(null);

@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import AuthContext from "../../contexts/UserContext";
 import axios from "axios";
-import { ToastContainer, toast } from 'react-toastify'; // Import toast
+import {toast } from 'react-toastify'; // Import toast
 import 'react-toastify/dist/ReactToastify.css'; // Import CSS cho toast
 import "./Login.scss";
+
 
 function LoginPage() {
   const [username, setUsername] = useState("");
@@ -21,7 +22,7 @@ function LoginPage() {
         password: password,
       });
       login(response.data.accessToken); 
-      console.log("chuyển trang /");
+      toast(`Chào mừng bạn đến với FPTU-Library`);
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
@@ -36,6 +37,7 @@ function LoginPage() {
         token: response.credential,
       });
       login(res.data.accessToken); 
+      toast(`Chào mừng bạn đến với FPTU-Library`);
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Google login failed. Please try again.";
@@ -46,7 +48,6 @@ function LoginPage() {
 
   return (
     <div className="login-page-container">
-      <ToastContainer /> 
       <div className="image-section">
         <img
           src="https://daihoc.fpt.edu.vn/en/wp-content/uploads/2022/09/thu-vien-can-tho-6.jpg"

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext} from "react";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
 import { toast, ToastContainer } from "react-toastify";
@@ -43,7 +43,7 @@ function SearchResults({ books }) {
   // Xử lý yêu cầu mượn sách
   const handleBorrowSubmit = async () => {
     if (!bookSet || book.length === 0) {
-      toast.error("Thông tin về bộ sách bị thiếu.");
+      toast.error("Thông tin về bộ sách bị thiếu. Không có quyển sách nào!");
       return;
     }
 
