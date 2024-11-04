@@ -40,7 +40,7 @@ function Header() {
             <div className="d-flex align-items-center">
                 <h1>FPTU Library</h1>
             </div>
-            <div className="header-icons">
+            <div className="header-icons" >
                 {user ? (
                     <div className="profile-container">
                         <div className="profile-dropdown">

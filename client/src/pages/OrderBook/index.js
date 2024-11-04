@@ -13,7 +13,7 @@ function BookSetDetail() {
   useEffect(() => {
     const fetchBookSetDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:9999/api/book-sets/available/${bookId}`);
+        const response = await axios.get(`https://fptu-library.xyz/api/book-sets/available/${bookId}`);
         setBookSet(response.data.bookSet); // Lưu thông tin bộ sách
         setBooks(response.data.books); // Lưu danh sách các quyển sách
       } catch (error) {
@@ -29,7 +29,7 @@ function BookSetDetail() {
     if (books.length > 0) {
       const firstBook = books[0]; // Lấy quyển sách đầu tiên trong danh sách
       try {
-        await axios.post(`http://localhost:9999/api/orders/create-borrow/${firstBook._id}`, {
+        await axios.post(`https://fptu-library.xyz/api/orders/create-borrow/${firstBook._id}`, {
           book_id: firstBook._id,
           userId: user.id,
           borrowDate: new Date().toISOString(),

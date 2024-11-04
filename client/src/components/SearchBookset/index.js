@@ -8,7 +8,7 @@ const BookSearch = ({ onSearch }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.get("http://localhost:9999/api/book-sets/list", {
+      const response = await axios.get("https://fptu-library.xyz/api/book-sets/list", {
         params: { title: searchTerm },
       });
       onSearch(response.data.data); // Pass results to parent component
@@ -19,18 +19,17 @@ const BookSearch = ({ onSearch }) => {
 
   return (
     <div className="container">
-      <form onSubmit={handleSubmit} className="row">
-        <div className="form-group mb-3 col-md-3">
+      <form onSubmit={handleSubmit}>
+        <div className="form-group d-flex">
           <input
             type="text"
             className="form-control"
-            placeholder="Enter title of book"
+            placeholder="Nhập tên sách"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            style={{marginRight: '10px'}}
           />
-        </div>
-        <div className="col-md-2">
-          <button type="submit" className="btn btn-primary">Search</button>
+          <button type="submit" className="btn btn-primary"><i className="fa fa-search" aria-hidden="true"></i></button>
         </div>
       </form>
     </div>

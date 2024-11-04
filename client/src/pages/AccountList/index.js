@@ -3,11 +3,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import 'font-awesome/css/font-awesome.min.css';
+import ReactPaginate from 'react-paginate';
 
 const AccountList = () => {
   const [accountData, setAccountData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const accountsPerPage = 20;
+  const accountsPerPage = 10;
   const navigate = useNavigate();
 
   // Add new state for search, role, and status filters
@@ -32,7 +34,7 @@ const AccountList = () => {
       return;
     }
     axios
-      .put(`${process.env.REACT_APP_API_URL}/user/status/${id}`, { isActive })
+      .put(`https://fptu-library.xyz/api/user/status/${id}`, { isActive })
       .then(() => {
         toast.success("Account status changed successfully");
 
@@ -54,7 +56,7 @@ const AccountList = () => {
   };
 
   useEffect(() => {
-      Axios.get(`${process.env.REACT_APP_API_URL}/user/getAll`)
+    Axios.get("https://fptu-library.xyz/api/user/getAll")
       .then((response) => {
         const sortedData = response.data.data.sort((a, b) => {
           return new Date(b.createdAt) - new Date(a.createdAt);
@@ -66,13 +68,13 @@ const AccountList = () => {
       });
   }, []);
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const handlePageChange = (selectedItem) => {
+    setCurrentPage(selectedItem.selected + 1);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    axios.get(`${process.env.REACT_APP_API_URL}/user/search?searchKey=${searchKey}`)
+    axios.get(`https://fptu-library.xyz/api/user/search?searchKey=${searchKey}`)
       .then((response) => {
         setAccountData(response.data.data);
       })
@@ -86,7 +88,7 @@ const AccountList = () => {
     const role = e.target.value;
     setSelectedRole(role);
     if (role) {
-      axios.get(`${process.env.REACT_APP_API_URL}/user/role/${role}`)
+      axios.get(`https://fptu-library.xyz/api/user/role/${role}`)
         .then((response) => {
           const sortedData = response.data.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
@@ -98,7 +100,7 @@ const AccountList = () => {
           toast.error("Failed to filter by role");
         });
     } else {
-      Axios.get(`${process.env.REACT_APP_API_URL}/user/getAll`)
+      Axios.get("https://fptu-library.xyz/api/user/getAll")
         .then((response) => {
           const sortedData = response.data.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
@@ -112,7 +114,7 @@ const AccountList = () => {
     const status = e.target.value;
     setSelectedStatus(status);
     if (status) {
-      axios.get(`${process.env.REACT_APP_API_URL}/user/active/${status}`)
+      axios.get(`https://fptu-library.xyz/api/user/active/${status}`)
         .then((response) => {
           const sortedData = response.data.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
@@ -124,7 +126,7 @@ const AccountList = () => {
           toast.error("Failed to filter by status");
         });
     } else {
-      Axios.get(`${process.env.REACT_APP_API_URL}/user/getAll`)
+      Axios.get("https://fptu-library.xyz/api/user/getAll")
         .then((response) => {
           const sortedData = response.data.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
@@ -141,14 +143,23 @@ const AccountList = () => {
   return (
     <div className="container mt-4 mb-4">
       <ToastContainer />
-      <div className="d-flex justify-content-between align-items-center">
-        <div>
-          <h2>Account List</h2>
+      <div className="row mt-4">
+        <div className="col-md-4">
+          <form className="d-flex" onSubmit={handleSearch}>
+            <input
+              type="text"
+              className="form-control me-2"
+              placeholder="Tìm kiếm theo tên, email, hoặc code"
+              value={searchKey}
+              onChange={handleSearchInputChange}
+            />
+            <button type="submit" className="btn btn-outline-primary"><i className="fa fa-search" aria-hidden="true"></i></button>
+          </form>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 col-md-8 justify-content-end">
           {/* Role Filter */}
           <select className="form-select" style={{ width: "auto" }} value={selectedRole} onChange={handleRoleChange}>
-            <option value="">Filter by Role</option>
+            <option value="">Lọc theo vai trò</option>
             <option value="admin">Admin</option>
             <option value="librarian">Librarian</option>
             <option value="borrower">Borrower</option>
@@ -156,43 +167,26 @@ const AccountList = () => {
 
           {/* Status Filter */}
           <select className="form-select" style={{ width: "auto" }} value={selectedStatus} onChange={handleStatusChange}>
-            <option value="">Filter by Status</option>
+            <option value="">Lọc theo trạng thái</option>
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
-        </div>
-
-      </div>
-      <div className="row mt-4">
-        <div className="col-md-4">
-          <form className="d-flex" onSubmit={handleSearch}>
-            <input
-            type="text"
-            className="form-control me-2"
-            placeholder="Search by name, email, or code"
-            value={searchKey}
-            onChange={handleSearchInputChange}
-          />
-            <button type="submit" className="btn btn-outline-primary">Search</button>
-          </form>
-        </div>
-        <div className="col-md-8 text-end">
           <button className="btn btn-primary" onClick={handleCreateNewAccount}>
-          Create new account
+            <i className="fa fa-plus" aria-hidden="true"></i>
+            <span className="tooltip-text"> Tạo mới</span>
           </button>
         </div>
       </div>
-      <table className="table table-bordered mt-4">
+      <table className="table table-bordered mt-4 shadow-sm rounded">
         <thead>
           <tr>
             <th>ID</th>
-            <th>Full Name</th>
+            <th>Họ tên</th>
             <th>Code</th>
             <th>Email</th>
-            <th>Phone</th>
-            <th>Role</th>
-            <th>Action</th>
-            <th>Detail</th>
+            <th>Số điện thoại</th>
+            <th>Vai trò</th>
+            <th>Hành động</th>
           </tr>
         </thead>
         <tbody>
@@ -202,34 +196,32 @@ const AccountList = () => {
               <td>{account.fullName}</td>
               <td>{account.code}</td>
               <td>{account.email}</td>
-              <td>{account.phoneNumber}</td>
+              <td>+84{account.phoneNumber}</td>
               <td>{account.role_id.name}</td>
               <td className="d-flex justify-content-between">
                 <button className="btn btn-warning" onClick={() => handleEdit(account._id)}>
-                  Update
+                  <i className="fa fa-pencil-square-o" aria-hidden="true"></i>
                 </button>
-                
+
                 {account.role_id.name !== "admin" && (
                   account.isActive ? (
                     <button
                       className="btn btn-danger"
                       onClick={() => handleAccountStatusChange(account._id, false)}
                     >
-                      Inactive
+                      <i className="fa fa-times" aria-hidden="true"></i>
                     </button>
                   ) : (
                     <button
                       className="btn btn-success"
                       onClick={() => handleAccountStatusChange(account._id, true)}
                     >
-                      Active
+                      <i className="fa fa-check" aria-hidden="true"></i>
                     </button>
                   )
                 )}
-              </td>
-              <td>
                 <button className="btn btn-info" onClick={() => navigate(`/profile/${account._id}`)}>
-                  Detail
+                  <i className="fa fa-eye" aria-hidden="true"></i>
                 </button>
               </td>
             </tr>
@@ -237,15 +229,25 @@ const AccountList = () => {
         </tbody>
       </table>
       <div className="pagination float-end mb-4">
-        {Array.from({ length: Math.ceil(accountData.length / accountsPerPage) }, (_, i) => (
-          <button
-            key={i}
-            className={`btn ${currentPage === i + 1 ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => handlePageChange(i + 1)}
-          >
-            {i + 1}
-          </button>
-        ))}
+        <ReactPaginate
+          previousLabel={'<'}
+          nextLabel={'>'}
+          breakLabel={'...'}
+          breakClassName={'break-me'}
+          pageCount={Math.ceil(accountData.length / accountsPerPage)}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          onPageChange={handlePageChange}
+          containerClassName={'pagination'}
+          activeClassName={'active'}
+          pageClassName={'page-item'}
+          pageLinkClassName={'page-link'}
+          previousClassName={'page-item'}
+          previousLinkClassName={'page-link'}
+          nextClassName={'page-item'}
+          nextLinkClassName={'page-link'}
+          breakLinkClassName={'page-link'}
+        />
       </div>
     </div>
   );

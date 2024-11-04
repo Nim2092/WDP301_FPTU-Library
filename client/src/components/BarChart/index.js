@@ -10,7 +10,7 @@ function MonthlyOrderChart() {
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
     const [totalOrder, setTotalOrder] = useState(0);
     useEffect(() => {
-        axios.get("http://localhost:9999/api/orders/chart-order-by-month")
+        axios.get("https://fptu-library.xyz/api/orders/chart-order-by-month")
             .then((res) => {
                 const monthlyData = res.data.data;
 

@@ -11,7 +11,7 @@ function BookStatus({ bookID, onPreviousStep }) {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:9999/api/orders/by-order/${bookID}`)
+      .get(`https://fptu-library.xyz/api/orders/by-order/${bookID}`)
       .then((response) => {
         const { book_id: book, borrowDate, dueDate, created_by, updated_by } = response.data.data;
         setBookData({ book, borrowDate, dueDate, created_by, updated_by });
@@ -38,7 +38,7 @@ function BookStatus({ bookID, onPreviousStep }) {
     };
 
     try {
-      const response = await axios.post(`http://localhost:9999/api/orders/return/${bookID}`, payload);
+      const response = await axios.post(`https://fptu-library.xyz/api/orders/return/${bookID}`, payload);
 
       if (response.status === 200) {
         toast.success("Book return confirmed successfully!");
