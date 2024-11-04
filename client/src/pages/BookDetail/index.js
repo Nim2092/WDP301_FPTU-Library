@@ -8,11 +8,11 @@ function BookDetail() {
   const [image, setImage] = useState(null);
   useEffect(() => {
     const fetchBookDetail = async () => {
-      const response = await axios.get(`http://localhost:9999/api/book-sets/${id}`);
+      const response = await axios.get(`https://fptu-library.xyz/api/book-sets/${id}`);
       setBook(response.data.bookSet);
       const image = response.data.bookSet.image;
       if (image) {
-        setImage(`http://localhost:9999/api/book-sets/image/${image.split("/").pop()}`);
+        setImage(`https://fptu-library.xyz/api/book-sets/image/${image.split("/").pop()}`);
       }
     }
    

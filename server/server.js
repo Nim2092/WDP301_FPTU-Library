@@ -11,9 +11,9 @@ const app = express();
 
 // Cấu hình CORS cho phép client truy cập
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://your-production-domain.com"], // Các domain được phép
+  origin: "*", // Các domain được phép
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Các phương thức được phép
-  allowedHeaders: "Content-Type, Authorization, x-access-token", // Các header được phép
+  allowedHeaders: "*", // Các header được phép
   credentials: true, // Cần thiết nếu bạn sử dụng cookie hoặc thông tin xác thực
 };
 

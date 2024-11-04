@@ -34,7 +34,7 @@ function SearchResultsPage() {
     const fetchBooks = async () => {
       if (title && !hasFetched.current) {
         try {
-          const response = await axios.get("http://localhost:9999/api/book-sets/list", {
+          const response = await axios.get("https://fptu-library.xyz/api/book-sets/list", {
             params: { title },
           });
           setBooks(response.data.data);
@@ -61,7 +61,7 @@ function SearchResultsPage() {
     }
 
     try {
-      const response = await axios.post(`http://localhost:9999/api/orders/create-borrow/${selectedBookId}`, {
+      const response = await axios.post(`https://fptu-library.xyz/api/orders/create-borrow/${selectedBookId}`, {
         book_id: selectedBookId,
         borrowDate,
         dueDate,
@@ -106,7 +106,7 @@ function SearchResultsPage() {
             <div className="row no-gutters">
               <div className="col-md-3">
                 <img
-                  src={`http://localhost:9999/api/book-sets/image/${book.image.split("/").pop()}`}
+                  src={`https://fptu-library.xyz/api/book-sets/image/${book.image.split("/").pop()}`}
                   alt={book.title}
                   style={{ width: "250px", height: "auto" }}
                 />

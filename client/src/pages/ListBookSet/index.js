@@ -17,7 +17,7 @@ function ListBookSet() {
 
   // Lấy dữ liệu bộ sách và sắp xếp theo thời gian tạo
   useEffect(() => {
-    axios.get("http://localhost:9999/api/book-sets/list")
+    axios.get("https://fptu-library.xyz/api/book-sets/list")
       .then((response) => {
         const sortedData = response.data.data.sort((a, b) =>
           new Date(b.createdAt) - new Date(a.createdAt)
@@ -39,7 +39,7 @@ function ListBookSet() {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`http://localhost:9999/api/book-sets/delete/${id}`);
+      await axios.delete(`https://fptu-library.xyz/api/book-sets/delete/${id}`);
       const updatedData = filteredBookSetData.filter((bookSet) => bookSet._id !== id);
       setBookSetData(updatedData);
       setFilteredBookSetData(updatedData);
@@ -128,7 +128,7 @@ function ListBookSet() {
                   <tr key={bookSet._id} className="align-middle">
                     <td>
                       <img
-                        src={`http://localhost:9999/api/book-sets/image/${bookSet.image.split("/").pop()}`}
+                        src={`https://fptu-library.xyz/api/book-sets/image/${bookSet.image.split("/").pop()}`}
                         alt={bookSet.title}
                         style={{ width: "100px", height: "auto" }}
                       />

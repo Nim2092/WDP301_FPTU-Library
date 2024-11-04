@@ -19,7 +19,7 @@ function ListBookBorrowed() {
       try {
         setLoading(true); // Start loading
         const response = await axios.get(
-          `http://localhost:9999/api/orders/by-user/${user.id}`, // Assuming the user object has an `id` field
+          `https://fptu-library.xyz/api/orders/by-user/${user.id}`, // Assuming the user object has an `id` field
           {
             headers: {
               Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
@@ -46,7 +46,7 @@ function ListBookBorrowed() {
     if (confirmLost) {
       try {
         await axios.put(
-          `http://localhost:9999/api/orders/report-lost/${orderId}`,
+          `https://fptu-library.xyz/api/orders/report-lost/${orderId}`,
           { userId: user.id, status: currentStatus },
           {
             headers: {
@@ -57,7 +57,7 @@ function ListBookBorrowed() {
         alert("The book has been successfully reported as lost.");
 
         const response = await axios.get(
-          `http://localhost:9999/api/orders/by-user/${user.id}`,
+          `https://fptu-library.xyz/api/orders/by-user/${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -80,7 +80,7 @@ function ListBookBorrowed() {
 
   const handleCancelOrder = async (orderId) => {
     try {
-      await axios.put(`http://localhost:9999/api/orders/change-status/${orderId}`, {
+      await axios.put(`https://fptu-library.xyz/api/orders/change-status/${orderId}`, {
         status: "Canceled",
       },
         {
@@ -98,7 +98,7 @@ function ListBookBorrowed() {
 
   const handleRenewBook = async (orderId) => {
     try {
-      await axios.post(`http://localhost:9999/api/orders/renew/${orderId}`, {
+      await axios.post(`https://fptu-library.xyz/api/orders/renew/${orderId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

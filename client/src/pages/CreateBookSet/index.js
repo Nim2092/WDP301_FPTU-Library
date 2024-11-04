@@ -35,7 +35,7 @@ function CreateBookSet() {
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
-        const response = await axios.get("http://localhost:9999/api/catalogs/list");
+        const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
         setCatalogData(response.data);
       } catch (error) {
         console.error("Error fetching catalog data:", error);
@@ -55,7 +55,7 @@ function CreateBookSet() {
     });
 
     try {
-      const response = await axios.post("http://localhost:9999/api/book-sets/create", data, {
+      const response = await axios.post("https://fptu-library.xyz/api/book-sets/create", data, {
         headers: {
           "Content-Type": "multipart/form-data", // Sử dụng multipart/form-data khi có file
         },

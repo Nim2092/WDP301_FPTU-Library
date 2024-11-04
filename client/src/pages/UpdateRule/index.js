@@ -13,7 +13,7 @@ function UpdateRule() {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:9999/api/rules/get/${id}`
+          `https://fptu-library.xyz/api/rules/get/${id}`
         );
         const result = await response.json();
         if (response.ok) {
@@ -43,7 +43,7 @@ function UpdateRule() {
 
     try {
       const response = await fetch(
-        `http://localhost:9999/api/rules/update/${id}`,
+        `https://fptu-library.xyz/api/rules/update/${id}`,
         {
           method: "PUT",
           headers: {

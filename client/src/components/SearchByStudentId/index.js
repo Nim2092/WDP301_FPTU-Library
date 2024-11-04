@@ -9,7 +9,7 @@ function SearchByStudentId({ onNextStep }) {
   const handleSearch = async () => {
     if (studentId.trim()) {
       try {
-        const user = await axios.get(`http://localhost:9999/api/user/getByCode/${studentId}`);
+        const user = await axios.get(`https://fptu-library.xyz/api/user/getByCode/${studentId}`);
         const userID = user.data.data.userID;
         onNextStep(userID); // Pass userID to parent component
       } catch (error) {

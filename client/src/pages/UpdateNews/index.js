@@ -15,7 +15,7 @@ function UpdateNews() {
     // Fetch news detail
     const fetchNewsDetail = async () => {
       try {
-        const res = await axios.get(`http://localhost:9999/api/news/get/${id}`);
+        const res = await axios.get(`https://fptu-library.xyz/api/news/get/${id}`);
         setData(res.data.data); // Assuming `data` is the nested object with news information
         setLoading(false); // Set loading to false once data is fetched
       } catch (error) {
@@ -47,7 +47,7 @@ function UpdateNews() {
 
     try {
       const response = await axios.put(
-        `http://localhost:9999/api/news/update/${id}`,
+        `https://fptu-library.xyz/api/news/update/${id}`,
         formData,
         {
           headers: {
@@ -97,7 +97,7 @@ function UpdateNews() {
               ) : data.thumbnail ? (
                 // Show current thumbnail from data if available
                 <img
-                  src={`http://localhost:9999/api/news/thumbnail/${data.thumbnail
+                  src={`https://fptu-library.xyz/api/news/thumbnail/${data.thumbnail
                     .split("/")
                     .pop()}`}
                   className="img-fluid"

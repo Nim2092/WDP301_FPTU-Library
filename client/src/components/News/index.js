@@ -10,7 +10,7 @@ function News() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch("http://localhost:9999/api/news/list");
+        const response = await fetch("https://fptu-library.xyz/api/news/list");
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -37,7 +37,7 @@ function News() {
             <div key={item._id} className="col-md-4 mb-4" >
               <div className="card h-100" onClick={() => handleClick(item._id)}>
                 <img
-                  src={`http://localhost:9999/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
+                  src={`https://fptu-library.xyz/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
                   className="card-img-top"
                   alt={item.title}
                   style={{ width: "100%", height: "200px", objectFit: "cover", cursor: "pointer" }}

@@ -14,7 +14,7 @@ function ListFines() {
 
     useEffect(() => {
         // Fetch toàn bộ dữ liệu phạt từ API
-        axios.get("http://localhost:9999/api/fines/getAll")
+        axios.get("https://fptu-library.xyz/api/fines/getAll")
             .then((response) => {
                 setFines(response.data.data);
             })
@@ -26,7 +26,7 @@ function ListFines() {
 
     // Tìm kiếm theo mã người dùng
     const handleSearchByUserCode = () => {
-        axios.get(`http://localhost:9999/api/fines/by-code/${userCode}`)
+        axios.get(`https://fptu-library.xyz/api/fines/by-code/${userCode}`)
             .then((response) => {
                 setFines(response.data.data);
             })
@@ -40,7 +40,7 @@ function ListFines() {
     const handleSearchByStatus = (status) => {
         if (status === "") {
             // Nếu status rỗng, gọi API lấy tất cả dữ liệu
-            axios.get("http://localhost:9999/api/fines/getAll")
+            axios.get("https://fptu-library.xyz/api/fines/getAll")
                 .then((response) => {
                     setFines(response.data.data);
                 })
@@ -50,7 +50,7 @@ function ListFines() {
                 });
         } else {
             // Nếu có status, gọi API filter theo status
-            axios.get(`http://localhost:9999/api/fines/filter-by-status/${status}`)
+            axios.get(`https://fptu-library.xyz/api/fines/filter-by-status/${status}`)
                 .then((response) => {
                     setFines(response.data.data);
                 })
