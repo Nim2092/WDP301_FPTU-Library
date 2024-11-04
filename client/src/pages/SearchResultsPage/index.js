@@ -1,82 +1,82 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
-import { Modal, Button, Form } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import Search from "../../components/Search";
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
-
-function SearchResultsPage() {
-  const query = useQuery();
-  const [books, setBooks] = useState([]);
-  const [title, setTitle] = useState("");
-  const [showModal, setShowModal] = useState(false);
+import { useNavigate } from "react-router-dom";
+import AuthContext from "../../contexts/UserContext";
+import { toast, ToastContainer } from "react-toastify";
+import ReactPaginate from "react-paginate";
+import { Modal, Button, Form, Container } from "react-bootstrap";
+import Search from "../../components/Search";     
+function SearchResultsPage({ books = [] }) {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [selectedBookId, setSelectedBookId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [borrowDate, setBorrowDate] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(5); // Number of books per page
-  const hasFetched = useRef(false);
+  const [bookSet, setBookSet] = useState(null);
+  const [book, setBook] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const queryTitle = query.get("title");
-    if (queryTitle && queryTitle !== title) {
-      setTitle(queryTitle);
-      hasFetched.current = false;
-    }
-  }, [query, title]);
+  const itemsPerPage = 5; // Số sách hiển thị trên mỗi trang
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      if (title && !hasFetched.current) {
-        try {
-          const response = await axios.get("http://localhost:9999/api/book-sets/list", {
-            params: { title },
-          });
-          setBooks(response.data.data);
-          hasFetched.current = true;
-        } catch (error) {
-          console.error("Error fetching books:", error);
-        }
-      }
-    };
-    fetchBooks();
-  }, [title]);
+  // Lấy dữ liệu sách cho phân trang
+  const offset = currentPage * itemsPerPage;
+  const currentBooks = books.slice(offset, offset + itemsPerPage);
 
-  const openBorrowModal = (bookId) => {
+  // Mở Modal mượn sách và lấy thông tin sách
+  const openBorrowModal = async (bookId) => {
     setSelectedBookId(bookId);
-    setShowModal(true);
-    setBorrowDate(new Date().toISOString().split("T")[0]);
-    setDueDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:9999/api/book-sets/available/${bookId}`);
+      setBookSet(response.data.bookSet);
+      setBook(response.data.availableBooks);
+      setShowModal(true);
+      setBorrowDate(new Date().toISOString().slice(0, 10));
+      setDueDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu sách:", error);
+      toast.error("Lỗi khi lấy dữ liệu sách.");
+    }
+    setLoading(false);
   };
 
+  // Xử lý yêu cầu mượn sách
   const handleBorrowSubmit = async () => {
-    if (!borrowDate || !dueDate) {
-      toast.error("Please select borrow and due dates.");
-      return;
-    }
-
+    setLoading(true);
     try {
-      const response = await axios.post(`http://localhost:9999/api/orders/create-borrow/${selectedBookId}`, {
-        book_id: selectedBookId,
-        borrowDate,
-        dueDate,
+      const booksetCurrent = bookSet._id;
+      const ordersResponse = await axios.get(`http://localhost:9999/api/orders/by-user/${user.id}`);
+      const orders = ordersResponse.data.data;
+      const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
+
+      if (hasDifferentBookSet) {
+        toast.error("Bạn không thể mượn sách từ bộ sách khác.");
+        return;
+      }
+
+      const firstBook = book[0];
+      const response = await axios.post(`http://localhost:9999/api/orders/create-borrow/${firstBook._id}`, {
+        book_id: firstBook._id,
+        userId: user.id,
+        borrowDate: borrowDate,
+        dueDate: dueDate,
       });
 
       if (response.status === 201) {
-        toast.success("Book borrowed successfully!");
+        toast.success("Đã mượn sách thành công!");
         setShowModal(false);
       } else {
-        toast.error("Error borrowing the book.");
+        console.error("Lỗi khi mượn sách:", response.data.message);
+        toast.error(response.data.message);
       }
     } catch (error) {
-      console.error("Error borrowing the book:", error);
-      toast.error("An error occurred.");
+      const message = error.response?.data?.message || "Đã xảy ra lỗi.";
+      console.error(error);
+      toast.error(message);
     }
+    setLoading(false);
   };
 
   const closeModal = () => {
@@ -85,81 +85,90 @@ function SearchResultsPage() {
     setDueDate("");
   };
 
-  // Calculate the current books to display
-  const indexOfLastBook = currentPage * booksPerPage;
-  const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooks = books.slice(indexOfFirstBook, indexOfLastBook);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected);
+  };
 
   return (
-    <div className="container mt-4">
+    <Container className="mt-4">
+      <Search/>
       <ToastContainer />
-      <div className="row mb-4">
-        <div className="col-12">
-          <Search />
-        </div>
-      </div>
-      {currentBooks.length > 0 ? (
+      {books.length === 0 ? (
+        <p>Không tìm thấy sách</p>
+      ) : (
         currentBooks.map((book) => (
           <div className="card mb-4 p-3" key={book._id}>
             <div className="row no-gutters">
               <div className="col-md-3">
-                <img
-                  src={`http://localhost:9999/api/book-sets/image/${book.image.split("/").pop()}`}
-                  alt={book.title}
-                  style={{ width: "250px", height: "auto" }}
-                />
+                {book.image ? (
+                  <img
+                    src={`http://localhost:9999/api/book-sets/image/${book.image.split("/").pop()}`}
+                    alt={book.title}
+                    style={{ width: "250px", height: "auto" }}
+                  />
+                ) : (
+                  <img
+                    src={"https://www.shutterstock.com/image-vector/default-ui-image-placeholder-wireframes-260nw-1037719192.jpg"}
+                    alt="Default"
+                    style={{ width: "250px", height: "auto" }}
+                  />
+                )}
               </div>
               <div className="col-md-9">
                 <div className="card-body">
                   <h5 className="card-title">{book.title}</h5>
-                  <p className="card-text"><strong>Author:</strong> {book.author}</p>
-                  <p className="card-text"><strong>Publisher:</strong> {book.publisher}</p>
-                  <p className="card-text"><strong>Year:</strong> {new Date(book.publishedYear).getFullYear()}</p>
+                  <p className="card-text"><strong>Tác giả:</strong> {book.author}</p>
+                  <p className="card-text"><strong>Nhà xuất bản:</strong> {book.publisher}</p>
+                  <p className="card-text"><strong>Năm xuất bản:</strong> {new Date(book.publishedYear).getFullYear()}</p>
                   <p className="card-text"><strong>ISBN:</strong> {book.isbn}</p>
-                  <p className="card-text"><strong>Total Copies:</strong> {book.totalCopies}</p>
-                  <p className="card-text"><strong>Available Copies:</strong> {book.availableCopies}</p>
-                  <p className="card-text"><strong>Borrowed Copies:</strong> {book.totalCopies - book.availableCopies}</p>
-                  {book.availableCopies > 0 && (
-                    <button
-                      className="btn btn-primary float-end"
-                      onClick={() => openBorrowModal(book._id)}
-                    >
-                      Borrow this book
-                    </button>
-                  )}
+                  <p className="card-text"><strong>Tổng số bản:</strong> {book.totalCopies}</p>
+                  <p className="card-text"><strong>Số bản có sẵn:</strong> {book.availableCopies}</p>
+                  <p className="card-text"><strong>Số bản đã mượn:</strong> {book.totalCopies - book.availableCopies}</p>
+
+                  <button
+                    className="btn btn-primary float-end"
+                    onClick={() => openBorrowModal(book._id)}
+                    disabled={loading}
+                  >
+                    {loading ? "Đang xử lý..." : "Mượn sách"}
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         ))
-      ) : (
-        <p>No results found.</p>
       )}
 
-      {/* Pagination */}
-      <nav>
-        <ul className="pagination float-end">
-          {Array.from({ length: Math.ceil(books.length / booksPerPage) }, (_, index) => (
-            <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-              <button onClick={() => paginate(index + 1)} className="page-link">
-                {index + 1}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      {/* Phân trang */}
+      <ReactPaginate
+        previousLabel={"Trước"}
+        nextLabel={"Tiếp"}
+        breakLabel={"..."}
+        pageCount={Math.ceil(books.length / itemsPerPage)}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageClick}
+        containerClassName={"pagination justify-content-center"}
+        pageClassName={"page-item"}
+        pageLinkClassName={"page-link"}
+        previousClassName={"page-item"}
+        previousLinkClassName={"page-link"}
+        nextClassName={"page-item"}
+        nextLinkClassName={"page-link"}
+        breakClassName={"page-item"}
+        breakLinkClassName={"page-link"}
+        activeClassName={"active"}
+      />
 
-      {/* Borrow Modal */}
+      {/* Modal mượn sách */}
       <Modal show={showModal} onHide={closeModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Borrow Book</Modal.Title>
+          <Modal.Title>Mượn sách</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group controlId="borrowDate">
-              <Form.Label>Borrow Date</Form.Label>
+              <Form.Label>Ngày mượn</Form.Label>
               <Form.Control
                 type="date"
                 value={borrowDate}
@@ -167,7 +176,7 @@ function SearchResultsPage() {
               />
             </Form.Group>
             <Form.Group controlId="dueDate" className="mt-3">
-              <Form.Label>Due Date</Form.Label>
+              <Form.Label>Ngày trả</Form.Label>
               <Form.Control
                 type="date"
                 value={dueDate}
@@ -178,14 +187,14 @@ function SearchResultsPage() {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={closeModal}>
-            Cancel
+            Hủy
           </Button>
-          <Button variant="primary" onClick={handleBorrowSubmit}>
-            Confirm Borrow
+          <Button variant="primary" onClick={handleBorrowSubmit} disabled={loading}>
+            {loading ? "Đang xử lý..." : "Xác nhận mượn"}
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 }
 

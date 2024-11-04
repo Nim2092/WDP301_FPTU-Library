@@ -35,13 +35,16 @@ function News() {
         {Array.isArray(newsItems) && newsItems.length > 0 ? (
           newsItems.slice(-3).map((item) => ( // Take the last 3 items
             <div key={item._id} className="col-md-4 mb-4" >
-              <div className="card h-100" onClick={() => handleClick(item._id)}>
+              <div className="card h-100 position-relative" onClick={() => handleClick(item._id)}>
+                <i className="fa-regular fa-newspaper"></i>
                 <img
                   src={`http://localhost:9999/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
                   className="card-img-top"
                   alt={item.title}
                   style={{ width: "100%", height: "200px", objectFit: "cover", cursor: "pointer" }}
                 />
+                {/* Add the "New" tag */}
+                <div className="new-tag">New</div>
                 <div className="card-body">
                   <h5 className="card-title" style={{ cursor: "pointer" }}>
                     {item.title}

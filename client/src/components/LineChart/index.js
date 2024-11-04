@@ -11,6 +11,7 @@ function FinesByMonthChart() {
     labels: [],
     datasets: [],
   });
+  const [totalFines, setTotalFines] = useState(0);
 
   useEffect(() => {
     // Fetch monthly fines data from the API
@@ -38,6 +39,13 @@ function FinesByMonthChart() {
       })
       .catch((error) => {
         console.error("Error fetching monthly fines data:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios.get("http://localhost:9999/api/fines/getAll")
+      .then((res) => {
+        setTotalFines(res.data.data.length);
       });
   }, []);
 
@@ -70,7 +78,12 @@ function FinesByMonthChart() {
     },
   };
 
-  return <Line data={chartData} options={options} />;
+  return (
+    <div>
+      <p>Total Fines: {totalFines}</p>
+      <Line data={chartData} options={options} />
+    </div>
+  );
 }
 
 export default FinesByMonthChart;

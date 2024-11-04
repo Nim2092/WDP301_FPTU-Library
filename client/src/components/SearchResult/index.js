@@ -1,11 +1,11 @@
-import React, { useState, useContext} from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
 import { toast, ToastContainer } from "react-toastify";
 import ReactPaginate from "react-paginate";
 import { Modal, Button, Form, Container } from "react-bootstrap";
 
-function SearchResults({ books }) {
+function SearchResults({ books = [] }) {
   const { user } = useContext(AuthContext);
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -42,16 +42,14 @@ function SearchResults({ books }) {
 
   // Xử lý yêu cầu mượn sách
   const handleBorrowSubmit = async () => {
-    if (!bookSet || book.length === 0) {
-      toast.error("Thông tin về bộ sách bị thiếu. Không có quyển sách nào!");
-      return;
-    }
 
     setLoading(true);
     try {
-      const booksetCurrent = bookSet._id;
+      const booksetCurrent = bookSet.bookSet_id._id;
+      console.log(booksetCurrent);
       const ordersResponse = await axios.get(`http://localhost:9999/api/orders/by-user/${user.id}`);
       const orders = ordersResponse.data.data;
+      console.log(orders);
       const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
 
       if (hasDifferentBookSet) {
@@ -102,11 +100,19 @@ function SearchResults({ books }) {
           <div className="card mb-4 p-3" key={book._id}>
             <div className="row no-gutters">
               <div className="col-md-3">
-                <img
-                  src={`http://localhost:9999/api/book-sets/image/${book.image.split("/").pop()}`}
-                  alt={book.title}
-                  style={{ width: "250px", height: "auto" }}
-                />
+                {book.image ? (
+                  <img
+                    src={`http://localhost:9999/api/book-sets/image/${book.image.split("/").pop()}`}
+                    alt={book.title}
+                    style={{ width: "250px", height: "auto" }}
+                  />
+                ) : (
+                  <img
+                    src={"https://www.shutterstock.com/image-vector/default-ui-image-placeholder-wireframes-260nw-1037719192.jpg"}
+                    alt="Default"
+                    style={{ width: "250px", height: "auto" }}
+                  />
+                )}
               </div>
               <div className="col-md-9">
                 <div className="card-body">
