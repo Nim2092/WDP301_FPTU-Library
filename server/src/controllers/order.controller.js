@@ -430,6 +430,9 @@ async function changeOrderStatus(req, res, next) {
       const book = await Book.findById(order.book_id);
       book.status = 'Available';
       await book.save();
+      const bookSet = await BookSet.findById(book.bookSet_id);
+      bookSet.availableCopies += 1;
+      await bookSet.save();
     }
 
     // Update the order status
