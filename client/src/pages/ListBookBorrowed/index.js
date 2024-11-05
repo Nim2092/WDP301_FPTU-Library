@@ -3,11 +3,15 @@ import "./ListBookBorrowed.scss";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext"; // Adjust this path to where your context is located
-
+import 'font-awesome/css/font-awesome.min.css';
+import ReactPaginate from 'react-paginate'; // Ensure this import is present
+import { toast } from "react-toastify";
 function ListBookBorrowed() {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0); // New state for current page
+  const [totalPages, setTotalPages] = useState(0); // New state for total pages
 
   // Access user and token from AuthContext
   const { user, token } = useContext(AuthContext);
@@ -19,7 +23,7 @@ function ListBookBorrowed() {
       try {
         setLoading(true); // Start loading
         const response = await axios.get(
-          `https://fptu-library.xyz/api/orders/by-user/${user.id}`, // Assuming the user object has an `id` field
+          `https://fptu-library.xyz/api/orders/by-user/${user.id}?page=${currentPage + 1}`, // Updated API call with pagination
           {
             headers: {
               Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
@@ -27,6 +31,7 @@ function ListBookBorrowed() {
           }
         );
         setBorrowedBooks(response.data.data); // Assuming the response contains an array of orders in `data.data`
+        setTotalPages(response.data.totalPages); // Assuming the API returns total pages
       } catch (err) {
         setError("Failed to fetch borrowed books. Please try again later.");
         console.error(err);
@@ -36,7 +41,11 @@ function ListBookBorrowed() {
     };
 
     fetchBorrowedBooks();
-  }, [user, token]);
+  }, [user, token, currentPage]); // Added currentPage to dependencies
+
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected); // Update current page on page change
+  };
 
   // Function to handle the "Report lost book" action
   const handleReportLostBook = async (orderId, currentStatus) => {
@@ -47,7 +56,7 @@ function ListBookBorrowed() {
       try {
         await axios.put(
           `https://fptu-library.xyz/api/orders/report-lost/${orderId}`,
-          { userId: user.id, status: currentStatus },
+          { userId: user.id, status: currentStatus, updated_by: user.id },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -79,9 +88,11 @@ function ListBookBorrowed() {
 
 
   const handleCancelOrder = async (orderId) => {
+
     try {
       await axios.put(`https://fptu-library.xyz/api/orders/change-status/${orderId}`, {
         status: "Canceled",
+        updated_by: user.id
       },
         {
           headers: {
@@ -89,24 +100,28 @@ function ListBookBorrowed() {
           },
         }
       );
-      alert("Order has been canceled successfully.");
+      toast.success("Đơn hàng đã được hủy thành công.");
     } catch (err) {
+      const message = err.response?.data?.message || "Đã xảy ra lỗi.";
       console.error(err);
-      alert("Failed to cancel the order. Please try again.");
+      toast.error(message);
     }
   };
 
   const handleRenewBook = async (orderId) => {
     try {
       await axios.post(`https://fptu-library.xyz/api/orders/renew/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      alert("Book has been renewed successfully.");
+        updated_by: user.id
+      },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      toast.success("Sách đã được gia hạn thành công.");
     } catch (err) {
       console.error(err);
-      alert("Failed to renew the book. Please try again.");
+      toast.error("Failed to renew the book. Please try again.");
     }
   };
 
@@ -131,27 +146,18 @@ function ListBookBorrowed() {
   return (
     <div className="container mt-5">
       {error && <p className="text-danger">{error}</p>}
-      {!error && borrowedBooks.length === 0 && (
-        <p>No borrowed books found.</p>
-      )}
-      <div className="row">
-        <div className="col-md-6">
-          <h2>Borrowed Books</h2>
-        </div>
-        <div className="col-md-6"></div>
-      </div>
       {borrowedBooks.length > 0 && (
         <table className="table table-bordered">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Book</th>
-              <th>Borrow date</th>
-              <th>Due date</th>
-              <th>Status</th>
-              <th>Identifi Code</th>
-              <th>renewCount</th>
-              <th>Action</th>
+              <th>Tên sách</th>
+              <th>Ngày mượn</th>
+              <th>Ngày hẹn trả</th>
+              <th>Trạng thái</th>
+              <th>Mã sách</th>
+              <th>Số lần gia hạn</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
@@ -165,47 +171,75 @@ function ListBookBorrowed() {
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
                 <td className={getStatusColor(order.status)}>
-                  {order.status || "Unknown Status"}
+                  {order.status === "Pending" ? "Đang chờ" : order.status === "Received" ? "Đã nhận" : order.status === "Canceled" ? "Đã hủy" : order.status === "Lost" ? "Đã mất" : order.status === "Returned" ? "Đã trả" : "Không xác định"}
                 </td>
                 <td>{order.book_id?.identifier_code}</td>
                 <td>{order.renewalCount}</td>
-                <td className="d-flex justify-content-between">
-                  {order.status === "Received" && (
-                    <>
+                <td className="text-center">
+                  <div className="row">
+                    <div className="col">
                       <button
                         onClick={() => handleReportLostBook(order._id, order.status)}
-                        className="btn btn-outline-primary me-2"
+                        className="btn btn-outline-primary"
+                        style={{ cursor: order.status !== "Received" ? 'not-allowed' : 'pointer', display: order.status !== "Received" ? 'none' : 'block' }} // Disable if status is not "Received"
                       >
-                        Report lost book
+                        <img width="20" height="20" title="Báo mất sách" src="https://img.icons8.com/hatch/64/quest.png" alt="quest" />
                       </button>
+                    </div>
+                    <div className="col">
                       <button
-                        className="btn btn-outline-primary me-2"
+                        className="btn btn-outline-primary"
+                        title="Gia hạn sách"
                         onClick={() => handleRenewBook(order._id)}
+                        style={{ cursor: order.status !== "Received" ? 'not-allowed' : 'pointer', display: order.status !== "Received" ? 'none' : 'block' }} // Disable if status is not "Received"
                       >
-                        Renew Book
+                        <img width="20" height="20" title="Gia hạn sách" src="https://img.icons8.com/ios/50/renew-subscription.png" alt="renew-subscription" />
                       </button>
-                    </>
-                  )}
-                  <Link
-                    to={`/order-book-detail/${order._id}`}
-                    className="btn btn-outline-primary"
-                  >
-                    Detail
-                  </Link>
-                  {order.status === "Pending" && (
-                    <button
-                      onClick={() => handleCancelOrder(order._id)}
-                      className="btn btn-outline-danger"
-                    >
-                      Cancel Order
-                    </button>
-                  )}
+                    </div>
+                    <div className="col">
+                      <Link
+                        to={`/order-book-detail/${order._id}`}
+                        className="btn btn-outline-primary"
+                      >
+                        <img width="20" height="20" title="Xem chi tiết" src="https://img.icons8.com/ios/30/visible--v1.png" alt="visible--v1" />
+                      </Link>
+                    </div>
+                    <div className="col">
+                      <button
+                        onClick={() => handleCancelOrder(order._id)}
+                        className="btn btn-outline-danger"
+                        style={{ cursor: order.status !== "Pending" ? 'not-allowed' : 'pointer', display: order.status !== "Pending" ? 'none' : 'block' }} // Disable if status is not "Pending"
+                      >
+                        <img width="20" height="20" title="Hủy đơn hàng" src="https://img.icons8.com/ios/30/cancel.png" alt="cancel" />
+                      </button>
+                    </div>
+                  </div>
                 </td>
+
               </tr>
             ))}
           </tbody>
         </table>
       )}
+      <ReactPaginate
+        previousLabel={'<'}
+        nextLabel={'>'}
+        breakLabel={'...'}
+        pageCount={totalPages}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageClick}
+        containerClassName={'pagination justify-content-end'}
+        pageClassName={'page-item'}
+        pageLinkClassName={'page-link'}
+        previousClassName={'page-item'}
+        previousLinkClassName={'page-link'}
+        nextClassName={'page-item'}
+        nextLinkClassName={'page-link'}
+        breakClassName={'page-item'}
+        breakLinkClassName={'page-link'}
+        activeClassName={'active'}
+      />
     </div>
   );
 }

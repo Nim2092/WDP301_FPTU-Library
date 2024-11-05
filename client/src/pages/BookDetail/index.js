@@ -165,7 +165,7 @@ function BookDetail() {
               </div>
               <div className="row mb-2">
                 <div className="col-md-6"><strong>Giá:</strong></div>
-                <div className="col-md-6">{bookSet.price} VNĐ</div>
+                <div className="col-md-6">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bookSet.price)}</div>
               </div>
               <div className="row mb-2">
                 <div className="col-md-6"><strong>Tổng số bản sao:</strong></div>

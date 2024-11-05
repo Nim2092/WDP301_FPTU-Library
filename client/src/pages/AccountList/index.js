@@ -171,7 +171,7 @@ const AccountList = () => {
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
-          <button className="btn btn-primary" onClick={handleCreateNewAccount}>
+          <button className="btn btn-primary" title="Tạo mới" onClick={handleCreateNewAccount}>
             <i className="fa fa-plus" aria-hidden="true"></i>
             <span className="tooltip-text"> Tạo mới</span>
           </button>
@@ -199,7 +199,7 @@ const AccountList = () => {
               <td>+84{account.phoneNumber}</td>
               <td>{account.role_id.name}</td>
               <td className="d-flex justify-content-between">
-                <button className="btn btn-warning" onClick={() => handleEdit(account._id)}>
+                <button className="btn btn-warning" title="Sửa" onClick={() => handleEdit(account._id)}>
                   <i className="fa fa-pencil-square-o" aria-hidden="true"></i>
                 </button>
 
@@ -207,6 +207,7 @@ const AccountList = () => {
                   account.isActive ? (
                     <button
                       className="btn btn-danger"
+                      title="Khóa"
                       onClick={() => handleAccountStatusChange(account._id, false)}
                     >
                       <i className="fa fa-times" aria-hidden="true"></i>
@@ -214,13 +215,14 @@ const AccountList = () => {
                   ) : (
                     <button
                       className="btn btn-success"
+                      title="Mở khóa"
                       onClick={() => handleAccountStatusChange(account._id, true)}
                     >
                       <i className="fa fa-check" aria-hidden="true"></i>
                     </button>
                   )
                 )}
-                <button className="btn btn-info" onClick={() => navigate(`/profile/${account._id}`)}>
+                <button className="btn btn-info" title="Chi tiết" onClick={() => navigate(`/profile/${account._id}`)}>
                   <i className="fa fa-eye" aria-hidden="true"></i>
                 </button>
               </td>

@@ -21,7 +21,7 @@ function Header() {
     };
 
     const handleProfileClick = () => {
-        navigate('/profile/:id'); // Navigate to profile page
+        navigate(`/profile/${user.id}`); // Navigate to profile page
     };
 
     const toggleDropdown = () => {
@@ -52,8 +52,8 @@ function Header() {
                             />
                             {isDropdownVisible && ( // Conditionally render dropdown
                                 <div className="dropdown-content">
-                                    <button onClick={handleProfileClick}>Profile</button>
-                                    <button onClick={handleLogout}>Logout</button>
+                                    <button onClick={handleProfileClick}>Thông tin cá nhân</button>
+                                    <button onClick={handleLogout}>Đăng xuất</button>
                                 </div>
                             )}
                         </div>

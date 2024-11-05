@@ -4,6 +4,7 @@ import Table from "react-bootstrap/Table";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import ReactPaginate from "react-paginate";
 
 function ListFines() {
     const [fines, setFines] = useState([]);
@@ -68,19 +69,35 @@ function ListFines() {
     const totalPages = Math.ceil(fines.length / itemsPerPage);
 
     // Xử lý thay đổi trang
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
+    const handlePageClick = (data) => {
+        setCurrentPage(data.selected + 1);
     };
 
     return (
         <div className="container mt-4">
             <ToastContainer />
             <div className="row">
-                <div className="col-md-9">
-                    <h2 className="mb-4">Danh sách các khoản phạt</h2>
+                <div className="row mb-3 col-md-8">
+                    <div className="col-md-4">
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Tìm theo mã người dùng"
+                            value={userCode}
+                            onChange={(e) => setUserCode(e.target.value)}
+                        />
+                    </div>
+                    <div className="col-md-2">
+                        <button
+                            className="btn btn-primary w-100"
+                            onClick={handleSearchByUserCode}
+                        >
+                            Tìm kiếm
+                        </button>
+                    </div>
                 </div>
-                <div className="col-md-3">
-                    <div className="mb-3">
+                <div className="col-md-4">
+                    <div className="mb-3 float-end">
                         <select
                             className="form-select"
                             value={status}
@@ -97,26 +114,6 @@ function ListFines() {
                     </div>
                 </div>
             </div>
-            <div className="row mb-3">
-                <div className="col-md-4">
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Tìm theo mã người dùng"
-                        value={userCode}
-                        onChange={(e) => setUserCode(e.target.value)}
-                    />
-                </div>
-                <div className="col-md-2">
-                    <button
-                        className="btn btn-primary w-100"
-                        onClick={handleSearchByUserCode}
-                    >
-                        Tìm kiếm
-                    </button>
-                </div>
-            </div>
-            {/* Bảng hiển thị danh sách phạt */}
             <Table striped bordered hover>
                 <thead>
                     <tr>
@@ -148,44 +145,25 @@ function ListFines() {
                 </tbody>
             </Table>
 
-            {/* Thêm phân trang */}
-            <nav aria-label="Page navigation">
-                <ul className="pagination justify-content-center">
-                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                        <button
-                            className="page-link"
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            Trước
-                        </button>
-                    </li>
-
-                    {[...Array(totalPages)].map((_, index) => (
-                        <li
-                            key={index + 1}
-                            className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
-                        >
-                            <button
-                                className="page-link"
-                                onClick={() => handlePageChange(index + 1)}
-                            >
-                                {index + 1}
-                            </button>
-                        </li>
-                    ))}
-
-                    <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                        <button
-                            className="page-link"
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Sau
-                        </button>
-                    </li>
-                </ul>
-            </nav>
+            <ReactPaginate
+                previousLabel={'<'}
+                nextLabel={'>'}
+                breakLabel={'...'}
+                pageCount={totalPages}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={5}
+                onPageChange={handlePageClick}
+                containerClassName={'pagination justify-content-end'}
+                pageClassName={'page-item'}
+                pageLinkClassName={'page-link'}
+                previousClassName={'page-item'}
+                previousLinkClassName={'page-link'}
+                nextClassName={'page-item'}
+                nextLinkClassName={'page-link'}
+                breakClassName={'page-item'}
+                breakLinkClassName={'page-link'}
+                activeClassName={'active'}
+            />
         </div>
     );
 }

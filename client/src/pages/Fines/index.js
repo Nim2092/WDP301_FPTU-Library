@@ -4,7 +4,7 @@ import { Container, Button, Modal } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AuthContext from "../../contexts/UserContext";
-
+import ReactPaginate from "react-paginate";
 function formatCurrency(amount) {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -22,6 +22,8 @@ function Fines() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [pollingIntervalId, setPollingIntervalId] = useState(null);
   const [timeoutId, setTimeoutId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const finesPerPage = 10; // Number of fines per page
 
   // Generate transaction code on component mount
   useEffect(() => {
@@ -88,10 +90,6 @@ function Fines() {
             window.location.reload();
           }, 2000);
         }
-      })
-      .catch(() => {
-        toast.error("Lỗi kiểm tra thanh toán, thử lại sau.");
-        // console.log("Lỗi kiểm tra thanh toán, thử lại sau.");
       });
   };
 
@@ -103,40 +101,54 @@ function Fines() {
     };
   }, [pollingIntervalId, timeoutId]);
 
+  // Calculate total pages
+  const totalPages = Math.ceil(fines.length / finesPerPage);
+
+  // Handle page click
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected);
+  };
+
+  // Get current fines to display
+  const currentFines = fines.slice(
+    currentPage * finesPerPage,
+    (currentPage + 1) * finesPerPage
+  );
+
   return (
     <Container className="mt-5">
       <div className="d-flex justify-content-center">
-        <h3>Fines</h3>
         <ToastContainer />
       </div>
-      <Button
-        className="mb-3 float-end"
-        variant="primary"
-        onClick={handlePay}
-        disabled={selectedFines.length === 0}
-      >
-        Pay
-      </Button>
-      <Button
-        className="mb-3"
-        variant="secondary"
-        onClick={handleSelectAll}
-      >
-        {selectAll ? "Deselect All" : "Select All"}
-      </Button>
+      <div className="d-flex justify-content-end" title={selectedFines.length === 0 ? "Chọn ít nhất 1 phạt để thanh toán" : "Thanh toán"}>
+        <Button
+          className="mb-3"
+          variant="primary"
+          onClick={handlePay}
+          disabled={selectedFines.length === 0}
+        >
+          Thanh toán
+        </Button>
+      </div>
       {fines.length > 0 ? (
         <table className="table table-hover border">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Created By</th>
-              <th>Reason</th>
-              <th>Total Fine Amount</th>
-              <th>Status</th>
+              <th><input
+                variant="secondary"
+                onClick={handleSelectAll}
+                type="checkbox"
+              >
+              </input></th>
+              <th>STT</th>
+              <th>Người bị phạt</th>
+              <th>Lý do</th>
+              <th>Tổng số tiền phạt</th>
+              <th>Trạng thái</th>
             </tr>
           </thead>
           <tbody>
-            {fines.map((fine) => (
+            {currentFines.map((fine, index) => (
               <tr key={fine._id}>
                 <td>
                   {fine.status === "Pending" && (
@@ -147,33 +159,56 @@ function Fines() {
                     />
                   )}
                 </td>
+                <td>{index + 1}</td>
                 <td>{fine.createBy.fullName}</td>
                 <td>{fine.reason || fine.fineReason_id.reasonName}</td>
                 <td>{formatCurrency(fine.totalFinesAmount)}</td>
-                <td>{fine.status}</td>
+                <td style={{ color: fine.status === "Pending" ? "orange" : fine.status === "Paid" ? "green" : "red" }}>
+                  {fine.status === "Pending" ? "Đang chờ" : fine.status === "Paid" ? "Đã thanh toán" : "Không xác định"}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+
       ) : null}
+      <ReactPaginate
+        previousLabel={'<'}
+        nextLabel={'>'}
+        breakLabel={'...'}
+        pageCount={totalPages}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageClick}
+        containerClassName={'pagination justify-content-end'}
+        pageClassName={'page-item'}
+        pageLinkClassName={'page-link'}
+        previousClassName={'page-item'}
+        previousLinkClassName={'page-link'}
+        nextClassName={'page-item'}
+        nextLinkClassName={'page-link'}
+        breakClassName={'page-item'}
+        breakLinkClassName={'page-link'}
+        activeClassName={'active'}
+      />
       {/* QR Code Modal */}
       <Modal show={showQRCode} onHide={() => setShowQRCode(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Scan QR code to complete payment</Modal.Title>
+          <Modal.Title>Scan QR code để hoàn thành thanh toán</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <h4>Total Amount: {formatCurrency(totalAmount)}</h4>
+          <h4>Tổng số tiền phạt: {formatCurrency(totalAmount)}</h4>
           <img
             src={`https://img.vietqr.io/image/mbbank-0985930695-compact2.jpg?amount=${totalAmount}&addInfo=start${transactionCode}end&accountName=FPTULibrary`}
             alt="QR Code for Payment"
             className="qr-code"
             style={{ width: "100%", height: "auto" }}
           />
-          <p>Scan the QR code to pay the total fine amount</p>
+          <p>Scan QR code để hoàn thành thanh toán</p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowQRCode(false)}>
-            Close
+            Đóng
           </Button>
         </Modal.Footer>
       </Modal>
