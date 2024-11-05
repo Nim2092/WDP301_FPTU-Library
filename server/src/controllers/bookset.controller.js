@@ -1,6 +1,8 @@
 const { default: mongoose } = require("mongoose");
 const { bookset: BookSet, book: Book, catalog: Catalog } = require("../models");
 const { GridFSBucket } = require("mongodb");
+const xlsx = require("xlsx");
+const axios = require('axios');
 
 async function createBookSet(req, res, next) {
   try {
@@ -536,6 +538,113 @@ const getImageById = async (req, res) => {
   }
 };
 
+async function importBookSets(req, res, next) {
+  try {
+    const { catalog_id, createdBy } = req.body;
+    if (!catalog_id || !createdBy) {
+      return res.status(400).json({ message: "Catalog ID và CreatedBy là bắt buộc." });
+    }
+
+    // Kiểm tra catalog tồn tại
+    const catalog = await Catalog.findById(catalog_id);
+    if (!catalog) {
+      return res.status(404).json({ message: "Catalog không tồn tại." });
+    }
+    const catalogCode = catalog.code;
+
+    // Đọc file Excel
+    const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = xlsx.utils.sheet_to_json(sheet);
+
+    // Tạo GridFSBucket
+    const bucket = new GridFSBucket(mongoose.connection.db, {
+      bucketName: "uploads",
+    });
+
+    // Xử lý từng dòng và tạo hoặc cập nhật BookSet
+    for (const row of rows) {
+      const {
+        isbn,
+        code,
+        shelfLocationCode,
+        title,
+        author,
+        publishedYear,
+        publisher,
+        physicalDescription,
+        totalCopies,
+        price,
+        image // Lấy URL hình ảnh từ cột image
+      } = row;
+
+      if (
+          !isbn || !code || !shelfLocationCode || !title ||
+          !author || !publishedYear || !publisher || !physicalDescription ||
+          !totalCopies || !price
+      ) {
+        continue; // Bỏ qua các dòng thiếu thông tin
+      }
+
+      let bookSet = await BookSet.findOne({ isbn });
+      if (bookSet) {
+        // Nếu ISBN đã tồn tại, cập nhật số lượng
+        bookSet.totalCopies += totalCopies;
+        bookSet.availableCopies += totalCopies;
+        await bookSet.save();
+      } else {
+        // Nếu ISBN chưa tồn tại, tạo BookSet mới
+        bookSet = new BookSet({
+          catalog_id,
+          isbn,
+          code,
+          shelfLocationCode,
+          title,
+          author,
+          publishedYear,
+          publisher,
+          physicalDescription,
+          totalCopies,
+          availableCopies: totalCopies,
+          price,
+          created_by: createdBy,
+          updated_by: createdBy,
+        });
+
+        if (image) {
+          // Tải ảnh từ URL và lưu vào GridFS
+          const response = await axios.get(image, { responseType: 'arraybuffer' });
+          const uploadStream = bucket.openUploadStream(`${isbn}-${Date.now()}.jpg`);
+          uploadStream.end(response.data);
+
+          uploadStream.on("finish", async () => {
+            bookSet.image = `/bookset/image/${uploadStream.id}`; // Lưu đường dẫn ảnh
+            await bookSet.save();
+
+            // Sau khi lưu BookSet, tiến hành tạo Books
+            await createBooksForBookSet(bookSet, catalogCode, code, totalCopies, createdBy);
+          });
+
+          uploadStream.on("error", (err) => {
+            console.error("Error uploading image", err);
+          });
+        } else {
+          // Nếu không có ảnh thì lưu BookSet ngay
+          await bookSet.save();
+          await createBooksForBookSet(bookSet, catalogCode, code, totalCopies, createdBy);
+        }
+      }
+    }
+
+    res.status(201).json({ message: "BookSets và Books đã được nhập thành công." });
+  } catch (error) {
+    res.status(500).json({ message: "Đã xảy ra lỗi", error: error.message });
+  }
+}
+
+
+
+
 const BookSetController = {
   createBookSet,
   updateBookSet,
@@ -545,6 +654,7 @@ const BookSetController = {
   deleteBookSet,
   getBookSetDetailAvailable,
   getImageById,
+  importBookSets
 };
 
 module.exports = BookSetController;
