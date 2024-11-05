@@ -16,9 +16,9 @@ function ReturnBook() {
     const [conditionDetail, setConditionDetail] = useState("");
     const handleSearchByStudentID = async () => {
         try {
-            const user = await axios.get(`http://localhost:9999/api/user/getByCode/${studentCode}`);
+            const user = await axios.get(`https://fptu-library.xyz/api/user/getByCode/${studentCode}`);
             const userID = user.data.data.userID;
-            const response = await axios.get(`http://localhost:9999/api/orders/by-user/${userID}`);
+            const response = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${userID}`);
             const data = response.data.data.filter(order => order.status === "Received"); // Chỉ giữ các orders có status là "Received"
             setBookList(Array.isArray(data) ? data : [data]);
         } catch (error) {
@@ -29,7 +29,7 @@ function ReturnBook() {
 
     const handleSearchByIdentityCode = async () => {
         try {
-            const response = await axios.get(`http://localhost:9999/api/orders/by-identifier-code/${identityCode}`);
+            const response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identityCode}`);
             if (response.data.data.status === "Received") {
                 setBookList(Array.isArray(response.data.data) ? response.data.data : [response.data.data]);
 
@@ -46,7 +46,7 @@ function ReturnBook() {
     const handleCloseModal = () => setShowModal(false);
 
     const handleReturnBook = (bookID) => {
-        axios.get(`http://localhost:9999/api/orders/by-order/${bookID}`).then((response) => {
+        axios.get(`https://fptu-library.xyz/api/orders/by-order/${bookID}`).then((response) => {
             const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by } = response.data.data;
             setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by }); // Lưu trữ toàn bộ thông tin về đơn hàng bao gồm _id
             handleShowModal();
@@ -67,7 +67,7 @@ function ReturnBook() {
             condition_detail: conditionDetail,
         };
         if (checkIdentityCode === bookData.book.identifier_code) {
-            axios.post(`http://localhost:9999/api/orders/return/${bookData._id}`, payload) // Sử dụng _id từ bookData
+            axios.post(`https://fptu-library.xyz/api/orders/return/${bookData._id}`, payload) // Sử dụng _id từ bookData
                 .then((response) => {
                     if (response.status === 200) {
                         toast.success("Book return confirmed successfully!");

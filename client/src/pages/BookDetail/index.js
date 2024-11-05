@@ -57,7 +57,7 @@ function BookDetail() {
 
   const handleAddNewCopy = async () => {
     try {
-      await axios.post(`http://localhost:9999/api/book-sets/add-books`, {
+      await axios.post(`https://fptu-library.xyz/api/book-sets/add-books`, {
         bookSet_id: id,
         numberOfCopies: parseInt(numberOfCopies),
         createdBy: user.id
@@ -73,7 +73,7 @@ function BookDetail() {
 
   const handleEditCopy = async (id) => {
     try {
-      const response = await axios.put(`http://localhost:9999/api/books/update/${id}`, {
+      const response = await axios.put(`https://fptu-library.xyz/api/books/update/${id}`, {
         condition: condition,
         condition_detail: conditionDetail,
         updatedBy: user.id
@@ -94,7 +94,7 @@ function BookDetail() {
     if (!isConfirmed) return;
 
     try {
-      await axios.delete(`http://localhost:9999/api/books/delete/${id}`);
+      await axios.delete(`https://fptu-library.xyz/api/books/delete/${id}`);
       toast.success("Xóa sách thành công");
       setTimeout(() => {
         window.location.reload();

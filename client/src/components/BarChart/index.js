@@ -36,7 +36,7 @@ function MonthlyOrderChart() {
     }, []);
 
     useEffect(() => {
-        axios.get("http://localhost:9999/api/orders/getAll")
+        axios.get("https://fptu-library.xyz/api/orders/getAll")
             .then((res) => {
                 setTotalOrder(res.data.data.length);
             });
