@@ -58,8 +58,8 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Header />
-          <div className="app-container" >
-            <div className="main-layout row">
+          <div className="app-container">
+            <div className="main-layout row" style={{height: '100%'}}>
               <Routes>
                 {/* Public route */}
                 <Route path="/login" element={<LoginPage />} />
@@ -73,7 +73,7 @@ function App() {
                 <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
                 <Route path="/list-rule-user" element={<ProtectedRoute roles={["borrower", "librarian"]}><ListRuleUser /></ProtectedRoute>} />
                 <Route path="/search-results" element={<ProtectedRoute roles={["borrower", "librarian"]}><SearchResultsPage /></ProtectedRoute>} />
-
+                <Route path="/chart" element={<ProtectedRoute roles={["admin", "librarian"]}><Chart /></ProtectedRoute>} />
 
                 {/* Borrower Routes */}
                 <Route path="/list-book-borrowed" element={<ProtectedRoute roles={["borrower"]}><ListBookBorrowed /></ProtectedRoute>} />
@@ -90,7 +90,6 @@ function App() {
                 <Route path="/list-news-admin" element={<ProtectedRoute roles={["librarian"]}><ListNews /></ProtectedRoute>} />
                 <Route path="/update-news/:id" element={<ProtectedRoute roles={["librarian"]}><UpdateNews /></ProtectedRoute>} />
                 <Route path="/return-book" element={<ProtectedRoute roles={["librarian"]}><ReturnBook /></ProtectedRoute>} />
-                <Route path="/chart" element={<ProtectedRoute roles={["librarian"]}><Chart /></ProtectedRoute>} />
                 <Route path="/list-fines" element={<ProtectedRoute roles={["librarian"]}><ListFines /></ProtectedRoute>} />
 
                 {/* Admin Routes */}
@@ -154,6 +153,8 @@ const ProtectedRoute = ({ roles, children }) => {
       { path: "/list-book-set", label: "Quản lý lô sách", icon: "fa fa-book" }, 
       { path: "/list-rule", label: "Quản lý quy định", icon: "fa fa-list" }, 
       { path: "/list-penalty-reasons", label: "Quản lý mức phạt", icon: "fa fa fa-window-close-o" }, 
+      { path: "/chart", label: "Thống kê", icon: "fa fa-bar-chart" }, 
+
     ],
   };
   

@@ -4,6 +4,7 @@ import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
 import { toast, ToastContainer } from "react-toastify";
 import ReactPaginate from 'react-paginate';
+
 const BorrowBookList = () => {
   const [showModal, setShowModal] = useState(false);
   const [condition, setCondition] = useState({
@@ -41,7 +42,7 @@ const BorrowBookList = () => {
         toast.info("No books found with the specified criteria.");
       }
 
-      // Sắp xếp borrowBooks theo ngày gần nhất
+      // Sort borrowBooks by the most recent date
       const sortedData = formattedData.sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate));
       setBorrowBooks(sortedData);
     } catch (error) {
@@ -60,6 +61,14 @@ const BorrowBookList = () => {
     setSelectedBook(book);
     setModalType(type);
     setShowModal(true);
+  };
+
+  const handleConditionChange = (e) => {
+    const { name, value } = e.target;
+    setCondition((prevCondition) => ({
+      ...prevCondition,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -84,19 +93,26 @@ const BorrowBookList = () => {
         status: newStatus,
         updated_by: user.id,
       };
-      console.log(updateData);
-      const condition = {
-        condition: "",
-        condition_detail: "",
+
+      if (modalType === "reject") {
+        updateData.reason_order = reason;
       }
 
-      if (modalType === "reject") updateData.reason_order = reason;
+      if (modalType === "receive") {
+        updateData.condition = condition;
+      }
 
+      // Update the status of the order
       await axios.put(`https://fptu-library.xyz/api/orders/change-status/${selectedBook._id}`, updateData);
-      await axios.put(`https://fptu-library.xyz/api/books/update/${selectedBook.book_id._id}`, condition);
+
+      // Update the condition of the book if the action is "receive"
+      if (modalType === "receive") {
+        await axios.put(`https://fptu-library.xyz/api/books/update/${selectedBook.book_id._id}`, condition);
+      }
 
       setShowModal(false);
       setReason("");
+      setCondition({ condition: "", condition_detail: "" }); // Reset condition state
       fetchBooks();
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "An error occurred while updating the book status.";
@@ -163,7 +179,7 @@ const BorrowBookList = () => {
           <input
             type="text"
             style={{ width: "300px", height: "40px", borderRadius: "10px", border: "1px solid #ccc" }}
-            placeholder=" Nhập mã sách"
+            placeholder="Nhập mã sách"
             value={identifierCode}
             onChange={(e) => setIdentifierCode(e.target.value)}
           />
@@ -274,7 +290,6 @@ const BorrowBookList = () => {
         breakClassName={'page-item'}
         breakLinkClassName={'page-link'}
         activeClassName={'active'}
-
       />
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
@@ -288,37 +303,15 @@ const BorrowBookList = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {modalType === "approve" || modalType === "receive" ? (
+          {modalType === "approve" && (
             <>
               <p>
                 Bạn có chắc chắn muốn {modalType} yêu cầu cho sách:{" "}
                 <strong>{selectedBook?.book_id?.bookSet_id?.title}</strong>?
               </p>
-              <div className="form-group mb-3">
-                <label htmlFor="condition">Tình trạng sách</label>
-                <select className="form-select" value={condition.condition} onChange={(e) => setCondition({ ...condition, condition: e.target.value })}>
-                  <option value="Good">Good</option>
-                  <option value="Light">Light</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                  <option value="Lost">Lost</option>
-                </select>
-              </div>
-              <div className="form-group mb-3">
-                <label htmlFor="conditionDetail">Mô tả tình trạng</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="conditionDetail"
-                  value={condition.condition_detail}
-                  onChange={(e) =>
-                    setCondition({ ...condition, condition_detail: e.target.value })
-                  }
-                  placeholder="Nhập mô tả tình trạng"
-                />
-              </div>
             </>
-          ) : (
+          )}
+          {modalType === "reject" && (
             <div className="form-group mb-3">
               <label htmlFor="reason">Lý do từ chối</label>
               <input
@@ -331,6 +324,37 @@ const BorrowBookList = () => {
               />
             </div>
           )}
+          {modalType === "receive" && (
+            <div className="form-group mb-3">
+              <div className="form-group mb-3">
+                <label htmlFor="condition">Tình trạng sách</label>
+                <select
+                  className="form-select"
+                  name="condition"
+                  value={condition.condition}
+                  onChange={handleConditionChange}
+                >
+                  <option value="Good">Good</option>
+                  <option value="Light">Light</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                  <option value="Lost">Lost</option>
+                </select>
+              </div>
+              <div className="form-group mb-3">
+                <label htmlFor="condition_detail">Mô tả tình trạng</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="condition_detail"
+                  name="condition_detail"
+                  value={condition.condition_detail}
+                  onChange={handleConditionChange}
+                  placeholder="Nhập mô tả tình trạng"
+                />
+              </div>
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
@@ -341,7 +365,6 @@ const BorrowBookList = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
     </Container>
   );
 };

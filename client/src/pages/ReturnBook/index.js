@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Modal, Button } from 'react-bootstrap';
 import ReactPaginate from 'react-paginate';
@@ -11,11 +11,17 @@ function ReturnBook() {
     const [bookData, setBookData] = useState({});
     const [showModal, setShowModal] = useState(false);
     const [returnDate, setReturnDate] = useState(new Date().toISOString().split('T')[0]);
-    const [bookCondition, setBookCondition] = useState("Good"); // Giá trị mặc định là "Good"
+    const [bookCondition, setBookCondition] = useState(bookData.condition); // Giá trị mặc định là "Good"
     const [fineData, setFineData] = useState({ fine_reason: "" });
     const [conditionDetail, setConditionDetail] = useState("");
     const [currentPage, setCurrentPage] = useState(0);
     const itemsPerPage = 5; // Number of items per page
+
+    useEffect(() => {
+        if (bookData.book?.condition_detail) {
+            setConditionDetail(bookData.book.condition_detail);
+        }
+    }, [bookData]);
 
     const handleSearchByStudentID = async () => {
         try {
@@ -50,8 +56,8 @@ function ReturnBook() {
 
     const handleReturnBook = (bookID) => {
         axios.get(`http://localhost:9999/api/orders/by-order/${bookID}`).then((response) => {
-            const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by } = response.data.data;
-            setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by }); // Lưu trữ toàn bộ thông tin về đơn hàng bao gồm _id
+            const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail } = response.data.data;
+            setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail }); // Lưu trữ toàn bộ thông tin về đơn hàng bao gồm _id
             handleShowModal();
         }).catch((error) => {
             const message = error.response?.data?.message || "An error occurred";
@@ -208,7 +214,12 @@ function ReturnBook() {
 
                         <div className="form-group">
                             <label>Chi tiết trạng thái</label>
-                            <input type="text" className="form-control" value={conditionDetail} onChange={(e) => setConditionDetail(e.target.value)} />
+                            <input 
+                                type="text" 
+                                className="form-control" 
+                                value={conditionDetail}
+                                onChange={(e) => setConditionDetail(e.target.value)} 
+                            />
                         </div>
                         <div className="form-group">
                             <label>Mã sách</label>

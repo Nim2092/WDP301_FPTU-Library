@@ -13,8 +13,6 @@ const handleSearch = () => {
     navigate(`/search-results?title=${searchTerm}`);
   }
 };
-
-
   return (
     <div className="search">
       <div className="container search__container">

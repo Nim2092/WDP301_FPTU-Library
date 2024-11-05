@@ -391,7 +391,7 @@ async function changeOrderStatus(req, res, next) {
 
     //Check just orders with status Pending or Renew Pending can be cancel
     const cancelableStatuses = ["Pending", "Renew Pending"];
-    if (status === "Canceled" && !cancelableStatuses.includes(status)) {
+    if (status === "Canceled" && !cancelableStatuses.includes(order.status)) {
       return res.status(400).json({
         message: `Chỉ có thể hủy đơn hàng với trạng thái ${cancelableStatuses.join(
           " hoặc "

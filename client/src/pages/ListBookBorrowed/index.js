@@ -5,7 +5,7 @@ import axios from "axios";
 import AuthContext from "../../contexts/UserContext"; // Adjust this path to where your context is located
 import 'font-awesome/css/font-awesome.min.css';
 import ReactPaginate from 'react-paginate'; // Ensure this import is present
-
+import { toast } from "react-toastify";
 function ListBookBorrowed() {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ function ListBookBorrowed() {
       try {
         await axios.put(
           `https://fptu-library.xyz/api/orders/report-lost/${orderId}`,
-          { userId: user.id, status: currentStatus },
+          { userId: user.id, status: currentStatus, updated_by: user.id },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -88,9 +88,11 @@ function ListBookBorrowed() {
 
 
   const handleCancelOrder = async (orderId) => {
+
     try {
       await axios.put(`https://fptu-library.xyz/api/orders/change-status/${orderId}`, {
         status: "Canceled",
+        updated_by: user.id
       },
         {
           headers: {
@@ -98,24 +100,28 @@ function ListBookBorrowed() {
           },
         }
       );
-      alert("Order has been canceled successfully.");
+      toast.success("Đơn hàng đã được hủy thành công.");
     } catch (err) {
+      const message = err.response?.data?.message || "Đã xảy ra lỗi.";
       console.error(err);
-      alert("Failed to cancel the order. Please try again.");
+      toast.error(message);
     }
   };
 
   const handleRenewBook = async (orderId) => {
     try {
       await axios.post(`https://fptu-library.xyz/api/orders/renew/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      alert("Book has been renewed successfully.");
+        updated_by: user.id
+      },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      toast.success("Sách đã được gia hạn thành công.");
     } catch (err) {
       console.error(err);
-      alert("Failed to renew the book. Please try again.");
+      toast.error("Failed to renew the book. Please try again.");
     }
   };
 

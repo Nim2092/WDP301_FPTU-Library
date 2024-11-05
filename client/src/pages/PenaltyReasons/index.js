@@ -105,7 +105,9 @@ const ListPenaltyReasons = () => {
               <tr key={reason._id}>
                 <td>{currentPage * itemsPerPage + index + 1}</td>
                 <td className="text-start">{reason.reasonName}</td>
-                <td>{reason.penaltyAmount} VNĐ</td>
+                <td>
+                  {reason.penaltyAmount} {reason.type === "PN1" ? "VNĐ" : "%"}
+                </td>
                 <td>{reason.type}</td>
                 <td>
                   <button

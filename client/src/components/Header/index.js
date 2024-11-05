@@ -52,8 +52,8 @@ function Header() {
                             />
                             {isDropdownVisible && ( // Conditionally render dropdown
                                 <div className="dropdown-content">
-                                    <button onClick={handleProfileClick}>Profile</button>
-                                    <button onClick={handleLogout}>Logout</button>
+                                    <button onClick={handleProfileClick}>Thông tin cá nhân</button>
+                                    <button onClick={handleLogout}>Đăng xuất</button>
                                 </div>
                             )}
                         </div>

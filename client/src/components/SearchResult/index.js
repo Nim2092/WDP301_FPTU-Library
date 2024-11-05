@@ -50,7 +50,8 @@ function SearchResults({ books = [] }) {
       const orders = ordersResponse.data.data;
       const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
 
-      if (hasDifferentBookSet) {
+      if (hasDifferentBookSet && (orders.status === "Pending" || orders.status === "Approved" 
+        || orders.status === "Received" || orders.status === "Overdue" || orders.status === "Renew Pending")) {
         toast.error("Bạn không thể mượn sách từ bộ sách này vì đã có sách đang mượn.");
         return;
       }
@@ -61,6 +62,8 @@ function SearchResults({ books = [] }) {
         userId: user.id,
         borrowDate: borrowDate,
         dueDate: dueDate,
+        // created_by: user.id,
+        // updated_by: user.id,
       });
 
       if (response.status === 201) {
