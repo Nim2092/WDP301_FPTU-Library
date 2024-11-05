@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
 import { Modal, Button } from "react-bootstrap";
 import ReactPaginate from 'react-paginate';
+import AuthContext from "../../contexts/UserContext";
 const CatalogList = () => {
-  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [catalogData, setCatalogData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +15,8 @@ const CatalogList = () => {
     code: "",
     major: "",
     semester: "",
-    isTextbook: ""
+    isTextbook: "",
+    createdBy: "",
   });
 
   // Trạng thái cho các bộ lọc
@@ -72,7 +73,8 @@ const CatalogList = () => {
       code: catalogToUpdate.code,
       major: catalogToUpdate.major,
       semester: catalogToUpdate.semester,
-      isTextbook: catalogToUpdate.isTextbook
+      isTextbook: catalogToUpdate.isTextbook,
+      createdBy: user.id,
     });
     setCurrentCatalogId(id);
     setIsEditMode(true);
@@ -100,7 +102,7 @@ const CatalogList = () => {
 
   // Mở modal tạo catalog mới
   const handleCreateNewCatalog = () => {
-    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false });
+    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false, createdBy: user.id});
     setIsEditMode(false);
     setShowModal(true);
   };
@@ -139,7 +141,7 @@ const CatalogList = () => {
       }
 
       setShowModal(false);
-      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false });
+      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false, createdBy: user.id});
     } catch (error) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} catalog:`, error);
     }
@@ -209,9 +211,8 @@ const CatalogList = () => {
           </select>
         </div>  
         <div className="col-2 d-flex justify-content-end">
-          <button className="btn btn-primary" onClick={handleCreateNewCatalog}>
+          <button className="btn btn-primary" title="Tạo mới" onClick={handleCreateNewCatalog}>
             <i className="fa fa-plus" aria-hidden="true"></i> 
-            <span className="tooltip-text"> Tạo mới</span>
           </button>
         </div>
       </div>
@@ -242,10 +243,10 @@ const CatalogList = () => {
                   <td>{catalog.semester}</td>
                   <td>{catalog.isTextbook ? "Yes" : "No"}</td>
                   <td >
-                    <button className="btn btn-success mr-2" onClick={() => handleUpdate(catalog._id)} >
+                    <button className="btn btn-success mr-2" title="Sửa" onClick={() => handleUpdate(catalog._id)} >
                       <i className="fa fa-pencil-square-o" aria-hidden="true"></i>
                     </button>
-                    <button className="btn btn-danger" onClick={() => handleDelete(catalog._id)} style={{marginLeft : "10px"}}>
+                    <button className="btn btn-danger" title="Xóa" onClick={() => handleDelete(catalog._id)} style={{marginLeft : "10px"}}>
                       <i className="fa fa-trash" aria-hidden="true"></i>
                     </button>
                   </td>

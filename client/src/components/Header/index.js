@@ -21,7 +21,7 @@ function Header() {
     };
 
     const handleProfileClick = () => {
-        navigate('/profile/:id'); // Navigate to profile page
+        navigate(`/profile/${user.id}`); // Navigate to profile page
     };
 
     const toggleDropdown = () => {

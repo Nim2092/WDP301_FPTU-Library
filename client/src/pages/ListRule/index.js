@@ -73,7 +73,7 @@ function ListRule() {
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-end mb-3">
-        <button className="btn btn-primary" onClick={() => navigate("/create-new-rule")}>
+        <button className="btn btn-primary" title="Tạo mới" onClick={() => navigate("/create-new-rule")}>
           <i className="fa fa-plus" aria-hidden="true"></i>
           <span className="tooltip-text"> Tạo mới</span>
         </button>
@@ -102,10 +102,10 @@ function ListRule() {
                 <td onClick={() => handleClick(rule.id)} className="btn-link text-start" style={{textDecoration: 'none', cursor: 'pointer'}}>{rule.title}</td>
                 {/* <td>{getLimitedContent(rule.content)  }</td> */}
                 <td>
-                  <button className="btn btn-success" onClick={() => navigate(`/update-rule/${rule.id}`)} style={{marginRight: '10px'}}>
+                  <button className="btn btn-success" title="Sửa" onClick={() => navigate(`/update-rule/${rule.id}`)} style={{marginRight: '10px'}}>
                     <i className="fa fa-pencil" aria-hidden="true"></i>
                   </button>
-                  <button className="btn btn-danger" onClick={() => handleDelete(rule.id)}>
+                  <button className="btn btn-danger" title="Xóa" onClick={() => handleDelete(rule.id)}>
                     <i className="fa fa-trash" aria-hidden="true"></i>
                   </button>
                 </td>

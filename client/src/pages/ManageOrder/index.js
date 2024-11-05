@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Modal, Button, Container, Pagination } from "react-bootstrap";
+import { Modal, Button, Container } from "react-bootstrap";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
 import { toast, ToastContainer } from "react-toastify";
-
+import ReactPaginate from 'react-paginate';
 const BorrowBookList = () => {
   const [showModal, setShowModal] = useState(false);
+  const [condition, setCondition] = useState({
+    condition: "",
+    condition_detail: "",
+  });
   const [modalType, setModalType] = useState(""); // 'approve', 'reject', 'receive', etc.
   const [selectedBook, setSelectedBook] = useState(null); // Holds the selected book for rejection or approval
   const [reason, setReason] = useState(""); // Holds the reason for rejection
@@ -21,7 +25,7 @@ const BorrowBookList = () => {
   const fetchBooks = async (identifierCode = "") => {
     try {
       let response;
-      
+
       if (identifierCode) {
         response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identifierCode}`);
       } else if (status === "") {
@@ -80,10 +84,16 @@ const BorrowBookList = () => {
         status: newStatus,
         updated_by: user.id,
       };
+      console.log(updateData);
+      const condition = {
+        condition: "",
+        condition_detail: "",
+      }
 
       if (modalType === "reject") updateData.reason_order = reason;
 
       await axios.put(`https://fptu-library.xyz/api/orders/change-status/${selectedBook._id}`, updateData);
+      await axios.put(`https://fptu-library.xyz/api/books/update/${selectedBook.book_id._id}`, condition);
 
       setShowModal(false);
       setReason("");
@@ -138,67 +148,68 @@ const BorrowBookList = () => {
     fetchBooks(identifierCode);
   };
 
-  const offset = currentPage * itemsPerPage;
-  const currentBooks = borrowBooks.slice(offset, offset + itemsPerPage);
+  const handlePageChange = ({ selected }) => {
+    setCurrentPage(selected);
+  };
 
-  const totalPages = Math.ceil(borrowBooks.length / itemsPerPage);
+  const currentBooks = borrowBooks.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   return (
     <Container className="mt-4">
       <ToastContainer />
-      <div className="d-flex justify-content-between">
-        <h2 className="mb-4">List of Borrowed Books</h2>
-        <div className="d-flex align-items-center">
-          <select
-            className="form-select mb-4"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="">All Orders</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Received">Received</option>
-            <option value="Canceled">Canceled</option>
-            <option value="Returned">Returned</option>
-            <option value="Overdue">Overdue</option>
-            <option value="Lost">Lost</option>
-            <option value="Renew Pending">Renew Pending</option>
-          </select>
-        </div>
-      </div>
+
       <div className="d-flex justify-content-between mb-3">
         <div className="search-bar d-flex align-items-center">
           <input
             type="text"
             style={{ width: "300px", height: "40px", borderRadius: "10px", border: "1px solid #ccc" }}
-            placeholder="Search by book identifier code"
+            placeholder=" Nhập mã sách"
             value={identifierCode}
             onChange={(e) => setIdentifierCode(e.target.value)}
           />
-          <Button variant="primary" style={{ marginLeft: "10px" }} onClick={handleSearchByIdentifierCode}>Search</Button>
-        </div>
-        <div>
-          <Button variant="primary" style={{ marginRight: "10px" }} onClick={handleSelectAll}>
-            {selectedBooks.length === borrowBooks.length ? "Unselect All" : "Select All"}
+          <Button variant="primary" style={{ marginLeft: "10px" }} title="Tìm kiếm" onClick={handleSearchByIdentifierCode}>
+            <i className="fa fa-search" aria-hidden="true"></i>
           </Button>
-          <Button variant="primary" style={{ marginRight: "10px" }} onClick={handleApproveSelected}>
-            Approve Selected
+        </div>
+        <div className="d-flex align-items-center">
+          <select
+            className="form-select"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">Tất cả đơn</option>
+            <option value="Pending">Đang chờ</option>
+            <option value="Approved">Đã duyệt</option>
+            <option value="Rejected">Đã từ chối</option>
+            <option value="Received">Đã nhận</option>
+            <option value="Canceled">Đã hủy</option>
+            <option value="Returned">Đã trả</option>
+            <option value="Overdue">Quá hạn</option>
+            <option value="Lost">Mất</option>
+            <option value="Renew Pending">Đang chờ duyệt gia hạn</option>
+          </select>
+        </div>
+        <div className="d-flex align-items-center">
+          <Button variant="primary" style={{ marginRight: "10px" }} title="Chọn tất cả" onClick={handleSelectAll}>
+            {selectedBooks.length === borrowBooks.length ? "Bỏ chọn" : "Chọn tất cả"}
+          </Button>
+          <Button variant="primary" style={{ marginRight: "10px" }} title="Duyệt" onClick={handleApproveSelected}>
+            Duyệt
           </Button>
         </div>
       </div>
       <table className="table table-bordered">
         <thead>
           <tr>
-            <th>Select</th>
+            <th>Chọn</th>
             <th>ID</th>
-            <th>Book Title</th>
-            <th>Borrow Date</th>
-            <th>Due Date</th>
-            <th>Identify Book Code</th>
-            <th>Status</th>
-            <th>Book Condition</th>
-            <th>Actions</th>
+            <th>Tên sách</th>
+            <th>Ngày mượn</th>
+            <th>Ngày hẹn trả</th>
+            <th>Mã sách</th>
+            <th>Trạng thái</th>
+            <th>Tình trạng sách</th>
+            <th>Hành động</th>
           </tr>
         </thead>
         <tbody>
@@ -225,70 +236,112 @@ const BorrowBookList = () => {
                 <td>{book.book_id?.condition}</td>
                 {book.status === "Pending" && (
                   <td>
-                    <Button variant="success" className="me-2" onClick={() => handleActionClick(book, "approve")}>Approve</Button>
-                    <Button variant="danger" onClick={() => handleActionClick(book, "reject")}>Reject</Button>
+                    <Button variant="success" style={{ marginRight: '10px' }} title="Duyệt" onClick={() => handleActionClick(book, "approve")}>Duyệt</Button>
+                    <Button variant="danger" title="Từ chối" onClick={() => handleActionClick(book, "reject")}>Từ chối</Button>
                   </td>
                 )}
                 {book.status === "Approved" && (
-                  <td><Button variant="primary" onClick={() => handleActionClick(book, "receive")}>Loaned</Button></td>
+                  <td><Button variant="primary" title="Nhận" onClick={() => handleActionClick(book, "receive")}>Nhận</Button></td>
                 )}
                 {book.status === "Renew Pending" && (
-                  <td><Button variant="primary" onClick={() => handleActionClick(book, "receive")}>Approve Renew</Button></td>
+                  <td><Button variant="primary" title="Duyệt gia hạn" onClick={() => handleActionClick(book, "receive")}>Duyệt gia hạn</Button></td>
                 )}
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="8" className="text-center">No books found</td>
+              <td colSpan="8" className="text-center">Không tìm thấy sách</td>
             </tr>
           )}
         </tbody>
       </table>
 
-      <Pagination className="float-end">
-        <Pagination.First onClick={() => setCurrentPage(0)} disabled={currentPage === 0} />
-        <Pagination.Prev onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 0} />
-        {[...Array(totalPages)].map((_, index) => (
-          <Pagination.Item
-            key={index}
-            active={index === currentPage}
-            onClick={() => setCurrentPage(index)}
-          >
-            {index + 1}
-          </Pagination.Item>
-        ))}
-        <Pagination.Next onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages - 1} />
-        <Pagination.Last onClick={() => setCurrentPage(totalPages - 1)} disabled={currentPage === totalPages - 1} />
-      </Pagination>
+      <ReactPaginate
+        previousLabel={'<'}
+        nextLabel={'>'}
+        breakLabel={'...'}
+        pageCount={Math.ceil(borrowBooks.length / itemsPerPage)}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageChange}
+        containerClassName={'pagination justify-content-end'}
+        pageClassName={'page-item'}
+        pageLinkClassName={'page-link'}
+        previousClassName={'page-item'}
+        previousLinkClassName={'page-link'}
+        nextClassName={'page-item'}
+        nextLinkClassName={'page-link'}
+        breakClassName={'page-item'}
+        breakLinkClassName={'page-link'}
+        activeClassName={'active'}
+
+      />
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>{modalType === "approve" ? "Confirm Approval" : modalType === "receive" ? "Confirm Receive" : "Reason for Rejection"}</Modal.Title>
+          <Modal.Title>
+            {modalType === "approve"
+              ? "Xác nhận duyệt"
+              : modalType === "receive"
+                ? "Xác nhận nhận"
+                : "Lý do từ chối"}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {modalType === "approve" || modalType === "receive" ? (
-            <p>
-              Are you sure you want to {modalType} the request for the book: <strong>{selectedBook?.book_id?.bookSet_id?.title}</strong>?
-            </p>
+            <>
+              <p>
+                Bạn có chắc chắn muốn {modalType} yêu cầu cho sách:{" "}
+                <strong>{selectedBook?.book_id?.bookSet_id?.title}</strong>?
+              </p>
+              <div className="form-group mb-3">
+                <label htmlFor="condition">Tình trạng sách</label>
+                <select className="form-select" value={condition.condition} onChange={(e) => setCondition({ ...condition, condition: e.target.value })}>
+                  <option value="Good">Good</option>
+                  <option value="Light">Light</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                  <option value="Lost">Lost</option>
+                </select>
+              </div>
+              <div className="form-group mb-3">
+                <label htmlFor="conditionDetail">Mô tả tình trạng</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="conditionDetail"
+                  value={condition.condition_detail}
+                  onChange={(e) =>
+                    setCondition({ ...condition, condition_detail: e.target.value })
+                  }
+                  placeholder="Nhập mô tả tình trạng"
+                />
+              </div>
+            </>
           ) : (
-            <div className="form-group">
-              <label htmlFor="reason">Reason</label>
+            <div className="form-group mb-3">
+              <label htmlFor="reason">Lý do từ chối</label>
               <input
                 type="text"
                 className="form-control"
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Enter reason for rejection"
+                placeholder="Nhập lý do từ chối"
               />
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleSubmit}>{modalType === "approve" || modalType === "receive" ? "Confirm" : "Submit"}</Button>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Hủy
+          </Button>
+          <Button variant="primary" onClick={handleSubmit}>
+            {modalType === "approve" || modalType === "receive" ? "Xác nhận" : "Gửi"}
+          </Button>
         </Modal.Footer>
       </Modal>
+
     </Container>
   );
 };

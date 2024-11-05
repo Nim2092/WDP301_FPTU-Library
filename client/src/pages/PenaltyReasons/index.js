@@ -73,6 +73,7 @@ const ListPenaltyReasons = () => {
         <button
           className="btn btn-primary"
           onClick={handleCreatePenaltyReasons}
+          title="Tạo mới"
         >
           <i className="fa fa-plus" aria-hidden="true"></i>
           <span className="tooltip-text"> Tạo mới</span>
@@ -110,12 +111,14 @@ const ListPenaltyReasons = () => {
                   <button
                     className="btn btn-success"
                     style={{marginRight: '10px'}}
+                    title="Sửa"
                     onClick={() => handleUpdate(reason._id)}
                   >
                     <i className="fa fa-pencil" aria-hidden="true"></i>
                   </button>
                   <button
                     className="btn btn-danger"
+                    title="Xóa"
                     onClick={() => handleDelete(reason._id)}
                   >
                     <i className="fa fa-trash" aria-hidden="true"></i>

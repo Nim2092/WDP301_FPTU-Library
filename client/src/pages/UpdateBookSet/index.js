@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import AuthContext from "../../contexts/UserContext";
 const UpdateBookSet = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const { user } = useContext(AuthContext);
   const [currentCatalogName, setCurrentCatalogName] = useState("");
   const [catalogData, setCatalogData] = useState([]);
   const [image, setImage] = useState(null);
@@ -24,6 +25,7 @@ const UpdateBookSet = () => {
     availableCopies: "",
     price: "",
     image: "",
+    updatedBy: ""
   });
 
   useEffect(() => {
@@ -57,6 +59,7 @@ const UpdateBookSet = () => {
           availableCopies: bookSetData.availableCopies,
           price: bookSetData.price,
           image: bookSetData.image,
+          updatedBy: user.id
         });
         if (bookSetData.image) {
           setImagePreview(`https://fptu-library.xyz/api/book-sets/image/${bookSetData.image.split("/").pop()}`);

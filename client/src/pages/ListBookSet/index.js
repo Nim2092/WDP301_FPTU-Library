@@ -80,8 +80,8 @@ function ListBookSet() {
     <div className="mt-4 container">
       <ToastContainer />
       <div className="row d-flex justify-content-between align-items-center mb-3">
-        <div className="col-md-4">
-          <BookSearch onSearch={handleSearch} />
+        <div className="col-md-4" title="Tìm kiếm">
+          <BookSearch  onSearch={handleSearch} />
         </div>
         <div className="col-md-2">
         <select
@@ -98,7 +98,7 @@ function ListBookSet() {
           </select>
         </div>
         <div className="col-md-2">
-          <Link to="/create-book" className="btn btn-primary w-100">
+          <Link to="/create-book" title="Tạo mới" className="btn btn-primary w-100">
             <i className="fa fa-plus" aria-hidden="true"></i>
             <span className="tooltip-text"> Tạo mới</span>
           </Link>
@@ -144,13 +144,13 @@ function ListBookSet() {
                     <td>{bookSet.publisher}</td>
                     <td>{new Date(bookSet.publishedYear).getFullYear()}</td>
                     <td className="d-flex ">
-                      <Link to={`/update-bookset/${bookSet._id}`} className="btn btn-primary btn-sm" style={{marginRight: '5px'}}> 
+                      <Link to={`/update-bookset/${bookSet._id}`} title="Sửa" className="btn btn-primary btn-sm" style={{marginRight: '5px'}}> 
                         <i className="fa fa-pencil" aria-hidden="true"></i>
                       </Link>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(bookSet._id)} style={{marginRight: '5px'}}>
+                      <button className="btn btn-danger btn-sm" title="Xóa" onClick={() => handleDelete(bookSet._id)} style={{marginRight: '5px'}}>
                         <i className="fa fa-trash" aria-hidden="true"></i>
                       </button>
-                      <Link to={`/book-detail/${bookSet._id}`} className="btn btn-info btn-sm">
+                      <Link to={`/book-detail/${bookSet._id}`} title="Xem chi tiết" className="btn btn-info btn-sm">
                         <i className="fa fa-eye" aria-hidden="true"></i>
                       </Link>
                     </td>

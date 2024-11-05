@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
+import ReactPaginate from "react-paginate";
 const ListNews = () => {
   const navigate = useNavigate();
   const [newsData, setNewsData] = useState([]); // State for storing news data
@@ -77,7 +78,7 @@ const ListNews = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   // Sort news data by createdAt before slicing
-  const sortedNewsData = [...newsData].sort((a, b) => 
+  const sortedNewsData = [...newsData].sort((a, b) =>
     new Date(b.createdAt) - new Date(a.createdAt)
   );
   const currentItems = sortedNewsData.slice(indexOfFirstItem, indexOfLastItem);
@@ -85,31 +86,31 @@ const ListNews = () => {
   // Tính tổng số trang
   const totalPages = Math.ceil(newsData.length / itemsPerPage);
 
-  // Xử lý thay đổi trang
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+
+  // Handle page click
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected + 1);
   };
 
   return (
     <div className="container mt-4">
       <ToastContainer />
-      <div className="d-flex justify-content-between mb-3">
-        <h2>List News</h2>
+      <div className="d-flex justify-content-end mb-3">
         <button
           className="btn btn-primary"
           style={{ backgroundColor: "#CC99FF", borderColor: "#CC99FF" }}
           onClick={handleCreateNew}
+          title="Tạo tin"
         >
-          Create New
+          <i className="fa fa-plus" aria-hidden="true"></i>
         </button>
       </div>
 
       {/* Display success or error messages */}
       {message && (
         <div
-          className={`alert ${
-            message.includes("successfully") ? "alert-success" : "alert-danger"
-          }`}
+          className={`alert ${message.includes("successfully") ? "alert-success" : "alert-danger"
+            }`}
         >
           {message}
         </div>
@@ -118,11 +119,11 @@ const ListNews = () => {
       <table className="table table-bordered mt-4">
         <thead>
           <tr>
-            <th>No.</th>
-            <th>Image</th>
-            <th>Title</th>
-            <th>Content</th>
-            <th>Action</th>
+            <th>#</th>
+            <th>Ảnh</th>
+            <th>Tiêu đề</th>
+            <th>Nội dung</th>
+            <th>Hành động</th>
           </tr>
         </thead>
         <tbody>
@@ -141,29 +142,34 @@ const ListNews = () => {
                 </td>
                 <td className="text-start w-25">{news.title}</td>
                 <td className="text-start w-25"><div
-                    className="content-preview"
-                    dangerouslySetInnerHTML={{
-                      __html: getLimitedContent(news.content, 50),
-                    }}
-                  /></td>
-                <td className="d-flex justify-content-between">
+                  className="content-preview"
+                  dangerouslySetInnerHTML={{
+                    __html: getLimitedContent(news.content, 50),
+                  }}
+                /></td>
+                <td>
                   <button
                     className="btn btn-success"
                     onClick={() => handleUpdate(news._id)}
+                    title="Cập nhật"
+                    style={{ marginRight: "20px" }}
                   >
-                    Update
+                    <i className="fa fa-pencil" aria-hidden="true"></i>
                   </button>
                   <button
                     className="btn btn-primary"
                     onClick={() => handleDetail(news._id)}
+                    title="Xem chi tiết"
+                    style={{ marginRight: "20px" }}
                   >
-                    Detail
+                    <i className="fa fa-eye" aria-hidden="true"></i>
                   </button>
                   <button
                     className="btn btn-danger"
                     onClick={() => handleDelete(news._id)}
+                    title="Xóa"
                   >
-                    Delete
+                    <i className="fa fa-trash" aria-hidden="true"></i>
                   </button>
                 </td>
               </tr>
@@ -178,46 +184,25 @@ const ListNews = () => {
         </tbody>
       </table>
 
-      {/* Thêm phân trang Bootstrap */}
-      {newsData.length > 0 && (
-        <nav aria-label="Page navigation">
-          <ul className="pagination justify-content-center">
-            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-              <button
-                className="page-link"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-            </li>
-            
-            {[...Array(totalPages)].map((_, index) => (
-              <li
-                key={index}
-                className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
-              >
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(index + 1)}
-                >
-                  {index + 1}
-                </button>
-              </li>
-            ))}
-
-            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button
-                className="page-link"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
-      )}
+      <ReactPaginate
+        previousLabel={'<'}
+        nextLabel={'>'}
+        breakLabel={'...'}
+        pageCount={totalPages}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageClick}
+        containerClassName={'pagination justify-content-end'}
+        pageClassName={'page-item'}
+        pageLinkClassName={'page-link'}
+        previousClassName={'page-item'}
+        previousLinkClassName={'page-link'}
+        nextClassName={'page-item'}
+        nextLinkClassName={'page-link'}
+        breakClassName={'page-item'}
+        breakLinkClassName={'page-link'}
+        activeClassName={"active"}
+      />
     </div>
   );
 };

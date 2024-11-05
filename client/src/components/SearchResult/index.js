@@ -48,11 +48,10 @@ function SearchResults({ books = [] }) {
       const booksetCurrent = bookSet._id;
       const ordersResponse = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${user.id}`);
       const orders = ordersResponse.data.data;
-      console.log(orders);
       const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
 
       if (hasDifferentBookSet) {
-        toast.error("Bạn không thể mượn sách từ bộ sách khác.");
+        toast.error("Bạn không thể mượn sách từ bộ sách này vì đã có sách đang mượn.");
         return;
       }
 
@@ -99,11 +98,6 @@ function SearchResults({ books = [] }) {
           <div className="card mb-4 p-3" key={book._id}>
             <div className="row no-gutters">
               <div className="col-md-3">
-                <img
-                  src={`https://fptu-library.xyz/api/book-sets/image/${book.image.split("/").pop()}`}
-                  alt={book.title}
-                  style={{ width: "250px", height: "auto" }}
-                />
                 {book.image ? (
                   <img
                   src={`https://fptu-library.xyz/api/book-sets/image/${book.image.split("/").pop()}`}
