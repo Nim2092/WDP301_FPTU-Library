@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure Bootstrap is imported
-import './OrderDetail.scss';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 const OrderDetail = () => {
@@ -33,101 +32,110 @@ const OrderDetail = () => {
   if (error) return <p className="text-center text-danger">{error}</p>;
 
   return (
-    <div className="container my-5">
-      <h1 className="text-center mb-4">Order Details</h1>
-
+    <div className="container my-5 shadow-md" >
       {order ? (
-        <div className="card shadow">
-          <div className="card-body">
-            {/* Order Information */}
-            <h3 className="card-title">Order Information</h3>
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <p><strong>Order ID:</strong> {order._id}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Status:</strong> {order.status === 1 ? "Active" : "Completed"}</p>
-              </div>
-            </div>
-            
-            {/* Book Information */}
-            <h4 className="mb-3">Book Information</h4>
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <p><strong>Book Identifier Code:</strong> {order.book_id?.identifier_code}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Condition:</strong> {order.book_id?.condition}</p>
-              </div>
-            </div>
-
-            <h5 className="mb-3">Book Set Details</h5>
+        <div className="card p-3" style={{ backgroundColor: '#f8f9fa' }}>
+          <div className="">
             <div className="row">
-              <div className="col-md-6">
-                <p><strong>Title:</strong> {order.book_id?.bookSet_id?.title}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Author:</strong> {order.book_id?.bookSet_id?.author}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>ISBN:</strong> {order.book_id?.bookSet_id?.isbn}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Publisher:</strong> {order.book_id?.bookSet_id?.publisher}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Shelf Location Code:</strong> {order.book_id?.bookSet_id?.shelfLocationCode}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Physical Description:</strong> {order.book_id?.bookSet_id?.physicalDescription}</p>
-              </div>
-            </div>
+              {/* Left Column */}
+              <div className="col-md-6" >
+                {/* Order Information */}
+                <h3 className="card-title">Order Information</h3>
+                <div className="row mb-3" >
+                  <div className="col-md-6"><strong>Order ID:</strong></div>
+                  <div className="col-md-6">{order._id}</div>
+                </div>
+                <div className="row mb-3" >
+                  <div className="col-md-6"><strong>Status:</strong></div>
+                  <div className="col-md-6" style={{ color: order.status === 'Pending' ? 'blue' : order.status === 'Approved' ? 'green' 
+                    : order.status === 'Rejected' ? 'orange' : order.status === 'Received' ? 'red' : order.status === 'Canceled' ? 'yellow' 
+                    : order.status === 'Returned' ? 'purple' : order.status === 'Overdue' ? 'pink' : order.status === 'Lost' ? 'brown' 
+                    : order.status === 'Renew Pending' ? 'gray' : 'black' }}>
+                    {order.status}
+                  </div>
+                </div>
+                <hr />
 
-            {/* User Information */}
-            <h4 className="mt-4">User Information</h4>
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <p><strong>Requested By:</strong> {order.created_by?.fullName}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Last Updated By:</strong> {order.updated_by?.fullName}</p>
-              </div>
-            </div>
+                {/* User Information */}
+                <h4 className="mt-3">User Information</h4>
+                <div className="row mb-3">
+                  <div className="col-md-6"><strong>Requested By:</strong></div>
+                  <div className="col-md-6">{order.created_by?.fullName}</div>
+                </div>
+                <div className="row mb-3">
+                  <div className="col-md-6"><strong>Last Updated By:</strong></div>
+                  <div className="col-md-6">{order.updated_by?.fullName}</div>
+                </div>
+                <hr />
 
-            {/* Date Information */}
-            <h4 className="mt-4">Dates</h4>
-            <div className="row">
-              <div className="col-md-6">
-                <p><strong>Request Date:</strong> {new Date(order.requestDate).toLocaleDateString()}</p>
+                {/* Renewal Information */}
+                <h4 className="mt-3">Renewal Information</h4>
+                <div className="row mb-3">
+                  <div className="col-md-6"><strong>Renewal Reason:</strong></div>
+                  <div className="col-md-6">{order.renew_reason || 'N/A'}</div>
+                </div>
+                <div className="row mb-3">
+                  <div className="col-md-6"><strong>Renewal Count:</strong></div>
+                  <div className="col-md-6">{order.renewalCount}</div>
+                </div>
+                <div className="row mb-3">
+                  <div className="col-md-6"><strong>Renewal Date:</strong></div>
+                  <div className="col-md-6">{order.renewalDate ? new Date(order.renewalDate).toLocaleDateString() : 'N/A'}</div>
+                </div>
               </div>
-              <div className="col-md-6">
-                <p><strong>Borrow Date:</strong> {new Date(order.borrowDate).toLocaleDateString()}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Due Date:</strong> {new Date(order.dueDate).toLocaleDateString()}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Return Date:</strong> {order.returnDate ? new Date(order.returnDate).toLocaleDateString() : 'Not returned yet'}</p>
-              </div>
-            </div>
 
-            {/* Renewal Information */}
-            <h4 className="mt-4">Renewal Information</h4>
-            <div className="row">
-              <div className="col-md-6">
-                <p><strong>Renewal Reason:</strong> {order.renew_reason || 'N/A'}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Renewal Count:</strong> {order.renewalCount}</p>
-              </div>
-              <div className="col-md-6">
-                <p><strong>Renewal Date:</strong> {order.renewalDate ? new Date(order.renewalDate).toLocaleDateString() : 'N/A'}</p>
+              {/* Right Column */}
+              <div className="col-md-6" style={{ borderLeft: '1px solid #ccc' }}>
+                {/* Book Information */}
+                <h4 className="mb-3">Book Information</h4>
+                <div className="row mb-3">
+                  <div className="col-md-6"><strong>Book Identifier Code:</strong></div>
+                  <div className="col-md-6">{order.book_id?.identifier_code}</div>
+                </div>
+                <div className="row mb-3">
+                  <div className="col-md-6"><strong>Condition:</strong></div>
+                  <div className="col-md-6">{order.book_id?.condition}</div>
+                </div>
+
+                <div>
+                  <div className="row mb-3">
+                    <div className="col-md-6"><strong>Title:</strong></div>
+                    <div className="col-md-6">{order.book_id?.bookSet_id?.title}</div>
+                  </div>
+                  <div className="row mb-3">
+                    <div className="col-md-6"><strong>Author:</strong></div>
+                    <div className="col-md-6">{order.book_id?.bookSet_id?.author}</div>
+                  </div>
+                  <div className="row mb-3">
+                    <div className="col-md-6"><strong>ISBN:</strong></div>
+                    <div className="col-md-6">{order.book_id?.bookSet_id?.isbn}</div>
+                  </div>
+                </div>
+                {/* Date Information */}
+                <div >
+                  <div className="row mb-3">
+                    <div className="col-md-6"><strong>Request Date:</strong></div>
+                    <div className="col-md-6">{new Date(order.requestDate).toLocaleDateString()}</div>
+                  </div>
+                  <div className="row mb-3">
+                    <div className="col-md-6"><strong>Borrow Date:</strong></div>
+                    <div className="col-md-6">{new Date(order.borrowDate).toLocaleDateString()}</div>
+                  </div>
+                  <div className="row mb-3">
+                    <div className="col-md-6"><strong>Due Date:</strong></div>
+                    <div className="col-md-6">{new Date(order.dueDate).toLocaleDateString()}</div>
+                  </div>
+                  <div className="row mb-3">
+                    <div className="col-md-6"><strong>Return Date:</strong></div>
+                    <div className="col-md-6">{order.returnDate ? new Date(order.returnDate).toLocaleDateString() : 'Not returned yet'}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <p>Order details not found.</p>
+        <p className="text-center">Order details not found.</p>
       )}
     </div>
   );
