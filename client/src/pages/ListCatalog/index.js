@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
 import { Modal, Button } from "react-bootstrap";
-
+import ReactPaginate from 'react-paginate';
+import AuthContext from "../../contexts/UserContext";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
 const CatalogList = () => {
-  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [catalogData, setCatalogData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,18 +17,17 @@ const CatalogList = () => {
     code: "",
     major: "",
     semester: "",
-    isTextbook: ""
+    isTextbook: "",
+    createdBy: "",
   });
-
-  // Trạng thái cho các bộ lọc
+  const [fileSelected, setFileSelected] = useState(null);
   const [filters, setFilters] = useState({
     major: "",
     isTextbook: "",
     semester: ""
   });
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); // Adjust number of items per page as needed
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     const fetchCatalogs = async () => {
@@ -35,7 +36,7 @@ const CatalogList = () => {
         if (!response.ok) throw new Error("Failed to fetch catalog data");
         const data = await response.json();
         setCatalogData(data);
-        setFilteredData(data); // Thiết lập dữ liệu lọc ban đầu
+        setFilteredData(data);
       } catch (error) {
         console.error("Error fetching catalog data:", error);
       } finally {
@@ -45,7 +46,6 @@ const CatalogList = () => {
     fetchCatalogs();
   }, []);
 
-  // Cập nhật dữ liệu lọc khi thay đổi bộ lọc
   useEffect(() => {
     const filtered = catalogData.filter((catalog) =>
       Object.entries(filters).every(([key, value]) =>
@@ -55,7 +55,6 @@ const CatalogList = () => {
     setFilteredData(filtered);
   }, [filters, catalogData]);
 
-  // Xử lý thay đổi bộ lọc
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prevFilters) => ({
@@ -64,7 +63,34 @@ const CatalogList = () => {
     }));
   };
 
-  // Xử lý mở modal cập nhật
+  const handleFileChange = (e) => {
+    setFileSelected(e.target.files[0]);
+  };
+
+  const importBookset = async (id) => {
+    if (!fileSelected) {
+      toast.error("Vui lòng chọn tệp để nhập");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("catalog_id", id);
+      formData.append("createdBy", user.id);
+      formData.append("file", fileSelected);
+
+      await axios.post(`https://fptu-library.xyz/api/book-sets/import`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        },
+      });
+      setFileSelected(null);
+      toast.success("Thêm thành công!");
+    } catch (error) {
+      console.error("Error importing bookset:", error);
+      toast.error("Có lỗi xảy ra khi nhập tệp.");
+    }
+  };
+
   const handleUpdate = (id) => {
     const catalogToUpdate = catalogData.find((catalog) => catalog._id === id);
     setNewCatalog({
@@ -72,25 +98,25 @@ const CatalogList = () => {
       code: catalogToUpdate.code,
       major: catalogToUpdate.major,
       semester: catalogToUpdate.semester,
-      isTextbook: catalogToUpdate.isTextbook
+      isTextbook: catalogToUpdate.isTextbook,
+      createdBy: user.id,
     });
     setCurrentCatalogId(id);
     setIsEditMode(true);
     setShowModal(true);
   };
 
-  // Xử lý xóa catalog
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this catalog?");
-    
+
     if (confirmDelete) {
       try {
         const response = await fetch(`https://fptu-library.xyz/api/catalogs/delete/${id}`, {
           method: "DELETE",
         });
-  
+
         if (!response.ok) throw new Error(`Failed to delete catalog: ${response.statusText}`);
-  
+
         setCatalogData((prevCatalogs) => prevCatalogs.filter((catalog) => catalog._id !== id));
       } catch (error) {
         console.error("Error deleting catalog:", error);
@@ -98,14 +124,12 @@ const CatalogList = () => {
     }
   };
 
-  // Mở modal tạo catalog mới
   const handleCreateNewCatalog = () => {
-    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false });
+    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false, createdBy: user.id });
     setIsEditMode(false);
     setShowModal(true);
   };
 
-  // Gửi dữ liệu form (tạo mới hoặc cập nhật)
   const handleSubmitCatalog = async (e) => {
     e.preventDefault();
 
@@ -139,13 +163,12 @@ const CatalogList = () => {
       }
 
       setShowModal(false);
-      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false });
+      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false, createdBy: user.id });
     } catch (error) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} catalog:`, error);
     }
   };
 
-  // Xử lý thay đổi input trong form
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setNewCatalog((prevCatalog) => ({
@@ -159,74 +182,75 @@ const CatalogList = () => {
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const handlePageChange = (selectedPage) => {
+    setCurrentPage(selectedPage.selected + 1);
   };
 
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between">
-        <h2>Catalog</h2>
-        <button className="btn btn-primary" onClick={handleCreateNewCatalog}>
-          Create new catalog
-        </button>
-      </div>
-
+      <ToastContainer />
       {/* Bộ lọc */}
-      <div className="d-flex justify-content-between my-3">
-        <select
-          name="major"
-          value={filters.major}
-          onChange={handleFilterChange}
-          className="form-select mx-1"
-        >
-          <option value="">All Majors</option>
-          {[...new Set(catalogData.map((c) => c.major))].map((major) => (
-            <option key={major} value={major}>
-              {major}
-            </option>
-          ))}
-        </select>
+      <div className="d-flex justify-content-between my-3 row">
+        <div className="col-10 d-flex">
+          <select
+            name="major"
+            value={filters.major}
+            onChange={handleFilterChange}
+            className="form-select mx-1"
+          >
+            <option value="">Tất cả chuyên ngành</option>
+            {[...new Set(catalogData.map((c) => c.major))].map((major) => (
+              <option key={major} value={major}>
+                {major}
+              </option>
+            ))}
+          </select>
 
-        <select
-          name="isTextbook"
-          value={filters.isTextbook}
-          onChange={handleFilterChange}
-          className="form-select mx-1"
-        >
-          <option value="">All Types</option>
-          <option value="1">Textbook</option>
-          <option value="0">Non-Textbook</option>
-        </select>
+          <select
+            name="isTextbook"
+            value={filters.isTextbook}
+            onChange={handleFilterChange}
+            className="form-select mx-1"
+          >
+            <option value="">Tất cả loại</option>
+            <option value="1">Sách giáo khoa</option>
+            <option value="0">Không phải sách giáo khoa</option>
+          </select>
 
-        <select
-          name="semester"
-          value={filters.semester}
-          onChange={handleFilterChange}
-          className="form-select mx-1"
-        >
-          <option value="">All Semesters</option>
-          {[...new Set(catalogData.map((c) => c.semester))].map((semester) => (
-            <option key={semester} value={semester}>
-              {semester}
-            </option>
-          ))}
-        </select>
+          <select
+            name="semester"
+            value={filters.semester}
+            onChange={handleFilterChange}
+            className="form-select mx-1"
+          >
+            <option value="">Tất cả học kỳ</option>
+            {[...new Set(catalogData.map((c) => c.semester))].map((semester) => (
+              <option key={semester} value={semester}>
+                {semester}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="col-2 d-flex justify-content-end">
+          <button className="btn btn-primary" title="Tạo mới" onClick={handleCreateNewCatalog}>
+            <i className="fa fa-plus" aria-hidden="true"></i>
+          </button>
+        </div>
       </div>
 
       {loading ? (
-        <div>Loading catalogs...</div>
+        <div>Đang tải dữ liệu...</div>
       ) : (
         <table className="table table-bordered mt-4">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Name of catalog</th>
-              <th>Code</th>
-              <th>Major</th>
-              <th>Semester</th>
-              <th>Is Textbook</th>
-              <th>Action</th>
+              <th>Tên sách</th>
+              <th>Mã sách</th>
+              <th>Chuyên ngành</th>
+              <th>Học kỳ</th>
+              <th>Sách giáo khoa</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
@@ -239,12 +263,44 @@ const CatalogList = () => {
                   <td>{catalog.major}</td>
                   <td>{catalog.semester}</td>
                   <td>{catalog.isTextbook ? "Yes" : "No"}</td>
-                  <td className="d-flex justify-content-between">
-                    <button className="btn btn-success mr-2" onClick={() => handleUpdate(catalog._id)}>
-                      Update
+                  <td>
+                    <input
+                      type="file"
+                      accept=".csv, .xlsx"
+                      onChange={handleFileChange}
+                      style={{ display: "none" }}
+                      id={`file-input-${catalog._id}`}
+                    />
+                    <button
+                      className="btn btn-primary mr-2"
+                      title="Nhập"
+                      onClick={() => document.getElementById(`file-input-${catalog._id}`).click()}
+                    >
+                      <i className="fa fa-upload" aria-hidden="true"></i>
                     </button>
-                    <button className="btn btn-danger" onClick={() => handleDelete(catalog._id)}>
-                      Delete
+                    {fileSelected && (
+                      <button
+                        className="btn btn-primary mr-2"
+                        onClick={() => importBookset(catalog._id)}
+                      >
+                        Import
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-success mr-2"
+                      title="Sửa"
+                      onClick={() => handleUpdate(catalog._id)}
+                      style={{ marginLeft: "10px" }}
+                    >
+                      <i className="fa fa-pencil-square-o" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      title="Xóa"
+                      onClick={() => handleDelete(catalog._id)}
+                      style={{ marginLeft: "10px" }}
+                    >
+                      <i className="fa fa-trash" aria-hidden="true"></i>
                     </button>
                   </td>
                 </tr>
@@ -252,61 +308,46 @@ const CatalogList = () => {
             ) : (
               <tr>
                 <td colSpan="7" className="text-center">
-                  No catalogs available
+                  Không có dữ liệu
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       )}
-
-      {filteredData.length > 0 && (
-        <nav aria-label="Catalog pagination">
-          <ul className="pagination justify-content-center">
-            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-              <button
-                className="page-link"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-            </li>
-            {[...Array(totalPages)].map((_, index) => (
-              <li
-                key={index + 1}
-                className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
-              >
-                <button
-                  className="page-link"
-                  onClick={() => handlePageChange(index + 1)}
-                >
-                  {index + 1}
-                </button>
-              </li>
-            ))}
-            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button
-                className="page-link"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
-      )}
+      <div className="pagination float-end mb-4">
+        {filteredData.length > 0 && (
+          <ReactPaginate
+            previousLabel={"<"}
+            nextLabel={">"}
+            breakLabel={"..."}
+            pageCount={totalPages}
+            marginPagesDisplayed={2}
+            pageRangeDisplayed={5}
+            onPageChange={handlePageChange}
+            containerClassName={"pagination justify-content-center"}
+            pageClassName={"page-item"}
+            pageLinkClassName={"page-link"}
+            previousClassName={"page-item"}
+            previousLinkClassName={"page-link"}
+            nextClassName={"page-item"}
+            nextLinkClassName={"page-link"}
+            breakClassName={"page-item"}
+            breakLinkClassName={"page-link"}
+            activeClassName={"active"}
+          />
+        )}
+      </div>
 
       {/* Modal for creating or updating catalog */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>{isEditMode ? "Update Catalog" : "Create New Catalog"}</Modal.Title>
+          <Modal.Title>{isEditMode ? "Cập nhật" : "Tạo mới"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <form onSubmit={handleSubmitCatalog}>
             <div className="form-group">
-              <label htmlFor="name">Name</label>
+              <label htmlFor="name">Tên sách</label>
               <input
                 type="text"
                 className="form-control"
@@ -318,7 +359,7 @@ const CatalogList = () => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="code">Code</label>
+              <label htmlFor="code">Mã sách</label>
               <input
                 type="number"
                 className="form-control"
@@ -330,7 +371,7 @@ const CatalogList = () => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="major">Major</label>
+              <label htmlFor="major">Chuyên ngành</label>
               <input
                 type="text"
                 className="form-control"
@@ -341,7 +382,7 @@ const CatalogList = () => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="semester">Semester</label>
+              <label htmlFor="semester">Học kỳ</label>
               <input
                 type="number"
                 className="form-control"
@@ -351,8 +392,8 @@ const CatalogList = () => {
                 onChange={handleInputChange}
               />
             </div>
-            <div className="form-group" style={{ display: "flex", alignItems: "center",  margin: "10px"}}>
-              <label htmlFor="isTextbook" style={{ marginRight: "10px" }}>Is Textbook</label>
+            <div className="form-group" style={{ display: "flex", alignItems: "center", margin: "10px" }}>
+              <label htmlFor="isTextbook" style={{ marginRight: "10px" }}>Sách giáo khoa</label>
               <input
                 type="checkbox"
                 id="isTextbook"
@@ -362,7 +403,7 @@ const CatalogList = () => {
               />
             </div>
             <Button variant="primary" type="submit">
-              {isEditMode ? "Update Catalog" : "Save Catalog"}
+              {isEditMode ? "Cập nhật" : "Lưu"}
             </Button>
           </form>
         </Modal.Body>

@@ -75,7 +75,7 @@ function ListRule() {
                 <td 
                   onClick={() => handleClick(rule.id)} 
                   className="btn-link" 
-                  style={{ fontWeight: "bold", color: "#007bff" }} // Highlight phần title
+                  style={{ fontWeight: "bold", color: "#007bff", textAlign: "left" }} // Highlight phần title
                 >
                   {rule.title}
                 </td>

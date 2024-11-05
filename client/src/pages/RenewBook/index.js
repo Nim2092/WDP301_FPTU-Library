@@ -55,16 +55,15 @@ function RenewBook() {
 
   return (
     <div className="renew-book container my-5">
-      <ToastContainer /> 
+      <ToastContainer />
       <div className="row">
         <div className="col-md-4">
-          <div className="col-md-4">
-            <img
-              src={`https://fptu-library.xyz/api/news/thumbnail/${book?.book_id?.bookSet_id?.image.split("/").pop()}`}
-              className="img-fluid"
-              alt={book?.book_id?.bookSet_id?.title}
-            />
-          </div>
+          <img
+            src={`https://fptu-library.xyz/api/news/thumbnail/${book?.book_id?.bookSet_id?.image.split("/").pop()}`}
+            className="img-fluid"
+            style={{ width: "100%", height: "100" }}
+            alt={book?.book_id?.bookSet_id?.title}
+          />
         </div>
         <div className="col-md-8">
           <h3>{book?.book_id?.bookSet_id?.title || "Unknown Title"}</h3>

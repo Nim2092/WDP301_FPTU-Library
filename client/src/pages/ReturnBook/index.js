@@ -1,8 +1,8 @@
 import axios from "axios";
-import { useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { Modal, Button } from 'react-bootstrap';
-
+import ReactPaginate from 'react-paginate';
 function ReturnBook() {
     const [studentCode, setStudentCode] = useState("");
     const [identityCode, setIdentityCode] = useState("");
@@ -11,9 +11,18 @@ function ReturnBook() {
     const [bookData, setBookData] = useState({});
     const [showModal, setShowModal] = useState(false);
     const [returnDate, setReturnDate] = useState(new Date().toISOString().split('T')[0]);
-    const [bookCondition, setBookCondition] = useState("Good"); // Giá trị mặc định là "Good"
+    const [bookCondition, setBookCondition] = useState(bookData.condition); // Giá trị mặc định là "Good"
     const [fineData, setFineData] = useState({ fine_reason: "" });
     const [conditionDetail, setConditionDetail] = useState("");
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 5; // Number of items per page
+
+    useEffect(() => {
+        if (bookData.book?.condition_detail) {
+            setConditionDetail(bookData.book.condition_detail);
+        }
+    }, [bookData]);
+
     const handleSearchByStudentID = async () => {
         try {
             const user = await axios.get(`https://fptu-library.xyz/api/user/getByCode/${studentCode}`);
@@ -47,8 +56,8 @@ function ReturnBook() {
 
     const handleReturnBook = (bookID) => {
         axios.get(`https://fptu-library.xyz/api/orders/by-order/${bookID}`).then((response) => {
-            const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by } = response.data.data;
-            setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by }); // Lưu trữ toàn bộ thông tin về đơn hàng bao gồm _id
+            const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail } = response.data.data;
+            setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail }); // Lưu trữ toàn bộ thông tin về đơn hàng bao gồm _id
             handleShowModal();
         }).catch((error) => {
             const message = error.response?.data?.message || "An error occurred";
@@ -84,6 +93,13 @@ function ReturnBook() {
         }
     }
 
+    const handlePageClick = (data) => {
+        setCurrentPage(data.selected);
+    };
+
+    const offset = currentPage * itemsPerPage;
+    const currentItems = bookList.slice(offset, offset + itemsPerPage);
+
     return (
         <div className="return-book-container container">
             <div className="row mb-3">
@@ -91,54 +107,77 @@ function ReturnBook() {
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Enter Student ID"
+                        placeholder="Nhập mã sinh viên"
                         value={studentCode}
                         style={{ width: "50%", marginRight: "10px" }}
                         onChange={(e) => setStudentCode(e.target.value)}
                     />
-                    <button className="btn btn-primary" onClick={handleSearchByStudentID}>Search</button>
+                    <button className="btn btn-primary" title="Tìm kiếm" onClick={handleSearchByStudentID}>
+                        <i className="fa fa-search" aria-hidden="true"></i>
+                    </button>
                 </div>
                 <div className="d-flex justify-content-start search-by-identity-code col-6">
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Enter Identity Code"
+                        placeholder="Nhập mã sách"
                         value={identityCode}
                         style={{ width: "50%", marginRight: "10px" }}
                         onChange={(e) => setIdentityCode(e.target.value)}
                     />
-                    <button className="btn btn-primary" onClick={handleSearchByIdentityCode}>Search</button>
+                    <button className="btn btn-primary" title="Tìm kiếm" onClick={handleSearchByIdentityCode}>
+                        <i className="fa fa-search" aria-hidden="true"></i>
+                    </button>
                 </div>
             </div>
             <div className="table-list-book">
                 <table className="table table-bordered">
                     <thead>
                         <tr>
-                            <th>Book Name</th>
-                            <th>Borrow Date</th>
-                            <th>Due Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th>Tên sách</th>
+                            <th>Ngày mượn</th>
+                            <th>Ngày hẹn trả</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {bookList.map((book) => (
+                        {currentItems.map((book) => (
                             <tr key={book._id}>
                                 <td>{book.book_id?.bookSet_id?.title}</td>
                                 <td>
-                                    <input type="date" className="form-control" value={book.borrowDate?.split('T')[0] || ''} readOnly />
+                                    <input type="date" className="form-control text-center" value={book.borrowDate?.split('T')[0] || ''} readOnly />
                                 </td>
                                 <td>
-                                    <input type="date" className="form-control" value={book.dueDate?.split('T')[0] || ''} readOnly />
+                                    <input type="date" className="form-control text-center" value={book.dueDate?.split('T')[0] || ''} readOnly />
                                 </td>
                                 <td>{book.status}</td>
                                 <td>
-                                    <button className="btn btn-primary" onClick={() => handleReturnBook(book._id)}>Return</button>
+                                    <button className="btn btn-primary" onClick={() => handleReturnBook(book._id)}>Trả sách</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+                <ReactPaginate
+                    previousLabel={'<'}
+                    nextLabel={'>'}
+                    breakLabel={'...'}
+                    pageCount={Math.ceil(bookList.length / itemsPerPage)}
+                    marginPagesDisplayed={2}
+                    pageRangeDisplayed={5}
+                    onPageChange={handlePageClick}
+                    containerClassName={'pagination justify-content-end'}
+                    pageClassName={'page-item'}
+                    pageLinkClassName={'page-link'}
+                    previousClassName={'page-item'}
+                    previousLinkClassName={'page-link'}
+                    nextClassName={'page-item'}
+                    nextLinkClassName={'page-link'}
+                    breakClassName={'page-item'}
+                    breakLinkClassName={'page-link'}
+                    activeClassName={'active'}
+                />
             </div>
             <Modal show={showModal} onHide={handleCloseModal}>
                 <Modal.Header closeButton>
@@ -147,52 +186,57 @@ function ReturnBook() {
                 <Modal.Body>
                     <form>
                         <div className="form-group">
-                            <label>Book Title</label>
+                            <label>Tên sách</label>
                             <input type="text" className="form-control" value={bookData.book?.bookSet_id?.title || ''} disabled />
                         </div>
                         <div className="form-group">
-                            <label>Borrow Date</label>
+                            <label>Ngày mượn</label>
                             <input type="date" className="form-control" value={bookData.borrowDate?.split('T')[0] || ''} disabled />
                         </div>
                         <div className="form-group">
-                            <label>Due Date</label>
+                            <label>Ngày hẹn trả</label>
                             <input type="date" className="form-control" value={bookData.dueDate?.split('T')[0] || ''} disabled />
                         </div>
                         <div className="form-group">
-                            <label>Return Date</label>
+                            <label>Ngày trả</label>
                             <input type="date" className="form-control" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} />
                         </div>
                         <div className="form-group">
-                            <label>Condition</label>
+                            <label>Trạng thái sách</label>
                             <select className="form-control" value={bookCondition} onChange={(e) => setBookCondition(e.target.value)}>
-                                <option value="Good">Good</option>
-                                <option value="Light">Light</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Hard">Hard</option>
-                                <option value="Lost">Lost</option>
+                                <option value="Good">Tốt</option>
+                                <option value="Light">Hơi bị hư</option>
+                                <option value="Medium">Bị hư nhẹ</option>
+                                <option value="Hard">Bị hư nặng</option>
+                                <option value="Lost">Mất</option>
                             </select>
                         </div>
 
                         <div className="form-group">
-                            <label>Condition Detail</label>
-                            <input type="text" className="form-control" value={conditionDetail} onChange={(e) => setConditionDetail(e.target.value)} />
+                            <label>Chi tiết trạng thái</label>
+                            <input 
+                                type="text" 
+                                className="form-control" 
+                                value={conditionDetail}
+                                onChange={(e) => setConditionDetail(e.target.value)} 
+                            />
                         </div>
                         <div className="form-group">
-                            <label>Identity Code</label>
+                            <label>Mã sách</label>
                             <input type="text" className="form-control" value={checkIdentityCode} onChange={(e) => setCheckIdentityCode(e.target.value)} />
                         </div>
                         <div className="form-group">
-                            <label>Fine Reason</label>
+                            <label>Lý do phạt</label>
                             <input type="text" className="form-control" value={fineData.fine_reason} onChange={(e) => setFineData({ fine_reason: e.target.value })} />
                         </div>
                     </form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseModal}>
-                        Close
+                        Đóng
                     </Button>
                     <Button variant="primary" onClick={() => handleSubmit()}>
-                        Submit
+                        Gửi
                     </Button>
                 </Modal.Footer>
             </Modal>

@@ -21,7 +21,7 @@ function Header() {
     };
 
     const handleProfileClick = () => {
-        navigate('/profile/:id'); // Navigate to profile page
+        navigate(`/profile/${user.id}`); // Navigate to profile page
     };
 
     const toggleDropdown = () => {
@@ -40,7 +40,7 @@ function Header() {
             <div className="d-flex align-items-center">
                 <h1>FPTU Library</h1>
             </div>
-            <div className="header-icons">
+            <div className="header-icons" >
                 {user ? (
                     <div className="profile-container">
                         <div className="profile-dropdown">
@@ -52,8 +52,8 @@ function Header() {
                             />
                             {isDropdownVisible && ( // Conditionally render dropdown
                                 <div className="dropdown-content">
-                                    <button onClick={handleProfileClick}>Profile</button>
-                                    <button onClick={handleLogout}>Logout</button>
+                                    <button onClick={handleProfileClick}>Thông tin cá nhân</button>
+                                    <button onClick={handleLogout}>Đăng xuất</button>
                                 </div>
                             )}
                         </div>

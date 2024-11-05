@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./news.scss"; // Import the CSS file
+import ReactPaginate from "react-paginate";
 
 function NewsPage() {
   const [newsItems, setNewsItems] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Show 6 articles per page
+  const [currentItems, setCurrentItems] = useState([]);
+  const [pageCount, setPageCount] = useState(0);
+  const [itemOffset, setItemOffset] = useState(0);
+  const itemsPerPage = 10; // Number of items per page
 
   useEffect(() => {
     // Fetch news items from the API
@@ -25,40 +28,31 @@ function NewsPage() {
     fetchNews();
   }, []);
 
-  // Calculate total pages for pagination
-  const totalPages = Math.ceil(newsItems.length / itemsPerPage);
+  useEffect(() => {
+    const endOffset = itemOffset + itemsPerPage;
+    setCurrentItems(newsItems.slice(itemOffset, endOffset));
+    setPageCount(Math.ceil(newsItems.length / itemsPerPage));
+  }, [itemOffset, newsItems]);
 
-  // Calculate items to display for the current page
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = newsItems.slice(indexOfFirstItem, indexOfLastItem);
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
+  const handlePageClick = (event) => {
+    const newOffset = (event.selected * itemsPerPage) % newsItems.length;
+    setItemOffset(newOffset);
   };
 
   return (
     <div className="news container my-5">
-      <h2>News</h2>
       {Array.isArray(currentItems) && currentItems.length > 0 ? (
         currentItems.map((item) => (
-          <div className="row mb-4" key={item._id}>
-            <div className="col-md-4">
+          <div className="row mb-4" style={{ boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.1)' , borderRadius: '10px'}} key={item._id}>
+            <div className="col-md-4" >
               <img
                 src={`https://fptu-library.xyz/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
                 className="img-fluid"
+                style={{borderRadius: '10px', margin: '10px', border: '1px solid #ccc'}}
                 alt={item.title}
               />
             </div>
-            <div className="col-md-8">
+            <div className="col-md-8" style={{padding: '10px'}}>
               <div className="card-body">
                 <h5 className="card-title">{item.title}</h5>
                 <div
@@ -84,31 +78,25 @@ function NewsPage() {
           </div>
         </div>
       )}
-
-      {/* Pagination */}
-      {newsItems.length > itemsPerPage && (
-        <div className="row">
-          <div className="col text-center">
-            <button
-              className="btn btn-secondary mx-2"
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              className="btn btn-secondary mx-2"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
+      <ReactPaginate
+        previousLabel={'<'}
+        nextLabel={'>'}
+        breakLabel={'...'}
+        pageCount={pageCount}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={5}
+        onPageChange={handlePageClick}
+        containerClassName={'pagination justify-content-end'}
+        pageClassName={'page-item'}
+        pageLinkClassName={'page-link'}
+        previousClassName={'page-item'}
+        previousLinkClassName={'page-link'}
+        nextClassName={'page-item'}
+        nextLinkClassName={'page-link'}
+        breakClassName={'page-item'}
+        breakLinkClassName={'page-link'}
+        activeClassName={'active'}
+      />
     </div>
   );
 }

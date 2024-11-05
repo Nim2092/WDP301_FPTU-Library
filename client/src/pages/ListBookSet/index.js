@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import ReactPaginate from 'react-paginate';
 function ListBookSet() {
   const [bookSetData, setBookSetData] = useState([]);
   const [filteredBookSetData, setFilteredBookSetData] = useState([]);
@@ -71,29 +71,25 @@ function ListBookSet() {
     }
   };
 
-  // Pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredBookSetData.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredBookSetData.length / itemsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // Update the paginate function to work with ReactPaginate
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected + 1);
+  };
 
   return (
     <div className="mt-4 container">
       <ToastContainer />
-
-      <div className="row mb-3">
-        <div className="col-md-9">
-          <h1>Book Set List</h1>
+      <div className="row d-flex justify-content-between align-items-center mb-3">
+        <div className="col-md-4" title="Tìm kiếm">
+          <BookSearch  onSearch={handleSearch} />
         </div>
-        <div className="col-md-3">
-          <select
+        <div className="col-md-2">
+        <select
             className="form-select"
             value={selectedCatalog}
             onChange={handleCatalogChange}
           >
-            <option value="all">All Catalogs</option>
+            <option value="all">Tất cả</option>
             {catalogData.map(catalog => (
               <option key={catalog._id} value={catalog._id}>
                 {catalog.name}
@@ -101,15 +97,10 @@ function ListBookSet() {
             ))}
           </select>
         </div>
-      </div>
-
-      <div className="row d-flex justify-content-between align-items-center mb-3">
-        <div className="col-md-10">
-          <BookSearch onSearch={handleSearch} />
-        </div>
         <div className="col-md-2">
-          <Link to="/create-book" className="btn btn-primary w-100">
-            Create New Book Set
+          <Link to="/create-book" title="Tạo mới" className="btn btn-primary w-100">
+            <i className="fa fa-plus" aria-hidden="true"></i>
+            <span className="tooltip-text"> Tạo mới</span>
           </Link>
         </div>
       </div>
@@ -120,19 +111,19 @@ function ListBookSet() {
             <table className="table table-bordered">
               <thead className="thead-light">
                 <tr>
-                  <th>Image</th>
-                  <th>Title</th>
-                  <th>Author</th>
+                  <th>Ảnh</th>
+                  <th>Tên sách</th>
+                  <th>Tác giả</th>
                   <th>ISBN</th>
-                  <th>Code</th>
-                  <th>Shelf Location Code</th>
-                  <th>Publisher</th>
-                  <th>Published Year</th>
-                  <th>Actions</th>
+                  <th>Mã sách</th>
+                  <th>Vị trí</th>
+                  <th>Nhà xuất bản</th>
+                  <th>Năm xuất bản</th>
+                  <th>Hành động</th>
                 </tr>
               </thead>
               <tbody>
-                {currentItems.map((bookSet) => (
+                {filteredBookSetData.map((bookSet) => (
                   <tr key={bookSet._id} className="align-middle">
                     <td>
                       {bookSet.image ? (
@@ -152,15 +143,15 @@ function ListBookSet() {
                     <td>{bookSet.shelfLocationCode}</td>
                     <td>{bookSet.publisher}</td>
                     <td>{new Date(bookSet.publishedYear).getFullYear()}</td>
-                    <td className="d-flex justify-content-around">
-                      <Link to={`/update-bookset/${bookSet._id}`} className="btn btn-primary btn-sm">
-                        Edit
+                    <td className="d-flex ">
+                      <Link to={`/update-bookset/${bookSet._id}`} title="Sửa" className="btn btn-primary btn-sm" style={{marginRight: '5px'}}> 
+                        <i className="fa fa-pencil" aria-hidden="true"></i>
                       </Link>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(bookSet._id)}>
-                        Delete
+                      <button className="btn btn-danger btn-sm" title="Xóa" onClick={() => handleDelete(bookSet._id)} style={{marginRight: '5px'}}>
+                        <i className="fa fa-trash" aria-hidden="true"></i>
                       </button>
-                      <Link to={`/book-detail/${bookSet._id}`} className="btn btn-info btn-sm">
-                        Details
+                      <Link to={`/book-detail/${bookSet._id}`} title="Xem chi tiết" className="btn btn-info btn-sm">
+                        <i className="fa fa-eye" aria-hidden="true"></i>
                       </Link>
                     </td>
                   </tr>
@@ -168,47 +159,31 @@ function ListBookSet() {
               </tbody>
             </table>
 
-            {/* Pagination */}
-            <nav aria-label="Book Set Pagination">
-              <ul className="pagination justify-content-center">
-                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                  <button
-                    className="page-link"
-                    onClick={() => paginate(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </button>
-                </li>
-
-                {[...Array(totalPages)].map((_, index) => (
-                  <li
-                    key={index + 1}
-                    className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
-                  >
-                    <button
-                      className="page-link"
-                      onClick={() => paginate(index + 1)}
-                    >
-                      {index + 1}
-                    </button>
-                  </li>
-                ))}
-
-                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                  <button
-                    className="page-link"
-                    onClick={() => paginate(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </button>
-                </li>
-              </ul>
-            </nav>
+            {/* ReactPaginate for Pagination */}
+            <div className="d-flex justify-content-end">
+              <ReactPaginate
+                previousLabel={'<'}
+                nextLabel={'>'}
+                breakLabel={'...'}
+                pageCount={Math.ceil(filteredBookSetData.length / itemsPerPage)}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={5}
+                onPageChange={handlePageClick}
+                containerClassName={'pagination justify-content-center'}
+                pageClassName={'page-item'}
+                pageLinkClassName={'page-link'}
+                previousClassName={'page-item'}
+                previousLinkClassName={'page-link'}
+                nextClassName={'page-item'}
+                nextLinkClassName={'page-link'}
+                breakClassName={'page-item'}
+                breakLinkClassName={'page-link'}
+                activeClassName={'active'}
+              />
+            </div>
           </>
         ) : (
-          <p>No book sets found.</p>
+          <p>Không tìm thấy sách.</p>
         )}
       </div>
     </div>

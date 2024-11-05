@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import ReactPaginate from 'react-paginate';
 
 function ListRule() {
   // State to store the list of rules fetched from the API
@@ -8,13 +9,14 @@ function ListRule() {
   const [loading, setLoading] = useState(true); // State to manage loading
   const [message, setMessage] = useState(""); // To display success or error messages
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(0);
+  const rulesPerPage = 10; // Number of rules per page
 
   // Fetch rules from the API when the component is mounted
   useEffect(() => {
     fetch("https://fptu-library.xyz/api/rules/list")
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         setRules(data.data); // Accessing the 'data' field in the response
         setLoading(false); // Set loading to false after data is fetched
       })
@@ -24,8 +26,15 @@ function ListRule() {
       });
   }, []); // Empty dependency array means this runs once after the component mounts
 
+  const handlePageClick = (data) => {
+    setCurrentPage(data.selected);
+  };
+
+  const offset = currentPage * rulesPerPage;
+  const currentRules = rules.slice(offset, offset + rulesPerPage);
+
   if (loading) {
-    return <div className="text-center mt-4">Loading...</div>; // Show a loading message while fetching data
+    return <div className="text-center mt-4"> Đang tải dữ liệu ...</div>; // Show a loading message while fetching data
   }
 
   // Handle delete rule action
@@ -52,7 +61,6 @@ function ListRule() {
 
   const handleClick = (id) => {
     navigate(`/rule-detail/${id}`);
-    console.log(id);
   };
 
   const getLimitedContent = (content, lineLimit = 3) => {
@@ -64,14 +72,13 @@ function ListRule() {
   };
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between mb-3">
-        <h2>List of Rules</h2>
-        <button className="btn btn-primary" onClick={() => navigate("/create-new-rule")}>
-          Create new rule
+      <div className="d-flex justify-content-end mb-3">
+        <button className="btn btn-primary" title="Tạo mới" onClick={() => navigate("/create-new-rule")}>
+          <i className="fa fa-plus" aria-hidden="true"></i>
+          <span className="tooltip-text"> Tạo mới</span>
         </button>
       </div>
 
-      {/* Display success or error message */}
       {message && (
         <div className={`alert ${message.includes("successfully") ? "alert-success" : "alert-danger"}`}>
           {message}
@@ -82,35 +89,56 @@ function ListRule() {
         <thead className="thead-dark">
           <tr>
             <th>ID</th>
-            <th>Title</th>
-            {/* <th>Content</th> */}
-            <th>Actions</th>
+            <th>Tiêu đề</th>
+            {/* <th>Nội dung</th> */}
+            <th>Hành động</th>
           </tr>
         </thead>
         <tbody>
-          {rules.length > 0 ? (
-            rules.map((rule, index) => (
+          {currentRules.length > 0 ? (
+            currentRules.map((rule, index) => (
               <tr key={rule.id}>
-                <td>{index + 1}</td>
-                <td onClick={() => handleClick(rule.id)} className="btn-link">{rule.title}</td>
+                <td>{offset + index + 1}</td>
+                <td onClick={() => handleClick(rule.id)} className="btn-link text-start" style={{textDecoration: 'none', cursor: 'pointer'}}>{rule.title}</td>
                 {/* <td>{getLimitedContent(rule.content)  }</td> */}
-                <td className="d-flex justify-content-between">
-                  <button className="btn btn-success" onClick={() => navigate(`/update-rule/${rule.id}`)}>
-                    Update
+                <td>
+                  <button className="btn btn-success" title="Sửa" onClick={() => navigate(`/update-rule/${rule.id}`)} style={{marginRight: '10px'}}>
+                    <i className="fa fa-pencil" aria-hidden="true"></i>
                   </button>
-                  <button className="btn btn-danger" onClick={() => handleDelete(rule.id)}>
-                    Delete
+                  <button className="btn btn-danger" title="Xóa" onClick={() => handleDelete(rule.id)}>
+                    <i className="fa fa-trash" aria-hidden="true"></i>
                   </button>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="4" className="text-center">No rules found</td>
+              <td colSpan="4" className="text-center">Không tìm thấy quy định</td>
             </tr>
           )}
         </tbody>
       </table>
+      <div className="d-flex justify-content-end">
+        <ReactPaginate
+          previousLabel={'<'}
+          nextLabel={'>'}
+          breakLabel={'...'}
+          pageCount={Math.ceil(rules.length / rulesPerPage)}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          onPageChange={handlePageClick}
+          containerClassName={'pagination justify-content-center'}
+          pageClassName={'page-item'}
+          pageLinkClassName={'page-link'}
+          previousClassName={'page-item'}
+          previousLinkClassName={'page-link'}
+          nextClassName={'page-item'}
+          nextLinkClassName={'page-link'}
+          breakClassName={'page-item'}
+          breakLinkClassName={'page-link'}
+          activeClassName={'active'}
+        />
+      </div>
     </div>
   );
 }
