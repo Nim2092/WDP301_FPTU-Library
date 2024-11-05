@@ -420,12 +420,16 @@ async function changeOrderStatus(req, res, next) {
         updatedAt: { $gte: startOfMonth, $lte: endOfMonth },
       });
 
+
       if (cancellationsThisMonth >= 3) {
         return res.status(400).json({
           message:
             "Bạn đã đạt đến giới hạn số lần hủy đơn hàng trong tháng này.",
         });
       }
+      const book = await Book.findById(order.book_id);
+      book.status = 'Available';
+      await book.save();
     }
 
     // Update the order status
