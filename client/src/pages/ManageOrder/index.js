@@ -47,7 +47,6 @@ const BorrowBookList = () => {
       setBorrowBooks(sortedData);
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "An error occurred while fetching borrow books.";
-      toast.error(errorMessage);
       setBorrowBooks([]);
       console.error("Error fetching borrow books:", error);
     }

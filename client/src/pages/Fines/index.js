@@ -160,7 +160,7 @@ function Fines() {
                   )}
                 </td>
                 <td>{index + 1}</td>
-                <td>{fine.createBy.fullName}</td>
+                <td>{fine.user_id.fullName}</td>
                 <td>{fine.reason || fine.fineReason_id.reasonName}</td>
                 <td>{formatCurrency(fine.totalFinesAmount)}</td>
                 <td style={{ color: fine.status === "Pending" ? "orange" : fine.status === "Paid" ? "green" : "red" }}>
