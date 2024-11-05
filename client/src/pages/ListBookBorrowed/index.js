@@ -6,7 +6,9 @@ import AuthContext from "../../contexts/UserContext"; // Adjust this path to whe
 import 'font-awesome/css/font-awesome.min.css';
 import ReactPaginate from 'react-paginate'; // Ensure this import is present
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 function ListBookBorrowed() {
+  const navigate = useNavigate();
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -109,20 +111,23 @@ function ListBookBorrowed() {
   };
 
   const handleRenewBook = async (orderId) => {
-    try {
-      await axios.post(`https://fptu-library.xyz/api/orders/renew/${orderId}`, {
-        updated_by: user.id
-      },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      toast.success("Sách đã được gia hạn thành công.");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to renew the book. Please try again.");
-    }
+    navigate(`/renew-book/${orderId}`);
+    // try {
+    //   await axios.post(`https://fptu-library.xyz/api/orders/renew/${orderId}`, {
+    //     updated_by: user.id,
+    //     dueDate: dueDate, 
+    //     renew_reason: renewReason
+    //   },
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //       },
+    //     });
+    //   toast.success("Sách đã được gia hạn thành công.");
+    // } catch (err) {
+    //   console.error(err);
+    //   toast.error("Failed to renew the book. Please try again.");
+    // }
   };
 
   // Add this function before the return statement
@@ -138,6 +143,8 @@ function ListBookBorrowed() {
         return 'text-danger';
       case 'Returned':
         return 'text-info';
+      case 'Renew Pending':
+        return 'text-warning';
       default:
         return 'text-secondary';
     }
@@ -171,7 +178,13 @@ function ListBookBorrowed() {
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
                 <td className={getStatusColor(order.status)}>
-                  {order.status === "Pending" ? "Đang chờ" : order.status === "Received" ? "Đã nhận" : order.status === "Canceled" ? "Đã hủy" : order.status === "Lost" ? "Đã mất" : order.status === "Returned" ? "Đã trả" : "Không xác định"}
+                  {order.status ==="Pending" ? "Đang chờ" : 
+                  order.status === "Received" ? "Đã nhận" : 
+                  order.status === "Canceled" ? "Đã hủy" : 
+                  order.status === "Lost" ? "Đã mất" : 
+                  order.status === "Returned" ? "Đã trả" : 
+                  order.status === "Renew Pending" ? "Đang gia hạn" : 
+                  "Không xác định"}
                 </td>
                 <td>{order.book_id?.identifier_code}</td>
                 <td>{order.renewalCount}</td>
