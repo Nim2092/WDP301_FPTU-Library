@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios"; // Use axios for API calls
 
 const AdvancedBookForm = ({ setSearchResults }) => {
-  const [catalog, setCatalog] = useState("catalog1");
+  const [catalog, setCatalog] = useState("");
   const [bookName, setBookName] = useState("");
   const [author, setAuthor] = useState("");
   const [publisher, setPublisher] = useState("");
@@ -10,7 +10,6 @@ const AdvancedBookForm = ({ setSearchResults }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     try {
       const response = await axios.get("https://fptu-library.xyz/api/book-sets/list", {
         params: {
