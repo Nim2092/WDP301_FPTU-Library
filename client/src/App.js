@@ -56,10 +56,11 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <AuthProvider>
+        <ToastContainer />
         <BrowserRouter>
           <Header />
           <div className="app-container">
-            <div className="main-layout row" style={{height: '100%'}}>
+            <div className="main-layout row" style={{ height: '100%' }}>
               <Routes>
                 {/* Public route */}
                 <Route path="/login" element={<LoginPage />} />
@@ -112,11 +113,10 @@ function App() {
                 <Route path="/unauthorized" element={<Unauthorized />} />
               </Routes>
             </div>
-            <ScrollTop /> 
+            <ScrollTop />
           </div>
           <Footer />
         </BrowserRouter>
-        <ToastContainer />
       </AuthProvider>
     </GoogleOAuthProvider>
   );
@@ -129,35 +129,35 @@ const ProtectedRoute = ({ roles, children }) => {
 
   const menuItems = {
     borrower: [
-      { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
-      { path: "/advanced-search", label: "Tra cứu sách", icon: "fa fa-search" }, 
-      { path: "/list-book-borrowed", label: "Danh sách đã mượn", icon: "fa fa-book" }, 
-      { path: "/fines", label: "Tiền phạt", icon: "fa fa-money" }, 
-      { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" }, 
-      { path: "/news", label: "Tin tức", icon: "fa fa-newspaper-o" }, 
-      { path: "/notification", label: "Thông báo", icon: "fa fa-bell" }, 
+      { path: "/", label: "Trang chủ", icon: "fa fa-home" },
+      { path: "/advanced-search", label: "Tra cứu sách", icon: "fa fa-search" },
+      { path: "/list-book-borrowed", label: "Danh sách đã mượn", icon: "fa fa-book" },
+      { path: "/fines", label: "Tiền phạt", icon: "fa fa-money" },
+      { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" },
+      { path: "/news", label: "Tin tức", icon: "fa fa-newspaper-o" },
+      { path: "/notification", label: "Thông báo", icon: "fa fa-bell" },
     ],
     librarian: [
-      { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
-      { path: "/manage-order", label: "Quản lý mượn sách", icon: "fa fa-tasks" }, 
-      { path: "/return-book", label: "Quản lý trả sách", icon: "fa fa-undo" }, 
-      { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper-o" }, 
-      { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" }, 
-      { path: "/chart", label: "Thống kê", icon: "fa fa-bar-chart" }, 
-      { path: "/list-fines", label: "Danh sách tiền phạt", icon: "fa fa-money" }, 
+      { path: "/", label: "Trang chủ", icon: "fa fa-home" },
+      { path: "/manage-order", label: "Quản lý mượn sách", icon: "fa fa-tasks" },
+      { path: "/return-book", label: "Quản lý trả sách", icon: "fa fa-undo" },
+      { path: "/list-news-admin", label: "Quản lý tin tức", icon: "fa fa-newspaper-o" },
+      { path: "/list-rule-user", label: "Quy định", icon: "fa fa-list" },
+      { path: "/chart", label: "Thống kê", icon: "fa fa-bar-chart" },
+      { path: "/list-fines", label: "Danh sách tiền phạt", icon: "fa fa-money" },
     ],
     admin: [
-      { path: "/", label: "Trang chủ", icon: "fa fa-home" }, 
-      { path: "/account-list", label: "Quản lý tài khoản", icon: "fa fa-user-circle-o" },  
-      { path: "/list-catalog", label: "Quản lý danh mục", icon: "fa fa-folder" },  
-      { path: "/list-book-set", label: "Quản lý lô sách", icon: "fa fa-book" }, 
-      { path: "/list-rule", label: "Quản lý quy định", icon: "fa fa-list" }, 
-      { path: "/list-penalty-reasons", label: "Quản lý mức phạt", icon: "fa fa fa-window-close-o" }, 
-      { path: "/chart", label: "Thống kê", icon: "fa fa-bar-chart" }, 
+      { path: "/", label: "Trang chủ", icon: "fa fa-home" },
+      { path: "/account-list", label: "Quản lý tài khoản", icon: "fa fa-user-circle-o" },
+      { path: "/list-catalog", label: "Quản lý danh mục", icon: "fa fa-folder" },
+      { path: "/list-book-set", label: "Quản lý lô sách", icon: "fa fa-book" },
+      { path: "/list-rule", label: "Quản lý quy định", icon: "fa fa-list" },
+      { path: "/list-penalty-reasons", label: "Quản lý mức phạt", icon: "fa fa fa-window-close-o" },
+      { path: "/chart", label: "Thống kê", icon: "fa fa-bar-chart" },
 
     ],
   };
-  
+
   React.useEffect(() => {
     const storedToken = localStorage.getItem("accessToken");
     if (!user && storedToken && !isTokenExpired(storedToken)) {
@@ -183,7 +183,7 @@ const ProtectedRoute = ({ roles, children }) => {
       {/* Render Sidebar only after login */}
       <Sidebar menuItems={menuItems[user.role?.name] || []} />
       <div className="content-area col-10">
-        <Breadcrumb/>
+        <Breadcrumb />
         {children}
       </div>
     </>

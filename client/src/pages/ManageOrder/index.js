@@ -171,14 +171,12 @@ const BorrowBookList = () => {
 
   return (
     <Container className="mt-4">
-      <ToastContainer />
-
       <div className="d-flex justify-content-between mb-3">
         <div className="search-bar d-flex align-items-center">
           <input
             type="text"
             style={{ width: "300px", height: "40px", borderRadius: "10px", border: "1px solid #ccc" }}
-            placeholder="Nhập mã sách"
+            placeholder=" Nhập mã sách"
             value={identifierCode}
             onChange={(e) => setIdentifierCode(e.target.value)}
           />
@@ -239,7 +237,9 @@ const BorrowBookList = () => {
                   />
                 </td>
                 <td>{index + 1}</td>
-                <td>{book.book_id?.bookSet_id?.title}</td>
+                <td className="text-capitalize text-start" style={{ wordBreak: 'break-word', maxWidth: '18ch' }}>
+                  {book.book_id?.bookSet_id?.title}
+                </td>
                 <td>{new Date(book.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(book.dueDate).toLocaleDateString()}</td>
                 <td>{book.book_id?.identifier_code}</td>
@@ -251,15 +251,23 @@ const BorrowBookList = () => {
                 <td>{book.book_id?.condition}</td>
                 {book.status === "Pending" && (
                   <td>
-                    <Button variant="success" style={{ marginRight: '10px' }} title="Duyệt" onClick={() => handleActionClick(book, "approve")}>Duyệt</Button>
-                    <Button variant="danger" title="Từ chối" onClick={() => handleActionClick(book, "reject")}>Từ chối</Button>
+                    <Button variant="success" style={{ marginRight: '10px' }} title="Duyệt" onClick={() => handleActionClick(book, "approve")}>
+                      <i className="fa fa-check" aria-hidden="true"></i>
+                    </Button>
+                    <Button variant="danger" title="Từ chối" onClick={() => handleActionClick(book, "reject")}>
+                      <i className="fa fa-times" aria-hidden="true"></i>
+                    </Button>
                   </td>
                 )}
                 {book.status === "Approved" && (
-                  <td><Button variant="primary" title="Nhận" onClick={() => handleActionClick(book, "receive")}>Nhận</Button></td>
+                    <td><Button variant="primary" title="Nhận" onClick={() => handleActionClick(book, "receive")}>
+                        <i className="fa fa-check" aria-hidden="true"></i>
+                      </Button></td>
                 )}
                 {book.status === "Renew Pending" && (
-                  <td><Button variant="primary" title="Duyệt gia hạn" onClick={() => handleActionClick(book, "receive")}>Duyệt gia hạn</Button></td>
+                  <td><Button variant="primary" title="Duyệt gia hạn" onClick={() => handleActionClick(book, "receive")}>
+                      <i className="fa fa-check" aria-hidden="true"></i>
+                    </Button></td>
                 )}
               </tr>
             ))

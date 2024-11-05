@@ -24,7 +24,7 @@ function SearchByStudentId({ onNextStep }) {
 
   return (
     <div className="mt-4">
-      <ToastContainer />
+       
       <h3>Search By Student ID</h3>
       <div className="form-group">
         <input

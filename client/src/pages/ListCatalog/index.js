@@ -188,7 +188,7 @@ const CatalogList = () => {
 
   return (
     <div className="container mt-4">
-      <ToastContainer />
+       
       {/* Bộ lọc */}
       <div className="d-flex justify-content-between my-3 row">
         <div className="col-10 d-flex">

@@ -58,7 +58,7 @@ const CreateAccount = () => {
 
   return (
     <div className="create-account-container mt-4" style={{ margin: "100px 100px" }}>
-      <ToastContainer />
+       
       <h2 className="text-center">Create Account</h2>
       <form onSubmit={handleSubmit}>
         <div className="row">

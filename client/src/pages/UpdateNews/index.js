@@ -80,7 +80,7 @@ function UpdateNews() {
 
   return (
     <div className="container mt-4">
-      <ToastContainer />
+       
       <div className="row">
         <div className="col-md-12 text-center">
           <h1>Update News</h1>
