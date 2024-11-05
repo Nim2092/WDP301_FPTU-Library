@@ -13,9 +13,15 @@ bookSetRouter.post(
 );
 
 bookSetRouter.put(
-  "/update/:id",
-  upload.single("image"),
-  BookSetController.updateBookSet
+    "/update/:id",
+    upload.single("image"),
+    BookSetController.updateBookSet
+);
+
+bookSetRouter.post(
+  "/import",
+  upload.single("file"),
+  BookSetController.importBookSets
 );
 
 bookSetRouter.post("/add-books", BookSetController.addBooks);
