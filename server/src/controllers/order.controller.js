@@ -133,8 +133,9 @@ const getOrderByIdentifierCode = async (req, res, next) => {
 const getOrderByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
+    const { status } = req.query; // Lấy status từ query parameters
 
-    // Find the user first to check if the user exists
+    // Tìm người dùng trước để kiểm tra nếu user tồn tại
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -143,17 +144,23 @@ const getOrderByUserId = async (req, res, next) => {
       });
     }
 
-    // Find the orders for this user and populate the book and user details
-    const orders = await Order.find({ created_by: userId })
-      .populate({
-        path: "book_id", // Populate the book reference
-        populate: {
-          path: "bookSet_id", // Nested populate to get the book set details
-          model: "BookSet", // Reference to the BookSet model
-        },
-      })
-      .populate("created_by", "fullName")
-      .populate("updated_by", "fullName"); // Populate the user's full name
+    // Tạo điều kiện truy vấn cho các đơn hàng
+    const query = { created_by: userId };
+    if (status) {
+      query.status = status; // Thêm điều kiện status nếu có
+    }
+
+    // Tìm các đơn hàng của user và populate chi tiết sách và user
+    const orders = await Order.find(query)
+        .populate({
+          path: "book_id", // Populate sách
+          populate: {
+            path: "bookSet_id", // Populate lồng để lấy chi tiết bộ sách
+            model: "BookSet", // Model tham chiếu
+          },
+        })
+        .populate("created_by", "fullName")
+        .populate("updated_by", "fullName"); // Populate tên đầy đủ của user
 
     if (!orders || orders.length === 0) {
       return res.status(200).json({
@@ -162,16 +169,17 @@ const getOrderByUserId = async (req, res, next) => {
       });
     }
 
-    // Return the orders along with populated data
+    // Trả về các đơn hàng kèm dữ liệu đã populate
     res.status(200).json({
       message: "Get order successfully",
       data: orders,
     });
   } catch (error) {
-    console.error("Error getting a order", error);
+    console.error("Error getting order", error);
     res.status(500).send({ message: error.message });
   }
 };
+
 
 const createBorrowOrder = async (req, res, next) => {
   try {
