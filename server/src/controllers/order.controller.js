@@ -90,42 +90,44 @@ const getOrderByIdentifierCode = async (req, res, next) => {
   try {
     const { identifierCode } = req.params; // Lấy identifier_code từ tham số yêu cầu
 
-    // Tìm sách theo identifier_code
-    console.log(identifierCode);
-    const book = await Book.findOne({ identifier_code: identifierCode });
+    // Tìm tất cả sách có identifier_code chứa đoạn chuỗi identifierCode
+    const books = await Book.find({ identifier_code: { $regex: identifierCode, $options: "i" } });
 
-    // Kiểm tra xem sách có tồn tại không
-    if (!book) {
-      return res.status(404).json({ message: "Book not found" });
+    if (!books.length) {
+      return res.status(404).json({ message: "Không tìm thấy sách với mã identifier_code yêu cầu" });
     }
 
-    // Tìm đơn hàng dựa vào book_id
-    const order = await Order.findOne({ book_id: book._id })
-      .populate({
-        path: "book_id", // Populating the book reference
-        populate: {
-          path: "bookSet_id", // Nested populate to get book set details
-          model: "BookSet", // Reference to the BookSet model
-        },
-      })
-      .populate("created_by", "fullName") // Populate the creator's full name
-      .populate("updated_by", "fullName"); // Populate the updater's full name
+    // Lấy danh sách _id của các sách tìm được
+    const bookIds = books.map(book => book._id);
 
-    // Kiểm tra xem đơn hàng có tồn tại không
-    if (!order) {
-      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    // Tìm tất cả các đơn hàng có book_id thuộc danh sách bookIds
+    const orders = await Order.find({ book_id: { $in: bookIds } })
+        .populate({
+          path: "book_id", // Populate the book reference
+          populate: {
+            path: "bookSet_id", // Nested populate to get book set details
+            model: "BookSet", // Reference to the BookSet model
+          },
+        })
+        .populate("created_by", "fullName") // Populate the creator's full name
+        .populate("updated_by", "fullName"); // Populate the updater's full name
+
+    // Kiểm tra xem có đơn hàng nào tìm thấy không
+    if (!orders.length) {
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng nào" });
     }
 
-    // Trả về thông tin đơn hàng đã tìm thấy
+    // Trả về danh sách đơn hàng đã tìm thấy
     res.status(200).json({
-      message: "Get order successfully",
-      data: order,
+      message: "Get orders successfully",
+      data: orders,
     });
   } catch (error) {
-    console.error("Error getting the order", error);
+    console.error("Error getting the orders", error);
     res.status(500).send({ message: error.message });
   }
 };
+
 
 //Get orders by user id
 const getOrderByUserId = async (req, res, next) => {
@@ -298,7 +300,7 @@ const createBorrowOrder = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Pending",
-      message: `Bạn đã yêu cầu mượn sách thành công. Ngày trả sách của bạn là ${dueDateObj.toDateString()}.`,
+      message: `Bạn đã yêu cầu mượn sách ${bookSet.title} thành công. Ngày trả sách của bạn là ${dueDateObj.toDateString()}.`,
     });
 
     await notification.save();
@@ -342,6 +344,8 @@ async function changeOrderStatus(req, res, next) {
       .populate("created_by", "fullName email")
       .populate("book_id", "identifier_code condition");
 
+    const book = await Book.findById(order.book_id);
+    const bookSet = await BookSet.findById(book.bookSet_id);
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
     }
@@ -362,6 +366,9 @@ async function changeOrderStatus(req, res, next) {
       return res
         .status(400)
         .json({ message: "Trạng thái cập nhật không hợp lệ." });
+    }
+    if (status === 'Received') {
+      order.borrowDate = new Date();
     }
 
     // Xử lý từ chối với lý do
@@ -427,10 +434,8 @@ async function changeOrderStatus(req, res, next) {
             "Bạn đã đạt đến giới hạn số lần hủy đơn hàng trong tháng này.",
         });
       }
-      const book = await Book.findById(order.book_id);
       book.status = 'Available';
       await book.save();
-      const bookSet = await BookSet.findById(book.bookSet_id);
       bookSet.availableCopies += 1;
       await bookSet.save();
     }
@@ -448,25 +453,25 @@ async function changeOrderStatus(req, res, next) {
 
     switch (status) {
       case "Approved":
-        notificationMessage = `Yêu cầu mượn sách #${order.book_id.identifier_code} của bạn đã được chấp thuận. Ngày trả sách là ${order.dueDate}.`;
+        notificationMessage = `Yêu cầu mượn sách ${bookSet.title} với mã định danh #${order.book_id.identifier_code} của bạn đã được chấp thuận. Ngày trả sách là ${order.dueDate}.`;
         break;
       case "Rejected":
         notificationMessage = `Đơn hàng của bạn #${order._id} đã bị từ chối. Lý do: ${reason_order}.`;
         break;
       case "Received":
-        notificationMessage = `Bạn đã nhận sách với mã định danh #${order.book_id.identifier_code}.`;
+        notificationMessage = `Bạn đã nhận sách ${bookSet.title} với mã định danh #${order.book_id.identifier_code}.`;
         break;
       case "Returned":
-        notificationMessage = `Bạn đã trả sách với mã định danh #${order.book_id.identifier_code} thành công.`;
+        notificationMessage = `Bạn đã trả sách ${bookSet.title} với mã định danh #${order.book_id.identifier_code} thành công.`;
         break;
       case "Overdue":
-        notificationMessage = `Sách #${order.book_id.identifier_code} của bạn đã quá hạn. Vui lòng trả sách sớm nhất có thể.`;
+        notificationMessage = `Sách ${bookSet.title} với mã định danh #${order.book_id.identifier_code} của bạn đã quá hạn. Vui lòng trả sách sớm nhất có thể.`;
         break;
       case "Lost":
-        notificationMessage = `Sách #${order.book_id.identifier_code} đã được báo mất. Lý do: ${reason_order}.`;
+        notificationMessage = `Sách ${bookSet.title} với mã định danh #${order.book_id.identifier_code} đã được báo mất. Lý do: ${reason_order}.`;
         break;
       case "Renew Pending":
-        notificationMessage = `Yêu cầu gia hạn sách #${order.book_id.identifier_code} của bạn đang được xử lý.`;
+        notificationMessage = `Yêu cầu gia hạn sách ${bookSet.title} với mã định danh #${order.book_id.identifier_code} của bạn đang được xử lý.`;
         break;
       case "Canceled":
         notificationMessage = `Đơn hàng của bạn #${order._id} đã bị hủy.`;
@@ -605,7 +610,7 @@ async function renewOrder(req, res, next) {
     const notification = new Notification({
       userId: userId,
       type: "Renew Pending",
-      message: `Yêu cầu gia hạn sách #${order.book_id.identifier_code} của bạn đang được xử lý. Ngày trả sách mới là ${dueDate}.`,
+      message: `Yêu cầu gia hạn sách ${bookSet.title} với mã định danh #${order.book_id.identifier_code} của bạn đang được xử lý. Ngày trả sách mới là ${dueDate}.`,
     });
 
     await notification.save();
@@ -678,6 +683,7 @@ async function returnOrder(req, res, next) {
       });
     }
     const book = await Book.findById(order.book_id);
+    const bookSet = await BookSet.findById(book.bookSet_id);
     var isDestroyed = false;
     var fineReasonType = "";
     switch (book_condition) {
@@ -787,7 +793,7 @@ async function returnOrder(req, res, next) {
     const notification = new Notification({
       userId: userId,
       type: "Returned",
-      message: `Bạn đã trả sách thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${order.book_id.condition}. Cảm ơn bạn!`,
+      message: `Bạn đã trả sách ${bookSet.title} thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${order.book_id.condition}. Cảm ơn bạn!`,
     });
 
     await notification.save();
@@ -821,7 +827,7 @@ async function returnOrder(req, res, next) {
       from: '"Thông Báo Thư Viện" <titi2024hd@gmail.com>',
       to: userEmail,
       subject: "Xác Nhận Trả Sách",
-      text: `Xin chào, bạn đã trả sách thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${condition_detail}. ${fineDetailsFormatted}`,
+      text: `Xin chào, bạn đã trả sách ${bookSet.title} thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${condition_detail}. ${fineDetailsFormatted}`,
       html: `<b>Xin chào</b>, bạn đã trả sách thành công với mã định danh <strong>#${order.book_id.identifier_code}</strong> vào ngày ${order.returnDate}.<br>Tình trạng sách: <strong>${condition_detail}</strong>.<br>${fineDetailsFormatted}<br><br>Cảm ơn bạn!`,
     });
 
@@ -953,7 +959,7 @@ const reportLostBook = async (req, res, next) => {
     const notification = new Notification({
       userId: userId,
       type: "Lost",
-      message: `Sách với mã định danh ${order.book_id.identifier_code} đã được báo mất.`,
+      message: `Sách ${bookSet.title} với mã định danh ${order.book_id.identifier_code} đã được báo mất.`,
     });
     await notification.save();
 
@@ -1068,7 +1074,6 @@ const cancelOverdueOrders = async (req, res, next) => {
 
     const now = new Date();
     const pendingOrders = await Order.find({
-      // _id: orderId, // testing
       status: "Approved",
     })
       .populate("created_by", "name email")
@@ -1080,19 +1085,23 @@ const cancelOverdueOrders = async (req, res, next) => {
           select: "title",
         },
       });
-
     let emailSent = [];
     // Loop through all pending orders to check if any of them are overdue
     for (const order of pendingOrders) {
-      const requestDate = new Date(order.requestDate);
+      const requestDate = new Date(order.borrowDate);
       const daysDiff = Math.floor((now - requestDate) / (1000 * 60 * 60 * 24));
-
       // If the order is overdue by more than 3 days, reject the order
       if (daysDiff > 3) {
         order.status = "Canceled";
         order.reason_order =
           "Người dùng không đến nhận sách trong vòng 3 ngày.";
         await order.save();
+        const book = await Book.findById(order.book_id);
+        book.status = "Available";
+        await book.save();
+        const bookSet = await BookSet.findById(book.bookSet_id);
+        bookSet.availableCopies += 1;
+        await bookSet.save();
 
         // Send a notification to the user
         const notification = new Notification({

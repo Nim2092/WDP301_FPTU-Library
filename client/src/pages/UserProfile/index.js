@@ -27,7 +27,7 @@ const UserProfile = () => {
           fullName: userData.fullName,
           email: userData.email,
           phoneNumber: userData.phoneNumber,
-          image: userData.image ? `http://localhost:9999${userData.image}` : '',
+          image: userData.image ? `https://fptu-library.xyz${userData.image}` : '',
         });
         setLoading(false);
       })
