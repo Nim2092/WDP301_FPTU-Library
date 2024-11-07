@@ -1086,11 +1086,17 @@ const cancelOverdueOrders = async (req, res, next) => {
         },
       });
     let emailSent = [];
+    let test = [];
     // Loop through all pending orders to check if any of them are overdue
     for (const order of pendingOrders) {
       const requestDate = new Date(order.borrowDate);
       const daysDiff = Math.floor((now - requestDate) / (1000 * 60 * 60 * 24));
       // If the order is overdue by more than 3 days, reject the order
+      test.push({
+        requestDate: requestDate,
+        now: now,
+        daysDiff: daysDiff
+      })
       if (daysDiff > 3) {
         order.status = "Canceled";
         order.reason_order =
@@ -1136,6 +1142,8 @@ const cancelOverdueOrders = async (req, res, next) => {
     res.status(200).json({
       message: "Overdue orders Canceled successfully and email sent.",
       data: emailSent,
+      test: test,
+      pendingOrders: pendingOrders
     });
     console.log("Checking and Canceled overdue orders...");
   } catch (error) {
