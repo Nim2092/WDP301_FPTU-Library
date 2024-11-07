@@ -17,7 +17,6 @@ function RuleDetail() {
         const data = await response.json();
 
         if (response.ok) {
-          console.log(data);
           setRule(data.data); // Set rule data
           setLoading(false); // Stop loading
         } else {
@@ -36,7 +35,7 @@ function RuleDetail() {
 
   // Show loading message while fetching data
   if (loading) {
-    return <div className="text-center mt-4">Loading...</div>;
+    return <div className="text-center mt-4">Đang tải...</div>;
   }
 
   // Show error message if there's any issue with fetching data

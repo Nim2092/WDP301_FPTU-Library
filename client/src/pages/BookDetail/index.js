@@ -22,6 +22,8 @@ function BookDetail() {
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [statusFilter, setStatusFilter] = useState("");
+  const [conditionFilter, setConditionFilter] = useState("");
 
   useEffect(() => {
     const fetchBookDetail = async () => {
@@ -37,12 +39,24 @@ function BookDetail() {
         console.error("Error fetching book details:", error);
       }
     };
+
     fetchBookDetail();
   }, [id]);
 
   useEffect(() => {
-    setFilteredBooks(books);
-  }, [books]);
+    const filterBooks = () => {
+      let filtered = books;
+      if (statusFilter) {
+        filtered = filtered.filter(book => book.status === statusFilter);
+      }
+      if (conditionFilter) {
+        filtered = filtered.filter(book => book.condition === conditionFilter);
+      }
+      setFilteredBooks(filtered);
+    };
+
+    filterBooks();
+  }, [books, statusFilter, conditionFilter]);
 
   const handleSearchCopy = () => {
     if (identifierCode.trim() === "") {
@@ -194,11 +208,32 @@ function BookDetail() {
             </div>
           </div>
           <div className="book-copies">
-            <div className="col-md-12">
-              <h3 className="text-center">Danh sách các bản sao</h3>
-            </div>
             <div className="row">
-              <div className="search-copy mb-3 col-md-6" >
+              <div className="col-md-6">
+                <h3 className="text-start">Danh sách các bản sao</h3>
+              </div>
+              <div className="col-md-3">
+                <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="">Tất cả</option>
+                  <option value="Available">Còn lại</option>
+                  <option value="Borrowed">Đã mượn</option>
+                  <option value="Destroyed">Đã hủy</option>
+                </select>
+
+              </div>
+              <div className="col-md-3">
+                <select className="form-select" value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value)}>
+                  <option value="">Tất cả</option>
+                  <option value="Good">Tốt</option>
+                  <option value="Light">Hơi bị hư</option>
+                  <option value="Medium">Hư hại nhẹ</option>
+                  <option value="Hard">Hư hại nặng</option>
+                  <option value="Lost">Mất</option>
+                </select>
+              </div>
+            </div>
+            <div className="row mt-3 mb-3">
+              <div className="search-copy col-md-6" >
                 <input
                   type="text"
                   placeholder="Nhập mã định danh"
@@ -208,6 +243,7 @@ function BookDetail() {
                 />
                 <button className="btn btn-primary" onClick={handleSearchCopy}>Tìm kiếm</button>
               </div>
+              
               <div className="col-md-6">
                 <button className="btn btn-primary float-end" onClick={handleShowAddModal}>Thêm bản sao</button>
               </div>
@@ -219,8 +255,8 @@ function BookDetail() {
                     <th>#</th>
                     <th>Mã định danh</th>
                     <th>Trạng thái</th>
-                    <th>Điều kiện</th>
-                    <th>Chi tiết điều kiện</th>
+                    <th>Tình trạng</th>
+                    <th>Chi tiết tình trạng</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
@@ -269,23 +305,23 @@ function BookDetail() {
         <Modal.Body>
           <Form>
             <Form.Group controlId="formCondition">
-              <Form.Label>Trạng thái</Form.Label>
+              <Form.Label>Tình trạng</Form.Label>
               <Form.Select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value)}
               >
-                <option value="Good">Good</option>
-                <option value="Light">Light</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
-                <option value="Lost">Lost</option>
+                <option value="Good">Tốt</option>
+                <option value="Light">Hơi bị hư</option>
+                <option value="Medium">Hư hại nhẹ</option>
+                <option value="Hard">Hư hại nặng</option>
+                <option value="Lost">Mất</option>
               </Form.Select>
             </Form.Group>
             <Form.Group controlId="formConditionDetail">
-              <Form.Label>Chi tiết điều kiện</Form.Label>
+              <Form.Label>Chi tiết tình trạng</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter condition detail"
+                placeholder="Nhập chi tiết tình trạng"
                 value={conditionDetail}
                 onChange={(e) => setConditionDetail(e.target.value)}
               />
@@ -310,10 +346,10 @@ function BookDetail() {
         <Modal.Body>
           <Form>
             <Form.Group controlId="formNumberOfCopies">
-              <Form.Label>Number of Copies</Form.Label>
+              <Form.Label>Số lượng bản sao</Form.Label>
               <Form.Control
                 type="number"
-                placeholder="Enter number of copies"
+                placeholder="Nhập số lượng bản sao"
                 value={numberOfCopies}
                 onChange={(e) => setNumberOfCopies(e.target.value)}
               />

@@ -22,7 +22,7 @@ function LoginPage() {
         password: password,
       });
       login(response.data.accessToken); 
-      toast(`Chào mừng bạn đến với FPTU-Library`);
+      toast(`Chào mừng bạn đến với fptu-library.xyz`);
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
@@ -37,7 +37,7 @@ function LoginPage() {
         token: response.credential,
       });
       login(res.data.accessToken); 
-      toast(`Chào mừng bạn đến với FPTU-Library`);
+      toast(`Chào mừng bạn đến với fptu-library.xyz`);
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Google login failed. Please try again.";

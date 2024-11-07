@@ -15,7 +15,7 @@ function ListBookSet() {
   const [selectedCatalog, setSelectedCatalog] = useState('all');
 
   useEffect(() => {
-    axios.get("https://fptu-library.xyz/api/catalogs/list")
+    axios.get("https://fptu-library.xyz.xyz/api/catalogs/list")
       .then((response) => {
         setCatalogData(response.data);
       })

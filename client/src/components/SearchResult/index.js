@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import ReactPaginate from "react-paginate";
 import { Modal, Button, Form, Container } from "react-bootstrap";
 
@@ -95,7 +95,8 @@ function SearchResults({ books = [] }) {
     <Container className="mt-4">
        
       {books.length === 0 ? (
-        <p>Không tìm thấy sách</p>
+       <div className="d-flex justify-content-center align-items-center">
+       </div>
       ) : (
         currentBooks.map((book) => (
           <div className="card mb-4 p-3" key={book._id}>
@@ -140,26 +141,28 @@ function SearchResults({ books = [] }) {
         ))
       )}
 
-      {/* Phân trang */}
-      <ReactPaginate
-        previousLabel={"Trước"}
-        nextLabel={"Tiếp"}
-        breakLabel={"..."}
-        pageCount={Math.ceil(books.length / itemsPerPage)}
-        marginPagesDisplayed={2}
-        pageRangeDisplayed={5}
-        onPageChange={handlePageClick}
-        containerClassName={"pagination justify-content-center"}
-        pageClassName={"page-item"}
-        pageLinkClassName={"page-link"}
-        previousClassName={"page-item"}
-        previousLinkClassName={"page-link"}
-        nextClassName={"page-item"}
-        nextLinkClassName={"page-link"}
-        breakClassName={"page-item"}
-        breakLinkClassName={"page-link"}
-        activeClassName={"active"}
-      />
+      {/* Conditionally render pagination only if there are books */}
+      {books.length > 5 && (
+        <ReactPaginate
+          previousLabel={"<"}
+          nextLabel={">"}
+          breakLabel={"..."}
+          pageCount={Math.ceil(books.length / itemsPerPage)}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          onPageChange={handlePageClick}
+          containerClassName={"pagination justify-content-center"}
+          pageClassName={"page-item"}
+          pageLinkClassName={"page-link"}
+          previousClassName={"page-item"}
+          previousLinkClassName={"page-link"}
+          nextClassName={"page-item"}
+          nextLinkClassName={"page-link"}
+          breakClassName={"page-item"}
+          breakLinkClassName={"page-link"}
+          activeClassName={"active"}
+        />
+      )}
 
       {/* Modal mượn sách */}
       <Modal show={showModal} onHide={closeModal}>

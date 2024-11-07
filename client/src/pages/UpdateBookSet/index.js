@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import {toast } from "react-toastify";
 import AuthContext from "../../contexts/UserContext";
 const UpdateBookSet = () => {
   const { id } = useParams();
@@ -32,7 +32,7 @@ const UpdateBookSet = () => {
     const fetchCatalogs = async () => {
       try {
         const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
-        setCatalogData(response.data);
+        setCatalogData(response.data.data);
       } catch (error) {
         console.error("Error fetching catalog data:", error);
       }
@@ -117,7 +117,7 @@ const UpdateBookSet = () => {
   return (
     <div className="container">
        
-      <h1 className="my-4 text-center">Update Book Set</h1>
+      <h1 className="my-4 text-center">Cập nhật sách</h1>
       <form onSubmit={handleSubmit}>
         {/* Image Preview */}
         <div className="row">
@@ -174,7 +174,7 @@ const UpdateBookSet = () => {
           </div>
         </div>
         <div className="d-flex justify-content-center align-items-center">
-          <button type="submit" className="btn btn-primary mb-3 d-flex">Update Book Set</button>
+          <button type="submit" className="btn btn-primary mb-3 d-flex ">Cập nhật sách</button>
         </div>
       </form>
     </div>
