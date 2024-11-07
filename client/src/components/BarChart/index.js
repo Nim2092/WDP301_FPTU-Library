@@ -10,7 +10,7 @@ function MonthlyOrderChart() {
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
     const [totalOrder, setTotalOrder] = useState(0);
     useEffect(() => {
-        axios.get("https://fptu-library/api/orders/chart-order-by-month")
+        axios.get("https://fptu-library.xyz/api/orders/chart-order-by-month")
             .then((res) => {
                 const monthlyData = res.data.data;
 
@@ -36,7 +36,7 @@ function MonthlyOrderChart() {
     }, []);
 
     useEffect(() => {
-        axios.get("https://fptu-library.xyz/api/orders/getAll")
+        axios.get("https://fptu-library.xyz.xyz/api/orders/getAll")
             .then((res) => {
                 setTotalOrder(res.data.data.length);
             });

@@ -9,7 +9,7 @@ function BookSearch({ setSearchResults }) {
   const handleSubmit = async () => {
     try {
 
-      const response = await axios.get("https://fptu-library/api/book-sets/list", {
+      const response = await axios.get("https://fptu-library.xyz/api/book-sets/list", {
         params: {
           title: bookName,
         },

@@ -20,7 +20,7 @@ function RenewBook() {
     // Fetch order details when the component mounts
     const fetchOrderDetails = async () => {
       try {
-        const response = await axios.get(`https://fptu-library/api/orders/by-order/${orderId}`);
+        const response = await axios.get(`https://fptu-library.xyz/api/orders/by-order/${orderId}`);
         setBook(response.data.data); // Assuming the order details are in data.data
         setLoading(false);
       } catch (err) {
@@ -36,7 +36,7 @@ function RenewBook() {
     e.preventDefault();
     try {
       await axios.post(
-        `https://fptu-library/api/orders/renew/${orderId}`,
+        `https://fptu-library.xyz/api/orders/renew/${orderId}`,
         {
           dueDate: newDueDate,
           renew_reason: renewReason,
@@ -59,7 +59,7 @@ function RenewBook() {
       <div className="row">
         <div className="col-md-4">
           <img
-            src={`https://fptu-library/api/news/thumbnail/${book?.book_id?.bookSet_id?.image.split("/").pop()}`}
+            src={`https://fptu-library.xyz/api/news/thumbnail/${book?.book_id?.bookSet_id?.image.split("/").pop()}`}
             className="img-fluid"
             style={{ width: "100%", height: "100" }}
             alt={book?.book_id?.bookSet_id?.title}

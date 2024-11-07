@@ -18,7 +18,7 @@ const CreatePenaltyReason = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://fptu-library/api/penalty-reasons/create", {
+      const response = await fetch("https://fptu-library.xyz/api/penalty-reasons/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

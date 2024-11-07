@@ -31,7 +31,7 @@ const UpdateBookSet = () => {
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
-        const response = await axios.get("https://fptu-library/api/catalogs/list");
+        const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
         setCatalogData(response.data);
       } catch (error) {
         console.error("Error fetching catalog data:", error);
@@ -43,7 +43,7 @@ const UpdateBookSet = () => {
   useEffect(() => {
     const fetchBookSet = async () => {
       try {
-        const response = await axios.get(`https://fptu-library/api/book-sets/${id}`);
+        const response = await axios.get(`https://fptu-library.xyz/api/book-sets/${id}`);
         const bookSetData = response.data.bookSet;
         setFormData({
           catalog_id: bookSetData.catalog_id._id,
@@ -62,7 +62,7 @@ const UpdateBookSet = () => {
           updatedBy: user.id
         });
         if (bookSetData.image) {
-          setImagePreview(`https://fptu-library/api/book-sets/image/${bookSetData.image.split("/").pop()}`);
+          setImagePreview(`https://fptu-library.xyz/api/book-sets/image/${bookSetData.image.split("/").pop()}`);
         }
       } catch (error) {
         console.error("Error fetching book set data:", error);
@@ -95,7 +95,7 @@ const UpdateBookSet = () => {
 
     try {
       const response = await axios.put(
-        `https://fptu-library/api/book-sets/update/${id}`,
+        `https://fptu-library.xyz/api/book-sets/update/${id}`,
         data,
         {
           headers: {

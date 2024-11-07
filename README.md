@@ -1,12 +1,12 @@
-# WDP301_FPTU-Library
+# WDP301_fptu-library.xyz
 
-FPTU-Library management
+fptu-library.xyz management
 
 Our team is developing a comprehensive library management system for FPT University to streamline the borrowing and returning of textbooks and reference materials. The website will allow students and staff to easily search for books, place orders for borrowing, and manage their accounts online. The system will include features such as catalog browsing, order tracking, renewal requests, and notifications for due dates. Additionally, users can pay fines and book-related fees securely through integrated CASSO payment functionality. The solution is designed to provide a seamless user experience while improving operational efficiency for the university’s library.
 
 ## Table of Contents
 
-- [FPTU-Library management](#WDP301_FPTU-Library)
+- [fptu-library.xyz management](#WDP301_fptu-library.xyz)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
@@ -29,7 +29,7 @@ Ensure you have the following installed:
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/Nim2092/WDP391_FPTU-Library.git
+   git clone https://github.com/Nim2092/WDP391_fptu-library.xyz.git
    ```
 
 2. Navigate to the backend directory:

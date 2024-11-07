@@ -7,7 +7,7 @@ function Bill({ bookID }) {
     useEffect(() => {
         if (bookID) {
             axios
-              .get(`https://fptu-library/api/fines/by-order/671d21a5ae1bf265548bf8ba`)
+              .get(`https://fptu-library.xyz/api/fines/by-order/671d21a5ae1bf265548bf8ba`)
               .then(res => {
                   setBills(res.data);
               })

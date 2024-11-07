@@ -11,14 +11,14 @@ function Notification() {
 
   useEffect(() => {
     axios
-      .get(`https://fptu-library/api/notifications/get/${user.id}`)
+      .get(`https://fptu-library.xyz/api/notifications/get/${user.id}`)
       .then((response) => {
         const sortedNotifications = response.data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
         setNotification(sortedNotifications);
         console.log(response.data);
 
         axios
-          .put(`https://fptu-library/api/notifications/markAsRead/${user.id}`)
+          .put(`https://fptu-library.xyz/api/notifications/markAsRead/${user.id}`)
           .then(() => {
             console.log("All notifications marked as read");
           })

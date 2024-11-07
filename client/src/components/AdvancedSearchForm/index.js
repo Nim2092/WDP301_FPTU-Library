@@ -15,7 +15,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.get("https://fptu-library/api/book-sets/list", {
+      const response = await axios.get("https://fptu-library.xyz/api/book-sets/list", {
         params: {
           title: bookName,
           author,
@@ -33,7 +33,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
-        const response = await axios.get("https://fptu-library/api/catalogs/list");
+        const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
         setCatalogData(response.data);
       } catch (error) {
         console.error("Error fetching catalog data:", error);

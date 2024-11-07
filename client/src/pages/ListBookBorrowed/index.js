@@ -25,7 +25,7 @@ function ListBookBorrowed() {
       try {
         setLoading(true); // Start loading
         const response = await axios.get(
-          `https://fptu-library/api/orders/by-user/${user.id}?page=${currentPage + 1}`, // Updated API call with pagination
+          `https://fptu-library.xyz/api/orders/by-user/${user.id}?page=${currentPage + 1}`, // Updated API call with pagination
           {
             headers: {
               Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
@@ -57,7 +57,7 @@ function ListBookBorrowed() {
     if (confirmLost) {
       try {
         await axios.put(
-          `https://fptu-library/api/orders/report-lost/${orderId}`,
+          `https://fptu-library.xyz/api/orders/report-lost/${orderId}`,
           { userId: user.id, status: currentStatus, updated_by: user.id },
           {
             headers: {
@@ -68,7 +68,7 @@ function ListBookBorrowed() {
         alert("The book has been successfully reported as lost.");
 
         const response = await axios.get(
-          `https://fptu-library/api/orders/by-user/${user.id}`,
+          `https://fptu-library.xyz/api/orders/by-user/${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -92,7 +92,7 @@ function ListBookBorrowed() {
   const handleCancelOrder = async (orderId) => {
 
     try {
-      await axios.put(`https://fptu-library/api/orders/change-status/${orderId}`, {
+      await axios.put(`https://fptu-library.xyz/api/orders/change-status/${orderId}`, {
         status: "Canceled",
         updated_by: user.id
       },
@@ -113,7 +113,7 @@ function ListBookBorrowed() {
   const handleRenewBook = async (orderId) => {
     navigate(`/renew-book/${orderId}`);
     // try {
-    //   await axios.post(`https://fptu-library/api/orders/renew/${orderId}`, {
+    //   await axios.post(`https://fptu-library.xyz/api/orders/renew/${orderId}`, {
     //     updated_by: user.id,
     //     dueDate: dueDate, 
     //     renew_reason: renewReason

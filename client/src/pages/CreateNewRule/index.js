@@ -20,7 +20,7 @@ function CreateNewRule() {
 
     try {
       // API request to create a new rule
-      const response = await fetch("https://fptu-library/api/rules/create", {
+      const response = await fetch("https://fptu-library.xyz/api/rules/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

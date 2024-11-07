@@ -17,12 +17,12 @@ function LoginPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post("https://fptu-library/api/auth/login", {
+      const response = await axios.post("https://fptu-library.xyz/api/auth/login", {
         email: username,
         password: password,
       });
       login(response.data.accessToken); 
-      toast(`Chào mừng bạn đến với FPTU-Library`);
+      toast(`Chào mừng bạn đến với fptu-library.xyz`);
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
@@ -33,11 +33,11 @@ function LoginPage() {
 
   const handleGoogleLogin = async (response) => {
     try {
-      const res = await axios.post("https://fptu-library/api/auth/google-login", {
+      const res = await axios.post("https://fptu-library.xyz/api/auth/google-login", {
         token: response.credential,
       });
       login(res.data.accessToken); 
-      toast(`Chào mừng bạn đến với FPTU-Library`);
+      toast(`Chào mừng bạn đến với fptu-library.xyz`);
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Google login failed. Please try again.";

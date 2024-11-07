@@ -23,11 +23,11 @@ const UpdateAccount = () => {
     const fetchData = async () => {
       try {
         // Fetch roles
-        const rolesResponse = await axios.get("https://fptu-library/api/user/all-role");
+        const rolesResponse = await axios.get("https://fptu-library.xyz/api/user/all-role");
         setRoles(rolesResponse.data.data);
 
         // Fetch user data
-        const userResponse = await axios.get(`https://fptu-library/api/user/get/${id}`);
+        const userResponse = await axios.get(`https://fptu-library.xyz/api/user/get/${id}`);
         const { fullName, email, phoneNumber, role_id, image, code } = userResponse.data.data;
 
         setFormData({
@@ -41,7 +41,7 @@ const UpdateAccount = () => {
         });
 
         if (image) {
-          setImagePreview(`https://fptu-library/api/user/image/${image.split("/").pop()}`);
+          setImagePreview(`https://fptu-library.xyz/api/user/image/${image.split("/").pop()}`);
         }
       } catch (error) {
         toast.error("Failed to load data.");
@@ -74,7 +74,7 @@ const UpdateAccount = () => {
     });
 
     try {
-      await axios.put(`https://fptu-library/api/user/update/${id}`, data, {
+      await axios.put(`https://fptu-library.xyz/api/user/update/${id}`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

@@ -14,7 +14,7 @@ function NewsPage() {
     // Fetch news items from the API
     const fetchNews = async () => {
       try {
-        const response = await fetch("https://fptu-library/api/news/list");
+        const response = await fetch("https://fptu-library.xyz/api/news/list");
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -46,7 +46,7 @@ function NewsPage() {
           <div className="row mb-4" style={{ boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.1)' , borderRadius: '10px'}} key={item._id}>
             <div className="col-md-4" >
               <img
-                src={`https://fptu-library/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
+                src={`https://fptu-library.xyz/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
                 className="img-fluid"
                 style={{borderRadius: '10px', margin: '10px', border: '1px solid #ccc'}}
                 alt={item.title}
