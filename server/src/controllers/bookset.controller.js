@@ -312,6 +312,7 @@ async function listBookSet(req, res, next) {
       pubYear,
       publisher,
       catalog_id,
+      isTextbook,
     } = req.query;
 
     const query = {};
@@ -320,10 +321,10 @@ async function listBookSet(req, res, next) {
       query.catalog_id = catalog_id;
     }
 
-    // Lấy tất cả các bản ghi bookSet
+    // Lấy tất cả các bản ghi BookSet và populate catalog_id
     const allBookSets = await BookSet.find(query)
-      .populate("catalog_id")
-      .sort({ createdAt: -1 });
+        .populate("catalog_id")
+        .sort({ createdAt: -1 });
 
     // Chuẩn hóa các tham số tìm kiếm
     const normalizedTitle = title ? normalizeString(title) : null;
@@ -337,23 +338,28 @@ async function listBookSet(req, res, next) {
       const normalizedBookPublisher = normalizeString(bookSet.publisher);
 
       const titleMatch = normalizedTitle
-        ? normalizedBookTitle.includes(normalizedTitle)
-        : true;
+          ? normalizedBookTitle.includes(normalizedTitle)
+          : true;
       const authorMatch = normalizedAuthor
-        ? normalizedBookAuthor.includes(normalizedAuthor)
-        : true;
+          ? normalizedBookAuthor.includes(normalizedAuthor)
+          : true;
       const publisherMatch = normalizedPublisher
-        ? normalizedBookPublisher.includes(normalizedPublisher)
-        : true;
+          ? normalizedBookPublisher.includes(normalizedPublisher)
+          : true;
 
-      return titleMatch && authorMatch && publisherMatch;
+      // Kiểm tra isTextbook trong catalog đã populate
+      const isTextbookMatch = isTextbook !== undefined
+          ? bookSet.catalog_id && bookSet.catalog_id.isTextbook === parseInt(isTextbook, 10)
+          : true;
+
+      return titleMatch && authorMatch && publisherMatch && isTextbookMatch;
     });
 
     // Phân trang
     const skip = (page - 1) * limit;
     const paginatedBookSets = filteredBookSets.slice(
-      skip,
-      skip + parseInt(limit)
+        skip,
+        skip + parseInt(limit)
     );
     const totalBookSets = filteredBookSets.length;
 
@@ -366,10 +372,11 @@ async function listBookSet(req, res, next) {
     });
   } catch (error) {
     return res
-      .status(500)
-      .json({ message: "An error occurred", error: error.message });
+        .status(500)
+        .json({ message: "An error occurred", error: error.message });
   }
 }
+
 
 async function getBookSetDetail(req, res, next) {
   try {
