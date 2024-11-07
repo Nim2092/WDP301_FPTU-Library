@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import ReactPaginate from "react-paginate";
 import { Modal, Button, Form, Container } from "react-bootstrap";
 
@@ -27,7 +27,7 @@ function SearchResults({ books = [] }) {
     setSelectedBookId(bookId);
     setLoading(true);
     try {
-      const response = await axios.get(`https://fptu-library.xyz/api/book-sets/available/${bookId}`);
+      const response = await axios.get(`http://localhost:9999/api/book-sets/available/${bookId}`);
       setBookSet(response.data.bookSet);
       setBook(response.data.availableBooks);
       setShowModal(true);
@@ -46,7 +46,7 @@ function SearchResults({ books = [] }) {
     setLoading(true);
     try {
       const booksetCurrent = bookSet._id;
-      const ordersResponse = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${user.id}`);
+      const ordersResponse = await axios.get(`http://localhost:9999/api/orders/by-user/${user.id}`);
       const orders = ordersResponse.data.data;
       const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
 
@@ -57,7 +57,7 @@ function SearchResults({ books = [] }) {
       }
 
       const firstBook = book[0];
-      const response = await axios.post(`https://fptu-library.xyz/api/orders/create-borrow/${firstBook._id}`, {
+      const response = await axios.post(`http://localhost:9999/api/orders/create-borrow/${firstBook._id}`, {
         book_id: firstBook._id,
         userId: user.id,
         borrowDate: borrowDate,
@@ -95,7 +95,8 @@ function SearchResults({ books = [] }) {
     <Container className="mt-4">
        
       {books.length === 0 ? (
-        <p>Không tìm thấy sách</p>
+       <div className="d-flex justify-content-center align-items-center">
+       </div>
       ) : (
         currentBooks.map((book) => (
           <div className="card mb-4 p-3" key={book._id}>
@@ -103,7 +104,7 @@ function SearchResults({ books = [] }) {
               <div className="col-md-3">
                 {book.image ? (
                   <img
-                  src={`https://fptu-library.xyz/api/book-sets/image/${book.image.split("/").pop()}`}
+                  src={`http://localhost:9999/api/book-sets/image/${book.image.split("/").pop()}`}
                   alt={book.title}
                   style={{ width: "250px", height: "auto" }}
                 />
@@ -140,26 +141,28 @@ function SearchResults({ books = [] }) {
         ))
       )}
 
-      {/* Phân trang */}
-      <ReactPaginate
-        previousLabel={"Trước"}
-        nextLabel={"Tiếp"}
-        breakLabel={"..."}
-        pageCount={Math.ceil(books.length / itemsPerPage)}
-        marginPagesDisplayed={2}
-        pageRangeDisplayed={5}
-        onPageChange={handlePageClick}
-        containerClassName={"pagination justify-content-center"}
-        pageClassName={"page-item"}
-        pageLinkClassName={"page-link"}
-        previousClassName={"page-item"}
-        previousLinkClassName={"page-link"}
-        nextClassName={"page-item"}
-        nextLinkClassName={"page-link"}
-        breakClassName={"page-item"}
-        breakLinkClassName={"page-link"}
-        activeClassName={"active"}
-      />
+      {/* Conditionally render pagination only if there are books */}
+      {books.length > 5 && (
+        <ReactPaginate
+          previousLabel={"<"}
+          nextLabel={">"}
+          breakLabel={"..."}
+          pageCount={Math.ceil(books.length / itemsPerPage)}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          onPageChange={handlePageClick}
+          containerClassName={"pagination justify-content-center"}
+          pageClassName={"page-item"}
+          pageLinkClassName={"page-link"}
+          previousClassName={"page-item"}
+          previousLinkClassName={"page-link"}
+          nextClassName={"page-item"}
+          nextLinkClassName={"page-link"}
+          breakClassName={"page-item"}
+          breakLinkClassName={"page-link"}
+          activeClassName={"active"}
+        />
+      )}
 
       {/* Modal mượn sách */}
       <Modal show={showModal} onHide={closeModal}>

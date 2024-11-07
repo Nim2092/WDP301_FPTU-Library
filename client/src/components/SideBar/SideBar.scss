@@ -8,10 +8,10 @@
       flex-direction: column;
       height: 100%;
       overflow-y: auto; // Allow scrolling if content is too long
-  
+      
       .sidebar-content {
-        padding: 20px; // Add padding to the content inside sidebar
-  
+        padding-top: 20px;
+        padding-left: 20px;
         ul {
           list-style: none;
           padding: 0;

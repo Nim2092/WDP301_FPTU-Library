@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../contexts/UserContext";
-
+import { toast } from "react-toastify";
 function CreateBookSet() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -38,7 +38,7 @@ function CreateBookSet() {
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
-        const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
+        const response = await axios.get("http://localhost:9999/api/catalogs/list");
         setCatalogData(response.data);
       } catch (error) {
         console.error("Error fetching catalog data:", error);
@@ -58,206 +58,89 @@ function CreateBookSet() {
     });
 
     try {
-      const response = await axios.post("https://fptu-library.xyz/api/book-sets/create", data, {
+      const response = await axios.post("http://localhost:9999/api/book-sets/create", data, {
         headers: {
           "Content-Type": "multipart/form-data", // Sử dụng multipart/form-data khi có file
         },
       });
 
       if (response.status === 201) {
-        alert("Book Set created successfully");
+        toast.success("Book Set created successfully");
         navigate("/list-book-set");
       } else {
-        alert("Failed to create book set");
+        toast.error("Failed to create book set");
       }
     } catch (error) {
       console.error("Error creating book set:", error);
-      alert("Error creating book set");
+      toast.error("Error creating book set");
     }
   };
 
   return (
     <div className="container mt-5">
-      <h1>Create Book Set</h1>
+      <h1 className="my-4 text-center">Create Book Set</h1>
+
       <form onSubmit={handleSubmit}>
-        {/* Catalog ID */}
-        <div className="mb-3">
-          <label className="form-label">Catalog ID:</label>
-          <select
-            className="form-select"
-            name="catalog_id"
-            value={formData.catalog_id}
-            onChange={(e) => setFormData({ ...formData, catalog_id: e.target.value })}
-          >
-            <option value="">Select Catalog</option>
-            {catalogData.map((catalog) => (
-              <option key={catalog._id} value={catalog._id}>
-                {catalog.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Image Upload */}
-        <div className="mb-3">
-          <label className="form-label">Book Set Image:</label>
-          {imagePreview && (
-            <div className="mt-3">
-              <img src={imagePreview} alt="Preview" style={{ maxWidth: "200px", maxHeight: "200px" }} />
+        <div className="row">
+          <div className="col-md-3">
+            {/* Image Upload */}
+            <div className="mb-3">
+              <label className="form-label">Book Set Image:</label>
+              {imagePreview && (
+                <div className="mt-3">
+                  <img src={imagePreview} alt="Preview" style={{ maxWidth: "200px", maxHeight: "200px" }} />
+                </div>
+              )}
+              <input
+                type="file"
+                className="form-control"
+                onChange={handleImageChange} // Xử lý khi người dùng chọn ảnh
+              />
             </div>
-          )}
-          <input
-            type="file"
-            className="form-control"
-            onChange={handleImageChange} // Xử lý khi người dùng chọn ảnh
-          />
+          </div>
+          <div className="col-md-9">
+            <div className="row">
+              <div className="mb-3 col-md-6">
+                <label className="form-label">Catalog ID:</label>
+                <select
+                  className="form-select"
+                  name="catalog_id"
+                  value={formData.catalog_id}
+                  onChange={(e) => setFormData({ ...formData, catalog_id: e.target.value })}
+                >
+                  <option value="">Select Catalog</option>
+                  {catalogData.map((catalog) => (
+                    <option key={catalog._id} value={catalog._id}>
+                      {catalog.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {[
+                { label: "ISBN", id: "isbn", type: "text" },
+                { label: "Price", id: "price", type: "number" },
+                { label: "Code", id: "code", type: "text" },
+                { label: "Title", id: "title", type: "text" },
+                { label: "Author", id: "author", type: "text" },
+                { label: "Published Year", id: "publishedYear", type: "date" },
+                { label: "Publisher", id: "publisher", type: "text" },
+                { label: "Physical Description", id: "physicalDescription", type: "text" },
+                { label: "Shelf Location Code", id: "shelfLocationCode", type: "text" },
+                { label: "Total Copies", id: "totalCopies", type: "number" },
+                { label: "Available Copies", id: "availableCopies", type: "number" },
+              ].map(({ label, id, type }) => (
+                <div className="mb-3 col-md-6" key={id}>
+                  <label htmlFor={id} className="form-label">{label}:</label>
+                  <input type={type} className="form-control" id={id} value={formData[id]} 
+                  onChange={(e) => setFormData({ ...formData, [id]: e.target.value })} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-
-        {/* ISBN */}
-        <div className="mb-3">
-          <label className="form-label">ISBN:</label>
-          <input
-            type="text"
-            className="form-control"
-            name="isbn"
-            value={formData.isbn}
-            onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
-            required
-          />
+        <div className="d-flex justify-content-center align-items-center">
+          <button type="submit" className="btn btn-primary mb-3">Create Book Set</button>
         </div>
-
-        {/* Code */}
-        <div className="mb-3">
-          <label className="form-label">Code:</label>
-          <input
-            type="text"
-            className="form-control"
-            name="code"
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Title */}
-        <div className="mb-3">
-          <label className="form-label">Title:</label>
-          <input
-            type="text"
-            className="form-control"
-            name="title"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Author */}
-        <div className="mb-3">
-          <label className="form-label">Author:</label>
-          <input
-            type="text"
-            className="form-control"
-            name="author"
-            value={formData.author}
-            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Published Year */}
-        <div className="mb-3">
-          <label className="form-label">Published Year:</label>
-          <input
-            type="date"
-            className="form-control"
-            name="publishedYear"
-            value={formData.publishedYear}
-            onChange={(e) => setFormData({ ...formData, publishedYear: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Publisher */}
-        <div className="mb-3">
-          <label className="form-label">Publisher:</label>
-          <input
-            type="text"
-            className="form-control"
-            name="publisher"
-            value={formData.publisher}
-            onChange={(e) => setFormData({ ...formData, publisher: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Physical Description */}
-        <div className="mb-3">
-          <label className="form-label">Physical Description:</label>
-          <input
-            type="text"
-            className="form-control"
-            name="physicalDescription"
-            value={formData.physicalDescription}
-            onChange={(e) => setFormData({ ...formData, physicalDescription: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Shelf Location Code */}
-        <div className="mb-3">
-          <label className="form-label">Shelf Location Code:</label>
-          <input
-            type="text"
-            className="form-control"
-            name="shelfLocationCode"
-            value={formData.shelfLocationCode}
-            onChange={(e) => setFormData({ ...formData, shelfLocationCode: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Total Copies */}
-        <div className="mb-3">
-          <label className="form-label">Total Copies:</label>
-          <input
-            type="number"
-            className="form-control"
-            name="totalCopies"
-            value={formData.totalCopies}
-            onChange={(e) => setFormData({ ...formData, totalCopies: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Available Copies */}
-        <div className="mb-3">
-          <label className="form-label">Available Copies:</label>
-          <input
-            type="number"
-            className="form-control"
-            name="availableCopies"
-            value={formData.availableCopies}
-            onChange={(e) => setFormData({ ...formData, availableCopies: e.target.value })}
-            required
-          />
-        </div>
-
-        {/* Price */}
-        <div className="mb-3">
-          <label className="form-label">Price:</label>
-          <input
-            type="number" 
-            className="form-control"
-            name="price"
-            value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-            required
-          />
-        </div>
-
-
-        <button type="submit" className="btn btn-primary">Create Book Set</button>
       </form>
     </div>
   );

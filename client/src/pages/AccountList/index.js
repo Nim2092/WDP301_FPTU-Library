@@ -34,7 +34,7 @@ const AccountList = () => {
       return;
     }
     axios
-      .put(`https://fptu-library.xyz/api/user/status/${id}`, { isActive })
+      .put(`http://localhost:9999/api/user/status/${id}`, { isActive })
       .then(() => {
         toast.success("Account status changed successfully");
 
@@ -56,7 +56,7 @@ const AccountList = () => {
   };
 
   useEffect(() => {
-    Axios.get("https://fptu-library.xyz/api/user/getAll")
+    Axios.get("http://localhost:9999/api/user/getAll")
       .then((response) => {
         const sortedData = response.data.data.sort((a, b) => {
           return new Date(b.createdAt) - new Date(a.createdAt);
@@ -74,7 +74,7 @@ const AccountList = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    axios.get(`https://fptu-library.xyz/api/user/search?searchKey=${searchKey}`)
+    axios.get(`http://localhost:9999/api/user/search?searchKey=${searchKey}`)
       .then((response) => {
         setAccountData(response.data.data);
       })
@@ -88,7 +88,7 @@ const AccountList = () => {
     const role = e.target.value;
     setSelectedRole(role);
     if (role) {
-      axios.get(`https://fptu-library.xyz/api/user/role/${role}`)
+      axios.get(`http://localhost:9999/api/user/role/${role}`)
         .then((response) => {
           const sortedData = response.data.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
@@ -100,7 +100,7 @@ const AccountList = () => {
           toast.error("Failed to filter by role");
         });
     } else {
-      Axios.get("https://fptu-library.xyz/api/user/getAll")
+      Axios.get("http://localhost:9999/api/user/getAll")
         .then((response) => {
           const sortedData = response.data.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
@@ -114,7 +114,7 @@ const AccountList = () => {
     const status = e.target.value;
     setSelectedStatus(status);
     if (status) {
-      axios.get(`https://fptu-library.xyz/api/user/active/${status}`)
+      axios.get(`http://localhost:9999/api/user/active/${status}`)
         .then((response) => {
           const sortedData = response.data.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
@@ -126,7 +126,7 @@ const AccountList = () => {
           toast.error("Failed to filter by status");
         });
     } else {
-      Axios.get("https://fptu-library.xyz/api/user/getAll")
+      Axios.get("http://localhost:9999/api/user/getAll")
         .then((response) => {
           const sortedData = response.data.data.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);

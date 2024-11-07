@@ -13,7 +13,7 @@ const Sidebar = ({ menuItems }) => {
   useEffect(() => {
     if (user) {
       axios
-        .get(`https://fptu-library.xyz/api/notifications/unreadCount/${user.id}`)
+        .get(`http://localhost:9999/api/notifications/unreadCount/${user.id}`)
         .then((response) => {
           setUnreadCount(response.data.data);
         })

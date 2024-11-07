@@ -6,7 +6,7 @@ const Breadcrumb = () => {
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter((x) => x);
 
-  // Function to format path names (e.g., "list-rule-user" => "List Rule User")
+  // Function to format path names (e.g., "title-of-the-article" => "Title Of The Article")
   const formatPathname = (name) => {
     return name
       .replace(/-/g, ' ') // Replace hyphens with spaces
@@ -17,10 +17,11 @@ const Breadcrumb = () => {
     <nav aria-label="breadcrumb">
       <ol className="breadcrumb">
         <li className="breadcrumb-item">
-          <Link to="/">Home</Link>
+          <Link to="/">Trang chủ</Link>
         </li>
         {pathnames.map((value, index) => {
-          const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+          // Construct the link URL dynamically
+          const to = `/${pathnames.slice(0, index + 1)}`;
           const isLast = index === pathnames.length - 1;
 
           return isLast ? (

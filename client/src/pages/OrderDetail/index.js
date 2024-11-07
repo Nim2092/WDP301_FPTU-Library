@@ -15,7 +15,7 @@ const OrderDetail = () => {
     const fetchOrderDetails = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`https://fptu-library.xyz/api/orders/by-order/${orderId}`);
+        const response = await axios.get(`http://localhost:9999/api/orders/by-order/${orderId}`);
         setOrder(response.data.data);
         setLoading(false);
       } catch (err) {

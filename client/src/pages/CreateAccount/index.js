@@ -16,7 +16,7 @@ const CreateAccount = () => {
     // Fetch roles from the backend
     const fetchRoles = async () => {
       try {
-        const response = await axios.get("https://fptu-library.xyz/api/user/all-role");
+        const response = await axios.get("http://localhost:9999/api/user/all-role");
         setRoles(response.data.data);
       } catch (error) {
         console.error("Error fetching roles:", error);
@@ -42,7 +42,7 @@ const CreateAccount = () => {
     formData.append("code", code);
     formData.append("password", password);
     try {
-      const response = await axios.post("https://fptu-library.xyz/api/user/add", formData, {
+      const response = await axios.post("http://localhost:9999/api/user/add", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Modal, Button, Container } from "react-bootstrap";
+import { Modal, Button } from "react-bootstrap";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import ReactPaginate from 'react-paginate';
 
 const BorrowBookList = () => {
@@ -28,27 +28,27 @@ const BorrowBookList = () => {
       let response;
 
       if (identifierCode) {
-        response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identifierCode}`);
+        response = await axios.get(`http://localhost:9999/api/orders/by-identifier-code/${identifierCode}`);
       } else if (status === "") {
-        response = await axios.get(`https://fptu-library.xyz/api/orders/getAll`);
+        response = await axios.get(`http://localhost:9999/api/orders/getAll`);
       } else {
-        response = await axios.get(`https://fptu-library.xyz/api/orders/filter?status=${status}`);
+        response = await axios.get(`http://localhost:9999/api/orders/filter?status=${status}`);
       }
 
       const data = response.data.data || [];
       const formattedData = Array.isArray(data) ? data : [data];
 
       if (formattedData.length === 0) {
-        toast.info("No books found with the specified criteria.");
+        toast.info("Không tìm thấy sách với tiêu chí đã chọn.");
       }
 
       // Sort borrowBooks by the most recent date
       const sortedData = formattedData.sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate));
       setBorrowBooks(sortedData);
     } catch (error) {
-      const errorMessage = error.response ? error.response.data.message : "An error occurred while fetching borrow books.";
+      const errorMessage = error.response ? error.response.data.message : "Đã xảy ra lỗi khi lấy sách đã mượn.";
       setBorrowBooks([]);
-      console.error("Error fetching borrow books:", error);
+      console.error("Error fetching borrow books:", errorMessage);
     }
   };
 
@@ -102,11 +102,11 @@ const BorrowBookList = () => {
       }
 
       // Update the status of the order
-      await axios.put(`https://fptu-library.xyz/api/orders/change-status/${selectedBook._id}`, updateData);
+      await axios.put(`http://localhost:9999/api/orders/change-status/${selectedBook._id}`, updateData);
 
       // Update the condition of the book if the action is "receive"
       if (modalType === "receive") {
-        await axios.put(`https://fptu-library.xyz/api/books/update/${selectedBook.book_id._id}`, condition);
+        await axios.put(`http://localhost:9999/api/books/update/${selectedBook.book_id._id}`, condition);
       }
 
       setShowModal(false);
@@ -114,7 +114,7 @@ const BorrowBookList = () => {
       setCondition({ condition: "", condition_detail: "" }); // Reset condition state
       fetchBooks();
     } catch (error) {
-      const errorMessage = error.response ? error.response.data.message : "An error occurred while updating the book status.";
+      const errorMessage = error.response ? error.response.data.message : "Đã xảy ra lỗi khi cập nhật trạng thái sách.";
       toast.error(errorMessage);
       console.error(`Error ${modalType === 'approve' ? 'approving' : 'updating'} the book:`, error);
     }
@@ -139,7 +139,7 @@ const BorrowBookList = () => {
 
   const handleApproveSelected = async () => {
     if (selectedBooks.length === 0) {
-      toast.error("No orders selected.");
+      toast.error("Không có đơn đã chọn.");
       return;
     }
 
@@ -148,12 +148,12 @@ const BorrowBookList = () => {
         orderIds: selectedBooks,
         updated_by: user.id,
       };
-      await axios.put(`https://fptu-library.xyz/api/orders/approve-all`, updateData);
-      toast.success("Selected orders approved successfully!");
+      await axios.put(`http://localhost:9999/api/orders/approve-all`, updateData);
+      toast.success("Đơn đã chọn đã duyệt thành công!");
       fetchBooks();
       setSelectedBooks([]);
     } catch (error) {
-      const errorMessage = error.response ? error.response.data.message : "An error occurred while approving the selected books.";
+      const errorMessage = error.response ? error.response.data.message : "Đã xảy ra lỗi khi duyệt đơn đã chọn.";
       toast.error(errorMessage);
       console.error("Error approving selected books:", error);
     }
@@ -170,7 +170,7 @@ const BorrowBookList = () => {
   const currentBooks = borrowBooks.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
   return (
-    <Container className="mt-4">
+    <div className="mt-4">
       <div className="d-flex justify-content-between mb-3">
         <div className="search-bar d-flex align-items-center">
           <input
@@ -203,9 +203,6 @@ const BorrowBookList = () => {
           </select>
         </div>
         <div className="d-flex align-items-center">
-          <Button variant="primary" style={{ marginRight: "10px" }} title="Chọn tất cả" onClick={handleSelectAll}>
-            {selectedBooks.length === borrowBooks.length ? "Bỏ chọn" : "Chọn tất cả"}
-          </Button>
           <Button variant="primary" style={{ marginRight: "10px" }} title="Duyệt" onClick={handleApproveSelected}>
             Duyệt
           </Button>
@@ -214,12 +211,14 @@ const BorrowBookList = () => {
       <table className="table table-bordered">
         <thead>
           <tr>
-            <th>Chọn</th>
+            <th>
+              <input type="checkbox" title="Chọn tất cả" onClick={handleSelectAll} />
+            </th>
             <th>ID</th>
             <th>Tên sách</th>
             <th>Ngày mượn</th>
             <th>Ngày hẹn trả</th>
-            <th>Mã sách</th>
+            <th>Mã định danh sách</th>
             <th>Trạng thái</th>
             <th>Tình trạng sách</th>
             <th>Hành động</th>
@@ -244,11 +243,12 @@ const BorrowBookList = () => {
                 <td>{new Date(book.dueDate).toLocaleDateString()}</td>
                 <td>{book.book_id?.identifier_code}</td>
                 <td>
-                  <span className={`text-${book.status === "Pending" ? "warning" : book.status === "Approved" ? "success" : "danger"}`}>
-                    {book.status}
+                  <span className={`text-${book.status === "Pending" ? "warning" : book.status === "Approved" ? "success" : book.status === "Rejected" ? "danger" : book.status === "Received" ? "info" : "secondary"}              `}>
+                    {book.status === "Pending" ? "Đang chờ" : book.status === "Approved" ? "Đã duyệt" : book.status === "Rejected" ? "Đã từ chối" : book.status === "Received" ? "Đã nhận" : book.status === "Canceled" ? "Đã hủy" : book.status === "Returned" ? "Đã trả" : book.status === "Overdue" ? "Quá hạn" : book.status === "Lost" ? "Mất" : book.status === "Renew Pending" ? "Đang chờ duyệt gia hạn" : "Khác"}
                   </span>
                 </td>
-                <td>{book.book_id?.condition}</td>
+                <td>{book.book_id?.condition === "Good" ? "Tốt" : book.book_id?.condition === "Light" ? "Hư hỏng không đáng kể"
+                  : book.book_id?.condition === "Medium" ? "Hư hỏng nhẹ" : book.book_id?.condition === "Hard" ? "Hư hỏng nặng" : book.book_id?.condition === "Lost" ? "Mất sách" : "Khác"}</td>
                 {book.status === "Pending" && (
                   <td>
                     <Button variant="success" style={{ marginRight: '10px' }} title="Duyệt" onClick={() => handleActionClick(book, "approve")}>
@@ -260,14 +260,14 @@ const BorrowBookList = () => {
                   </td>
                 )}
                 {book.status === "Approved" && (
-                    <td><Button variant="primary" title="Nhận" onClick={() => handleActionClick(book, "receive")}>
-                        <i className="fa fa-check" aria-hidden="true"></i>
-                      </Button></td>
+                  <td><Button variant="primary" title="Nhận" onClick={() => handleActionClick(book, "receive")}>
+                    <i className="fa fa-check" aria-hidden="true"></i>
+                  </Button></td>
                 )}
                 {book.status === "Renew Pending" && (
                   <td><Button variant="primary" title="Duyệt gia hạn" onClick={() => handleActionClick(book, "receive")}>
-                      <i className="fa fa-check" aria-hidden="true"></i>
-                    </Button></td>
+                    <i className="fa fa-check" aria-hidden="true"></i>
+                  </Button></td>
                 )}
               </tr>
             ))
@@ -372,7 +372,7 @@ const BorrowBookList = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-    </Container>
+    </div>
   );
 };
 

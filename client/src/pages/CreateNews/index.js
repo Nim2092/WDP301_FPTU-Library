@@ -34,7 +34,7 @@ function CreateNews() {
     formData.append("updatedBy", "60c72b2f9b1e8a5b5c8f1a2e");
 
     try {
-      const response = await axios.post("https://fptu-library.xyz/api/news/create", formData, {
+      const response = await axios.post("http://localhost:9999/api/news/create", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

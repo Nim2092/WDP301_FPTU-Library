@@ -24,7 +24,7 @@ function ListBookSet() {
 
   // Fetch and sort book sets
   useEffect(() => {
-    axios.get("https://fptu-library.xyz/api/book-sets/list")
+    axios.get("http://localhost:9999/api/book-sets/list")
       .then((response) => {
         const sortedData = response.data.data.sort((a, b) =>
           new Date(b.createdAt) - new Date(a.createdAt)
@@ -61,7 +61,7 @@ function ListBookSet() {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`https://fptu-library.xyz/api/book-sets/delete/${id}`);
+      await axios.delete(`http://localhost:9999/api/book-sets/delete/${id}`);
       const updatedData = filteredBookSetData.filter((bookSet) => bookSet._id !== id);
       setFilteredBookSetData(updatedData);
       toast.success("Successfully deleted the book set");
@@ -128,7 +128,7 @@ function ListBookSet() {
                     <td>
                       {bookSet.image ? (
                         <img
-                          src={`https://fptu-library.xyz/api/book-sets/image/${bookSet.image.split("/").pop()}`}
+                          src={`http://localhost:9999/api/book-sets/image/${bookSet.image.split("/").pop()}`}
                           alt={bookSet.title}
                           style={{ width: "100px", height: "auto" }}
                         />
