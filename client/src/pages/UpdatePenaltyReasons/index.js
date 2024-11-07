@@ -60,7 +60,7 @@ const UpdatePenaltyReason = () => {
 
   return (
     <div className="container mt-4">
-      <ToastContainer />
+       
       <h2>Update Penalty Reason</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">

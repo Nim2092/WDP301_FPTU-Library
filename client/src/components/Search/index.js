@@ -1,18 +1,35 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Search.scss";
 import Button from "../Button/Button";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-function BookSearch() {
-  const [searchTerm, setSearchTerm] = useState("");
+function BookSearch({ setSearchResults }) {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [bookName, setBookName] = useState("");
+  const [author, setAuthor] = useState("");
+  const [publisher, setPublisher] = useState("");
+  const [publicationYear, setPublicationYear] = useState("");
 
-const handleSearch = () => {
-  if (searchTerm) {
-    navigate(`/search-results?title=${searchTerm}`);
-  }
-};
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.get("https://fptu-library.xyz/api/book-sets/list", {
+        params: {
+          title: bookName,
+          author,
+          publisher,
+          pubYear: publicationYear,
+        },
+      });
+      // Truyền kết quả tìm kiếm qua state trong navigate
+      navigate(`/search-results?title=${searchTerm}`, { state: { results: response.data.data } });
+    } catch (error) {
+      console.error("Error fetching book sets", error);
+    }
+  };
+
   return (
     <div className="search">
       <div className="container search__container">
@@ -34,7 +51,7 @@ const handleSearch = () => {
             </a>
           </div>
           <div className="row search__button">
-            <Button text="Search" clName="btn btn-primary" onClick={handleSearch} />
+            <Button text="Search" clName="btn btn-primary" onClick={handleSubmit} />
           </div>
         </div>
       </div>

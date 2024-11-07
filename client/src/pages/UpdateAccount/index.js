@@ -89,7 +89,7 @@ const UpdateAccount = () => {
 
   return (
     <div className="update-account-container mt-4" style={{ margin: "100px 100px" }}>
-      <ToastContainer />
+       
       <h2 className="text-center">Update Account</h2>
       <form onSubmit={handleSubmit}>
         <div className="row">

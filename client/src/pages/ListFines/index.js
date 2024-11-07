@@ -75,7 +75,6 @@ function ListFines() {
 
     return (
         <div className="container mt-4">
-            <ToastContainer />
             <div className="row">
                 <div className="row mb-3 col-md-8">
                     <div className="col-md-4">

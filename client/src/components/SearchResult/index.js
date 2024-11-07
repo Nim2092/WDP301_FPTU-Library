@@ -93,7 +93,7 @@ function SearchResults({ books = [] }) {
 
   return (
     <Container className="mt-4">
-      <ToastContainer />
+       
       {books.length === 0 ? (
         <p>Không tìm thấy sách</p>
       ) : (

@@ -118,7 +118,6 @@ function Fines() {
   return (
     <Container className="mt-5">
       <div className="d-flex justify-content-center">
-        <ToastContainer />
       </div>
       <div className="d-flex justify-content-end" title={selectedFines.length === 0 ? "Chọn ít nhất 1 phạt để thanh toán" : "Thanh toán"}>
         <Button

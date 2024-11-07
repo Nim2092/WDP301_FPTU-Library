@@ -2,8 +2,11 @@ import React from "react";
 import SearchResults from "../../components/SearchResult";
 import Search from "../../components/Search";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
+
 function SearchResultsPage() {
-  const [searchResults, setSearchResults] = useState([]);
+  const location = useLocation();
+  const [searchResults, setSearchResults] = useState(location.state?.results || []);
 
   return (
     <div>
