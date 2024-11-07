@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Modal, Button } from "react-bootstrap";
-import ReactPaginate from 'react-paginate';
+import ReactPaginate from "react-paginate";
 import AuthContext from "../../contexts/UserContext";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+
 const CatalogList = () => {
   const { user } = useContext(AuthContext);
   const [catalogData, setCatalogData] = useState([]);
@@ -24,7 +25,7 @@ const CatalogList = () => {
   const [filters, setFilters] = useState({
     major: "",
     isTextbook: "",
-    semester: ""
+    semester: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -35,8 +36,8 @@ const CatalogList = () => {
         const response = await fetch("https://fptu-library.xyz/api/catalogs/list");
         if (!response.ok) throw new Error("Failed to fetch catalog data");
         const data = await response.json();
-        setCatalogData(data);
-        setFilteredData(data);
+        setCatalogData(data.data);
+        setFilteredData(data.data);
       } catch (error) {
         console.error("Error fetching catalog data:", error);
       } finally {
@@ -49,7 +50,7 @@ const CatalogList = () => {
   useEffect(() => {
     const filtered = catalogData.filter((catalog) =>
       Object.entries(filters).every(([key, value]) =>
-        value === "" || catalog[key].toString() === value
+        value === "" || (catalog[key] !== undefined && catalog[key].toString() === value)
       )
     );
     setFilteredData(filtered);
@@ -59,7 +60,7 @@ const CatalogList = () => {
     const { name, value } = e.target;
     setFilters((prevFilters) => ({
       ...prevFilters,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -80,7 +81,7 @@ const CatalogList = () => {
 
       await axios.post(`https://fptu-library.xyz/api/book-sets/import`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
         },
       });
       setFileSelected(null);
@@ -108,15 +109,12 @@ const CatalogList = () => {
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this catalog?");
-
     if (confirmDelete) {
       try {
         const response = await fetch(`https://fptu-library.xyz/api/catalogs/delete/${id}`, {
           method: "DELETE",
         });
-
         if (!response.ok) throw new Error(`Failed to delete catalog: ${response.statusText}`);
-
         setCatalogData((prevCatalogs) => prevCatalogs.filter((catalog) => catalog._id !== id));
       } catch (error) {
         console.error("Error deleting catalog:", error);
@@ -132,11 +130,9 @@ const CatalogList = () => {
 
   const handleSubmitCatalog = async (e) => {
     e.preventDefault();
-
     const endpoint = isEditMode
       ? `https://fptu-library.xyz/api/catalogs/update/${currentCatalogId}`
       : "https://fptu-library.xyz/api/catalogs/create";
-
     const method = isEditMode ? "PUT" : "POST";
 
     try {
@@ -147,25 +143,24 @@ const CatalogList = () => {
         },
         body: JSON.stringify(newCatalog),
       });
-
-      if (!response.ok) throw new Error(`Failed to ${isEditMode ? "update" : "create"} catalog`);
-
-      const savedCatalog = await response.json();
-
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.message || `Failed to ${isEditMode ? "update" : "create"} catalog`);
+      }
+      const savedCatalog = responseData;
       if (isEditMode) {
         setCatalogData((prevData) =>
-          prevData.map((catalog) =>
-            catalog._id === currentCatalogId ? savedCatalog : catalog
-          )
+          prevData.map((catalog) => (catalog._id === currentCatalogId ? savedCatalog : catalog))
         );
       } else {
         setCatalogData([...catalogData, savedCatalog]);
       }
-
       setShowModal(false);
       setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false, createdBy: user.id });
+      toast.success(responseData.message || "Operation successful");
     } catch (error) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} catalog:`, error);
+      toast.error(error.message);
     }
   };
 
@@ -188,8 +183,6 @@ const CatalogList = () => {
 
   return (
     <div className="container mt-4">
-       
-      {/* Bộ lọc */}
       <div className="d-flex justify-content-between my-3 row">
         <div className="col-10 d-flex">
           <select
@@ -255,9 +248,9 @@ const CatalogList = () => {
           </thead>
           <tbody>
             {currentItems.length > 0 ? (
-              currentItems.map((catalog, index) => (
+              currentItems.map((catalog) => (
                 <tr key={catalog._id}>
-                  <td>{index + 1}</td>
+                  <td>{catalog._id}</td>
                   <td>{catalog.name}</td>
                   <td>{catalog.code}</td>
                   <td>{catalog.major}</td>

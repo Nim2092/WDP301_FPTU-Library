@@ -21,6 +21,8 @@ const AdvancedBookForm = ({ setSearchResults }) => {
           author,
           publisher,
           pubYear: publicationYear,
+          catalog_id: catalog,
+          isTextbook: subject,
         },
       });
 
@@ -33,14 +35,24 @@ const AdvancedBookForm = ({ setSearchResults }) => {
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
-        const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
-        setCatalogData(response.data);
+        if (subject === "1") {
+          const response = await axios.get("https://fptu-library.xyz/api/catalogs/list", {
+            params: {
+              isTextbook: subject,
+              semester: semester,
+            },
+          });
+          setCatalogData(response.data.data);
+        } else if (subject === "0") {
+          const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
+          setCatalogData(response.data.data);
+        }
       } catch (error) {
         console.error("Error fetching catalog data:", error);
       }
     };
     fetchCatalogs();
-  }, []);
+  }, [subject, semester]);
 
 
 
@@ -58,8 +70,8 @@ const AdvancedBookForm = ({ setSearchResults }) => {
                 className="form-control"
               >
                 <option value="">Chọn môn học</option>
-                <option value="1">Sách tham khảo</option>
-                <option value="2">Sách giáo khoa</option>
+                <option value="0">Sách tham khảo</option>
+                <option value="1">Sách giáo trình</option>
               </select>
             </div>
             <div className="mb-3 col-md-4">
@@ -71,7 +83,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
                 className="form-control"
               >
                 <option value="">Chọn học kỳ</option>
-                {subject === "2" && (
+                {subject === "1" && (
                   <>
                     <option value="1">Học kỳ 1</option>
                     <option value="2">Học kỳ 2</option>
@@ -96,9 +108,20 @@ const AdvancedBookForm = ({ setSearchResults }) => {
                 className="form-control"
               >
                 <option value="">Chọn bộ sách</option>
-                {catalogData.map((item) => (
-                  <option value={item._id}>{item.name}</option>
-                ))}
+                {subject === "1" && (
+                  <>
+                    {catalogData.map((item) => (
+                      <option key={item._id} value={item._id}>{item.name}</option>
+                    ))}
+                  </>
+                )}
+                {subject === "0" && (
+                  <>
+                    {catalogData.map((item) => (
+                      <option key={item._id} value={item._id}>{item.name}</option>
+                    ))}
+                  </>
+                )}
               </select>
             </div>
           </div>

@@ -30,7 +30,7 @@ function News() {
 
   return (
     <div className="news container my-5">
-      <h2>News</h2>
+      <h2>Tin tức</h2>
       <div className="row">
         {Array.isArray(newsItems) && newsItems.length > 0 ? (
           newsItems.slice(-3).map((item) => ( // Take the last 3 items

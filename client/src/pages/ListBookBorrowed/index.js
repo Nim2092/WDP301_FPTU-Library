@@ -10,11 +10,9 @@ import { useNavigate } from "react-router-dom";
 function ListBookBorrowed() {
   const navigate = useNavigate();
   const [borrowedBooks, setBorrowedBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0); // New state for current page
   const [totalPages, setTotalPages] = useState(0); // New state for total pages
-
+  const [statusFilter, setStatusFilter] = useState("");
   // Access user and token from AuthContext
   const { user, token } = useContext(AuthContext);
 
@@ -23,9 +21,8 @@ function ListBookBorrowed() {
       if (!user) return; // If no user is logged in, don't make the API call
 
       try {
-        setLoading(true); // Start loading
         const response = await axios.get(
-          `https://fptu-library.xyz/api/orders/by-user/${user.id}?page=${currentPage + 1}`, // Updated API call with pagination
+          `https://fptu-library.xyz/api/orders/by-user/${user.id}?page=${currentPage + 1}&status=${statusFilter}`,
           {
             headers: {
               Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
@@ -35,15 +32,12 @@ function ListBookBorrowed() {
         setBorrowedBooks(response.data.data); // Assuming the response contains an array of orders in `data.data`
         setTotalPages(response.data.totalPages); // Assuming the API returns total pages
       } catch (err) {
-        setError("Failed to fetch borrowed books. Please try again later.");
         console.error(err);
-      } finally {
-        setLoading(false); // Stop loading
       }
     };
 
     fetchBorrowedBooks();
-  }, [user, token, currentPage]); // Added currentPage to dependencies
+  }, [user, token, currentPage, statusFilter]); // Added currentPage and statusFilter to dependencies
 
   const handlePageClick = (data) => {
     setCurrentPage(data.selected); // Update current page on page change
@@ -65,7 +59,7 @@ function ListBookBorrowed() {
             },
           }
         );
-        alert("The book has been successfully reported as lost.");
+        toast.success("The book has been successfully reported as lost.");
 
         const response = await axios.get(
           `https://fptu-library.xyz/api/orders/by-user/${user.id}`,
@@ -78,16 +72,10 @@ function ListBookBorrowed() {
         setBorrowedBooks(response.data.data);
       } catch (err) {
         console.error(err);
-        alert("Failed to report the book as lost. Please try again.");
+        toast.error("Failed to report the book as lost. Please try again.");
       }
     }
   };
-
-  if (loading) {
-    return <p>Loading borrowed books...</p>;
-  }
-
-
 
   const handleCancelOrder = async (orderId) => {
 
@@ -112,22 +100,6 @@ function ListBookBorrowed() {
 
   const handleRenewBook = async (orderId) => {
     navigate(`/renew-book/${orderId}`);
-    // try {
-    //   await axios.post(`https://fptu-library.xyz/api/orders/renew/${orderId}`, {
-    //     updated_by: user.id,
-    //     dueDate: dueDate, 
-    //     renew_reason: renewReason
-    //   },
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //       },
-    //     });
-    //   toast.success("Sách đã được gia hạn thành công.");
-    // } catch (err) {
-    //   console.error(err);
-    //   toast.error("Failed to renew the book. Please try again.");
-    // }
   };
 
   // Add this function before the return statement
@@ -152,21 +124,37 @@ function ListBookBorrowed() {
 
   return (
     <div className="container mt-5">
-      {error && <p className="text-danger">{error}</p>}
-      {borrowedBooks.length > 0 && (
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Tên sách</th>
-              <th>Ngày mượn</th>
-              <th>Ngày hẹn trả</th>
-              <th>Trạng thái</th>
-              <th>Mã định danh sách</th>
-              <th>Số lần gia hạn</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
+      <div className="row mb-3">
+        <div className="col-md-9">
+         </div>
+        <div className="col-md-3">
+          <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">Tất cả</option>
+            <option value="Pending">Đang chờ</option>
+            <option value="Received">Đã nhận</option>
+            <option value="Canceled">Đã hủy</option>
+            <option value="Lost">Đã mất</option>
+            <option value="Returned">Đã trả</option>
+            <option value="Renew Pending">Đang gia hạn</option>
+          </select>
+        </div>
+      </div>
+
+      <table className="table table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tên sách</th>
+            <th>Ngày mượn</th>
+            <th>Ngày hẹn trả</th>
+            <th>Trạng thái</th>
+            <th>Mã định danh sách</th>
+            <th>Số lần gia hạn</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        {borrowedBooks.length > 0 && (
+
           <tbody>
             {borrowedBooks.map((order, index) => (
               <tr key={order._id}>
@@ -178,13 +166,13 @@ function ListBookBorrowed() {
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
                 <td className={getStatusColor(order.status)}>
-                  {order.status ==="Pending" ? "Đang chờ" : 
-                  order.status === "Received" ? "Đã nhận" : 
-                  order.status === "Canceled" ? "Đã hủy" : 
-                  order.status === "Lost" ? "Đã mất" : 
-                  order.status === "Returned" ? "Đã trả" : 
-                  order.status === "Renew Pending" ? "Đang gia hạn" : 
-                  "Không xác định"}
+                  {order.status === "Pending" ? "Đang chờ" :
+                    order.status === "Received" ? "Đã nhận" :
+                      order.status === "Canceled" ? "Đã hủy" :
+                        order.status === "Lost" ? "Đã mất" :
+                          order.status === "Returned" ? "Đã trả" :
+                            order.status === "Renew Pending" ? "Đang gia hạn" :
+                              "Không xác định"}
                 </td>
                 <td>{order.book_id?.identifier_code}</td>
                 <td>{order.renewalCount}</td>
@@ -232,8 +220,9 @@ function ListBookBorrowed() {
               </tr>
             ))}
           </tbody>
-        </table>
-      )}
+        )}
+
+      </table>
       <ReactPaginate
         previousLabel={'<'}
         nextLabel={'>'}

@@ -43,7 +43,7 @@ function FinesByMonthChart() {
   }, []);
 
   useEffect(() => {
-    axios.get("https://fptu-library.xyz.xyz/api/fines/getAll")
+    axios.get("https://fptu-library.xyz/api/fines/getAll")
       .then((res) => {
         setTotalFines(res.data.data.length);
       });

@@ -222,9 +222,7 @@ const AccountList = () => {
                     </button>
                   )
                 )}
-                <button className="btn btn-info" title="Chi tiết" onClick={() => navigate(`/profile/${account._id}`)}>
-                  <i className="fa fa-eye" aria-hidden="true"></i>
-                </button>
+                
               </td>
             </tr>
           ))}

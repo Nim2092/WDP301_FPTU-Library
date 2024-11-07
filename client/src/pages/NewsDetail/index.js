@@ -55,7 +55,7 @@ function NewsDetail() {
           />
         </>
       ) : (
-        <p>Loading news details...</p> // Display loading message while fetching
+        <p>Đang tải tin tức...</p> // Display loading message while fetching
       )}
     </div>
   );

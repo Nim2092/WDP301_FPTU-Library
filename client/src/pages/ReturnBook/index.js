@@ -107,7 +107,7 @@ function ReturnBook() {
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Nhập mã sinh viên"
+                        placeholder="Nhập mã sinh viên, hoạc mã cán bộ, giảng viên"
                         value={studentCode}
                         style={{ width: "50%", marginRight: "10px" }}
                         onChange={(e) => setStudentCode(e.target.value)}

@@ -1,7 +1,6 @@
 import React from "react";
 import Search from "../../components/Search";
 import News from "../../components/News";
-import "./Home.scss";
 import Button from '../../components/Button/Button'
 import { useState } from "react";
 import SearchResults from "../../components/SearchResult";
