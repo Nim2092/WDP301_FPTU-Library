@@ -10,8 +10,6 @@ const userSchema = new Schema(
     password: { type: String, required: true },
     phoneNumber: Number,
     image: String,
-    createdBy: { type: Schema.Types.ObjectId, ref: "User" }, // Reference to the user who created this entry
-    updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
     isActive: { type: Boolean, default: true },
     cancelCount: { type: Number, default: 0 },
     resetPasswordToken: { type: String },
