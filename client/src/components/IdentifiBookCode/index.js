@@ -7,7 +7,7 @@ function IdentifiBookCode({ bookID, onNextStep, onPreviousStep }) {
 
   // Fetch book details when `bookID` changes
   useEffect(() => {
-    axios.get(`http://localhost:9999/api/orders/by-order/${bookID}`)
+    axios.get(`https://fptu-library/api/orders/by-order/${bookID}`)
       .then(response => {
         setBookDetails(response.data.data); // Lưu dữ liệu sách từ API
         console.log("Fetched book details:", response.data.data);

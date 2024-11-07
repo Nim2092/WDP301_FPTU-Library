@@ -17,7 +17,7 @@ function LoginPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post("http://localhost:9999/api/auth/login", {
+      const response = await axios.post("https://fptu-library/api/auth/login", {
         email: username,
         password: password,
       });
@@ -33,7 +33,7 @@ function LoginPage() {
 
   const handleGoogleLogin = async (response) => {
     try {
-      const res = await axios.post("http://localhost:9999/api/auth/google-login", {
+      const res = await axios.post("https://fptu-library/api/auth/google-login", {
         token: response.credential,
       });
       login(res.data.accessToken); 

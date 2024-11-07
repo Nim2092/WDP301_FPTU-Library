@@ -14,7 +14,7 @@ function ListRule() {
 
   // Fetch rules from the API when the component is mounted
   useEffect(() => {
-    fetch("http://localhost:9999/api/rules/list")
+    fetch("https://fptu-library/api/rules/list")
       .then((response) => response.json())
       .then((data) => {
         setRules(data.data); // Accessing the 'data' field in the response
@@ -41,7 +41,7 @@ function ListRule() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this rule?")) {
       try {
-        const response = await fetch(`http://localhost:9999/api/rules/delete/${id}`, {
+        const response = await fetch(`https://fptu-library/api/rules/delete/${id}`, {
           method: "DELETE",
         });
 

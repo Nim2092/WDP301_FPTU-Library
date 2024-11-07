@@ -28,11 +28,11 @@ const BorrowBookList = () => {
       let response;
 
       if (identifierCode) {
-        response = await axios.get(`http://localhost:9999/api/orders/by-identifier-code/${identifierCode}`);
+        response = await axios.get(`https://fptu-library/api/orders/by-identifier-code/${identifierCode}`);
       } else if (status === "") {
-        response = await axios.get(`http://localhost:9999/api/orders/getAll`);
+        response = await axios.get(`https://fptu-library/api/orders/getAll`);
       } else {
-        response = await axios.get(`http://localhost:9999/api/orders/filter?status=${status}`);
+        response = await axios.get(`https://fptu-library/api/orders/filter?status=${status}`);
       }
 
       const data = response.data.data || [];
@@ -102,11 +102,11 @@ const BorrowBookList = () => {
       }
 
       // Update the status of the order
-      await axios.put(`http://localhost:9999/api/orders/change-status/${selectedBook._id}`, updateData);
+      await axios.put(`https://fptu-library/api/orders/change-status/${selectedBook._id}`, updateData);
 
       // Update the condition of the book if the action is "receive"
       if (modalType === "receive") {
-        await axios.put(`http://localhost:9999/api/books/update/${selectedBook.book_id._id}`, condition);
+        await axios.put(`https://fptu-library/api/books/update/${selectedBook.book_id._id}`, condition);
       }
 
       setShowModal(false);
@@ -148,7 +148,7 @@ const BorrowBookList = () => {
         orderIds: selectedBooks,
         updated_by: user.id,
       };
-      await axios.put(`http://localhost:9999/api/orders/approve-all`, updateData);
+      await axios.put(`https://fptu-library/api/orders/approve-all`, updateData);
       toast.success("Đơn đã chọn đã duyệt thành công!");
       fetchBooks();
       setSelectedBooks([]);

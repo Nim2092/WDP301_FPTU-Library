@@ -32,7 +32,7 @@ const CatalogList = () => {
   useEffect(() => {
     const fetchCatalogs = async () => {
       try {
-        const response = await fetch("http://localhost:9999/api/catalogs/list");
+        const response = await fetch("https://fptu-library/api/catalogs/list");
         if (!response.ok) throw new Error("Failed to fetch catalog data");
         const data = await response.json();
         setCatalogData(data);
@@ -78,7 +78,7 @@ const CatalogList = () => {
       formData.append("createdBy", user.id);
       formData.append("file", fileSelected);
 
-      await axios.post(`http://localhost:9999/api/book-sets/import`, formData, {
+      await axios.post(`https://fptu-library/api/book-sets/import`, formData, {
         headers: {
           "Content-Type": "multipart/form-data"
         },
@@ -111,7 +111,7 @@ const CatalogList = () => {
 
     if (confirmDelete) {
       try {
-        const response = await fetch(`http://localhost:9999/api/catalogs/delete/${id}`, {
+        const response = await fetch(`https://fptu-library/api/catalogs/delete/${id}`, {
           method: "DELETE",
         });
 
@@ -134,8 +134,8 @@ const CatalogList = () => {
     e.preventDefault();
 
     const endpoint = isEditMode
-      ? `http://localhost:9999/api/catalogs/update/${currentCatalogId}`
-      : "http://localhost:9999/api/catalogs/create";
+      ? `https://fptu-library/api/catalogs/update/${currentCatalogId}`
+      : "https://fptu-library/api/catalogs/create";
 
     const method = isEditMode ? "PUT" : "POST";
 

@@ -12,7 +12,7 @@ function RuleDetail() {
     const fetchRule = async () => {
       try {
         const response = await fetch(
-          `http://localhost:9999/api/rules/get/${id}`
+          `https://fptu-library/api/rules/get/${id}`
         );
         const data = await response.json();
 

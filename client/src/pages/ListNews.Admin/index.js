@@ -13,7 +13,7 @@ const ListNews = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch("http://localhost:9999/api/news/list");
+        const response = await fetch("https://fptu-library/api/news/list");
         const data = await response.json();
         setNewsData(data.data);
       } catch (error) {
@@ -30,7 +30,7 @@ const ListNews = () => {
     if (window.confirm("Are you sure you want to delete this news?")) {
       try {
         const response = await fetch(
-          `http://localhost:9999/api/news/delete/${id}`,
+          `https://fptu-library/api/news/delete/${id}`,
           {
             method: "DELETE",
           }
@@ -133,7 +133,7 @@ const ListNews = () => {
                 <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                 <td>
                   <img
-                    src={`http://localhost:9999/api/news/thumbnail/${news.thumbnail
+                    src={`https://fptu-library/api/news/thumbnail/${news.thumbnail
                       .split("/")
                       .pop()}`}
                     style={{ width: "120px", height: "120px" }}
