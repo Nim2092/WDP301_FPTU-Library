@@ -38,7 +38,8 @@ async function createCatalog(req, res, next) {
 
 async function listCatalogs(req, res, next) {
   try {
-    const { isTextbook, semester, major } = req.body;
+    const { isTextbook, semester, major } = req.query; // Dùng req.query để lấy dữ liệu từ query string
+    console.log(req.query); // Kiểm tra giá trị query string
     let query = {};
     if (isTextbook) {
       query.isTextbook = isTextbook;
@@ -55,6 +56,7 @@ async function listCatalogs(req, res, next) {
     return res.status(500).json({ message: "Có lỗi xảy ra", error });
   }
 }
+
 
 
 async function updateCatalog(req, res, next) {
