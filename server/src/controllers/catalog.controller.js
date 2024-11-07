@@ -38,12 +38,24 @@ async function createCatalog(req, res, next) {
 
 async function listCatalogs(req, res, next) {
   try {
-    const catalogs = await Catalog.find();
-    return res.status(200).json(catalogs);
+    const { isTextbook, semester, major } = req.body;
+    let query = {};
+    if (isTextbook) {
+      query.isTextbook = isTextbook;
+    }
+    if (semester) {
+      query.semester = semester;
+    }
+    if (major) {
+      query.major = major;
+    }
+    const catalogs = await Catalog.find(query);
+    return res.status(200).json({ message: "Lấy danh sách catalog thành công", data: catalogs });
   } catch (error) {
-    return res.status(500).json({ message: "An error occurred", error });
+    return res.status(500).json({ message: "Có lỗi xảy ra", error });
   }
 }
+
 
 async function updateCatalog(req, res, next) {
   try {
