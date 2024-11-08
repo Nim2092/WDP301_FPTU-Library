@@ -206,8 +206,8 @@ const CatalogList = () => {
             className="form-select mx-1"
           >
             <option value="">Tất cả loại</option>
-            <option value="1">Sách giáo khoa</option>
-            <option value="0">Không phải sách giáo khoa</option>
+            <option value="1">Sách giáo trình</option>
+            <option value="0">Sách tham khảo</option>
           </select>
 
           <select
@@ -248,9 +248,9 @@ const CatalogList = () => {
           </thead>
           <tbody>
             {currentItems.length > 0 ? (
-              currentItems.map((catalog) => (
+              currentItems.map((catalog, index) => (
                 <tr key={catalog._id}>
-                  <td>{catalog._id}</td>
+                  <td>{index + 1}</td>
                   <td>{catalog.name}</td>
                   <td>{catalog.code}</td>
                   <td>{catalog.major}</td>
@@ -309,7 +309,7 @@ const CatalogList = () => {
         </table>
       )}
       <div className="pagination float-end mb-4">
-        {filteredData.length > 0 && (
+        {filteredData.length > 10 && (
           <ReactPaginate
             previousLabel={"<"}
             nextLabel={">"}

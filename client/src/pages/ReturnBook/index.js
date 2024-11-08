@@ -25,9 +25,9 @@ function ReturnBook() {
 
     const handleSearchByStudentID = async () => {
         try {
-            const user = await axios.get(`https://fptu-library.xyz.xyz/api/user/getByCode/${studentCode}`);
+            const user = await axios.get(`https://fptu-library.xyz/api/user/getByCode/${studentCode}`);
             const userID = user.data.data.userID;
-            const response = await axios.get(`https://fptu-library.xyz.xyz/api/orders/by-user/${userID}`);
+            const response = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${userID}`);
             const data = response.data.data.filter(order => order.status === "Received"); // Chỉ giữ các orders có status là "Received"
             setBookList(Array.isArray(data) ? data : [data]);
         } catch (error) {
@@ -55,7 +55,7 @@ function ReturnBook() {
     const handleCloseModal = () => setShowModal(false);
 
     const handleReturnBook = (bookID) => {
-        axios.get(`https://fptu-library.xyz.xyz/api/orders/by-order/${bookID}`).then((response) => {
+        axios.get(`https://fptu-library.xyz/api/orders/by-order/${bookID}`).then((response) => {
             const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail } = response.data.data;
             setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail }); // Lưu trữ toàn bộ thông tin về đơn hàng bao gồm _id
             handleShowModal();
@@ -76,7 +76,7 @@ function ReturnBook() {
             condition_detail: conditionDetail,
         };
         if (checkIdentityCode === bookData.book.identifier_code) {
-            axios.post(`https://fptu-library.xyz.xyz/api/orders/return/${bookData._id}`, payload) // Sử dụng _id từ bookData
+            axios.post(`https://fptu-library.xyz/api/orders/return/${bookData._id}`, payload) // Sử dụng _id từ bookData
                 .then((response) => {
                     if (response.status === 200) {
                         toast.success("Book return confirmed successfully!");
@@ -159,25 +159,27 @@ function ReturnBook() {
                         ))}
                     </tbody>
                 </table>
-                <ReactPaginate
-                    previousLabel={'<'}
-                    nextLabel={'>'}
-                    breakLabel={'...'}
-                    pageCount={Math.ceil(bookList.length / itemsPerPage)}
-                    marginPagesDisplayed={2}
-                    pageRangeDisplayed={5}
-                    onPageChange={handlePageClick}
-                    containerClassName={'pagination justify-content-end'}
-                    pageClassName={'page-item'}
-                    pageLinkClassName={'page-link'}
-                    previousClassName={'page-item'}
-                    previousLinkClassName={'page-link'}
-                    nextClassName={'page-item'}
-                    nextLinkClassName={'page-link'}
-                    breakClassName={'page-item'}
-                    breakLinkClassName={'page-link'}
-                    activeClassName={'active'}
-                />
+                {bookList.length > 10 && (
+                    <ReactPaginate
+                        previousLabel={'<'}
+                        nextLabel={'>'}
+                        breakLabel={'...'}
+                        pageCount={Math.ceil(bookList.length / itemsPerPage)}
+                        marginPagesDisplayed={2}
+                        pageRangeDisplayed={5}
+                        onPageChange={handlePageClick}
+                        containerClassName={'pagination justify-content-end'}
+                        pageClassName={'page-item'}
+                        pageLinkClassName={'page-link'}
+                        previousClassName={'page-item'}
+                        previousLinkClassName={'page-link'}
+                        nextClassName={'page-item'}
+                        nextLinkClassName={'page-link'}
+                        breakClassName={'page-item'}
+                        breakLinkClassName={'page-link'}
+                        activeClassName={'active'}
+                    />
+                )}
             </div>
             <Modal show={showModal} onHide={handleCloseModal}>
                 <Modal.Header closeButton>
@@ -214,11 +216,11 @@ function ReturnBook() {
 
                         <div className="form-group">
                             <label>Chi tiết trạng thái</label>
-                            <input 
-                                type="text" 
-                                className="form-control" 
+                            <input
+                                type="text"
+                                className="form-control"
                                 value={conditionDetail}
-                                onChange={(e) => setConditionDetail(e.target.value)} 
+                                onChange={(e) => setConditionDetail(e.target.value)}
                             />
                         </div>
                         <div className="form-group">
