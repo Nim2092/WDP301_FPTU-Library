@@ -39,7 +39,7 @@ function CreateBookSet() {
     const fetchCatalogs = async () => {
       try {
         const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
-        setCatalogData(response.data);
+        setCatalogData(response.data.data);
       } catch (error) {
         console.error("Error fetching catalog data:", error);
       }

@@ -15,9 +15,9 @@ function ListBookSet() {
   const [selectedCatalog, setSelectedCatalog] = useState('all');
 
   useEffect(() => {
-    axios.get("https://fptu-library.xyz.xyz/api/catalogs/list")
+    axios.get("https://fptu-library.xyz/api/catalogs/list")
       .then((response) => {
-        setCatalogData(response.data);
+        setCatalogData(response.data.data);
       })
       .catch((error) => console.error("Error fetching catalog data:", error));
   }, []);
@@ -161,6 +161,7 @@ function ListBookSet() {
 
             {/* ReactPaginate for Pagination */}
             <div className="d-flex justify-content-end">
+              {filteredBookSetData.length > 10 && (
               <ReactPaginate
                 previousLabel={'<'}
                 nextLabel={'>'}
@@ -179,7 +180,8 @@ function ListBookSet() {
                 breakClassName={'page-item'}
                 breakLinkClassName={'page-link'}
                 activeClassName={'active'}
-              />
+                />
+              )}
             </div>
           </>
         ) : (
