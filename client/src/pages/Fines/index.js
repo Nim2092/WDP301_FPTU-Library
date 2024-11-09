@@ -171,6 +171,7 @@ function Fines() {
         </table>
 
       ) : null}
+      {fines.length > 10 && (
       <ReactPaginate
         previousLabel={'<'}
         nextLabel={'>'}
@@ -188,8 +189,9 @@ function Fines() {
         nextLinkClassName={'page-link'}
         breakClassName={'page-item'}
         breakLinkClassName={'page-link'}
-        activeClassName={'active'}
-      />
+          activeClassName={'active'}
+        />
+      )}
       {/* QR Code Modal */}
       <Modal show={showQRCode} onHide={() => setShowQRCode(false)}>
         <Modal.Header closeButton>

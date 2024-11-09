@@ -38,7 +38,7 @@ function ReturnBook() {
 
     const handleSearchByIdentityCode = async () => {
         try {
-            const response = await axios.get(`https://fptu-library.xyz.xyz/api/orders/by-identifier-code/${identityCode}`);
+            const response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identityCode}`);
             if (response.data.data.status === "Received") {
                 setBookList(Array.isArray(response.data.data) ? response.data.data : [response.data.data]);
 
