@@ -757,7 +757,7 @@ async function returnOrder(req, res, next) {
     } = req.body;
 
     const order = await Order.findById(orderId)
-      .populate("book_id", "identifier_code condition")
+      .populate("book_id", "identifier_code condition condition_detail")
       .populate({
         path: "book_id",
         select: "identifier_code",
@@ -890,7 +890,7 @@ async function returnOrder(req, res, next) {
     const notification = new Notification({
       userId: userId,
       type: "Returned",
-      message: `Bạn đã trả sách ${bookSet.title} thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${order.book_id.condition}. Cảm ơn bạn!`,
+      message: `Bạn đã trả sách ${bookSet.title} thành công với mã định danh #${order.book_id.identifier_code} vào ngày ${order.returnDate}. Tình trạng sách: ${condition_detail}. Cảm ơn bạn!`,
     });
 
     await notification.save();

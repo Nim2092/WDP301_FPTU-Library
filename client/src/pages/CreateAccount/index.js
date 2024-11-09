@@ -9,8 +9,8 @@ const CreateAccount = () => {
   const [image, setImage] = useState(null);
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [role, setRole] = useState("");
-  const [roles, setRoles] = useState([]); // State to hold role options
+  const [role, setRole] = useState(""); // Initially empty, will set to librarian role after fetching
+  const [roles, setRoles] = useState([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -20,7 +20,17 @@ const CreateAccount = () => {
     const fetchRoles = async () => {
       try {
         const response = await axios.get("https://fptu-library.xyz/api/user/all-role");
-        setRoles(response.data.data);
+        const rolesData = response.data.data;
+
+        // Set the default role to librarian if found
+        const librarianRole = rolesData.find((r) => r.name === "librarian");
+        if (librarianRole) {
+          setRole(librarianRole._id);
+        }
+
+        // Filter out borrower role and set roles
+        const filteredRoles = rolesData.filter((r) => r.name !== "borrower");
+        setRoles(filteredRoles);
       } catch (error) {
         toast.error("Error fetching roles. Please try again later.");
         console.error("Error fetching roles:", error);
@@ -30,13 +40,13 @@ const CreateAccount = () => {
   }, []);
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]); // Use File object directly for form data
+    setImage(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prepare form data with an image file if provided
+    // Prepare form data
     const formData = new FormData();
     formData.append("image", image);
     formData.append("fullName", name);
@@ -142,7 +152,7 @@ const CreateAccount = () => {
                 <option value="">Chọn vai trò</option>
                 {roles.map((r) => (
                   <option key={r._id} value={r._id}>
-                    {r.name === "librarian" ? "Thủ thư" : r.name === "admin" ? "Quản trị viên" : r.name === "borrower" ? "Người mượn" : ""}
+                    {r.name === "librarian" ? "Thủ thư" : r.name === "admin" ? "Quản trị viên" : ""}
                   </option>
                 ))}
               </select>
