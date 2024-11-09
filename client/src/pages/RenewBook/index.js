@@ -45,7 +45,9 @@ function RenewBook() {
         }
       );
       toast.done("Book renewed successfully.");
-      navigate(`/list-book-borrowed`);
+      setTimeout(() => {
+        navigate(`/list-book-borrowed`);
+      }, 2000);
     } catch (err) {
       toast.error(err.response?.data?.message);
     }
@@ -56,7 +58,7 @@ function RenewBook() {
 
   return (
     <div className="renew-book container my-5">
-       
+      <ToastContainer />
       <div className="row">
         <div className="col-md-4">
           <img
@@ -82,6 +84,8 @@ function RenewBook() {
                 className="form-control"
                 id="newDueDate"
                 value={newDueDate}
+                min={new Date(book?.dueDate).toISOString().split('T')[0]}
+                
                 onChange={(e) => setNewDueDate(e.target.value)}
                 required
               />

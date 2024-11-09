@@ -15,8 +15,9 @@ function SearchResults({ books = [] }) {
   const [book, setBook] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
-
   const itemsPerPage = 5;
+
+  console.log(user);
 
   const offset = currentPage * itemsPerPage;
   const sortedOrders = books.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -136,13 +137,15 @@ function SearchResults({ books = [] }) {
                   <p className="card-text"><strong>Số bản có sẵn:</strong> {book.availableCopies}</p>
                   <p className="card-text"><strong>Số bản đã mượn:</strong> {book.totalCopies - book.availableCopies}</p>
 
-                  <button
-                    className="btn btn-primary float-end"
-                    onClick={() => openBorrowModal(book._id)}
-                    disabled={loading}
-                  >
-                    {loading ? "Đang xử lý..." : "Mượn sách"}
-                  </button>
+                  {!(user.role.name === "admin" || user.role.name === "librarian") && (
+                    <button
+                      className="btn btn-primary float-end"
+                      onClick={() => openBorrowModal(book._id)}
+                      disabled={loading}
+                    >
+                      {loading ? "Đang xử lý..." : "Mượn sách"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
