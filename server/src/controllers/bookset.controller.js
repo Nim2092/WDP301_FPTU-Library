@@ -37,7 +37,7 @@ async function createBookSet(req, res, next) {
       !createdBy
     ) {
       return res
-        .status(400)
+        .status(500)
         .json({ message: "Tất cả các trường đều bắt buộc phải điền." });
     }
 
@@ -81,7 +81,7 @@ async function createBookSet(req, res, next) {
         // Sau khi lưu BookSet, tiến hành tạo Books
         await createBooksForBookSet(newBookSet, catalogCode, code, totalCopies, createdBy);
 
-        res.status(201).json({
+        res.status(200).json({
           message: "BookSet and Books created successfully",
           bookSet: newBookSet,
         });
@@ -96,14 +96,14 @@ async function createBookSet(req, res, next) {
 
       // Tạo sách
       await createBooksForBookSet(newBookSet, catalogCode, code, totalCopies, createdBy);
-      res.status(201).json({
+      res.status(200).json({
         message: "Bộ sách và các cuốn sách đã được tạo thành công",
         bookSet: newBookSet,
       });
     }
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Sách với ISBN hoặc mã định danh này đã tồn tại.",
       });
     }
@@ -181,13 +181,13 @@ async function updateBookSet(req, res, next) {
       !updatedBy
     ) {
       return res
-        .status(400)
+        .status(500)
         .json({ message: "Tất cả các trường bắt buộc phải được điền." });
     }
 
     const catalog = await Catalog.findById(catalog_id);
     if (!catalog) {
-      return res.status(404).json({ message: "Không tìm thấy danh mục." });
+      return res.status(500).json({ message: "Không tìm thấy danh mục." });
     }
 
     const updatedFields = {
@@ -211,7 +211,7 @@ async function updateBookSet(req, res, next) {
       // Find the existing BookSet by its ID
       const existingBookSet = await BookSet.findById(id);
       if (!existingBookSet) {
-        return res.status(404).json({ message: "BookSet not found." });
+        return res.status(500).json({ message: "BookSet not found." });
       }
 
       if (existingBookSet.image) {
@@ -266,7 +266,7 @@ async function updateBookSet(req, res, next) {
       );
 
       if (!updatedBookSet) {
-        return res.status(404).json({ message: "Không tìm thấy bộ sách." });
+        return res.status(500).json({ message: "Không tìm thấy bộ sách." });
       }
 
       return res.status(200).json({
@@ -276,7 +276,7 @@ async function updateBookSet(req, res, next) {
     }
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Bộ sách với ISBN này đã tồn tại.",
       });
     }
@@ -391,7 +391,7 @@ async function getBookSetDetail(req, res, next) {
     });
 
     if (!bookSet) {
-      return res.status(404).json({ message: "BookSet not found." });
+      return res.status(500).json({ message: "BookSet not found." });
     }
 
     const books = await Book.find({ bookSet_id: id });
@@ -410,18 +410,18 @@ const addBooks = async (req, res, next) => {
 
     if (!bookSet_id || !numberOfCopies) {
       return res
-        .status(400)
+        .status(500)
         .json({ message: "ID của bộ sách và số lượng bản sao là bắt buộc." });
     }
 
     const bookSet = await BookSet.findById(bookSet_id);
     if (!bookSet) {
-      return res.status(404).json({ message: "BookSet not found." });
+      return res.status(500).json({ message: "BookSet not found." });
     }
 
     const catalog = await Catalog.findById(bookSet.catalog_id);
     if (!catalog) {
-      return res.status(404).json({ message: "Catalog not found." });
+      return res.status(500).json({ message: "Catalog not found." });
     }
 
     const catalogCode = catalog.code;
@@ -477,7 +477,7 @@ async function deleteBookSet(req, res, next) {
 
     const bookSet = await BookSet.findById(id);
     if (!bookSet) {
-      return res.status(404).json({ message: "BookSet not found." });
+      return res.status(500).json({ message: "BookSet not found." });
     }
 
     await Book.deleteMany({ bookSet_id: id });
@@ -507,7 +507,7 @@ async function getBookSetDetailAvailable(req, res, next) {
     });
 
     if (!bookSet) {
-      return res.status(404).json({ message: "BookSet not found." });
+      return res.status(500).json({ message: "BookSet not found." });
     }
 
     // Fetch only the books with status 'Available' for this BookSet
@@ -538,7 +538,7 @@ const getImageById = async (req, res) => {
     );
 
     downloadStream.on("error", (err) => {
-      res.status(404).json({ message: "Image not found", error: err });
+      res.status(500).json({ message: "Image not found", error: err });
     });
 
     downloadStream.pipe(res);
@@ -551,13 +551,13 @@ async function importBookSets(req, res, next) {
   try {
     const { catalog_id, createdBy } = req.body;
     if (!catalog_id || !createdBy) {
-      return res.status(400).json({ message: "Catalog ID và CreatedBy là bắt buộc." });
+      return res.status(500).json({ message: "Catalog ID và CreatedBy là bắt buộc." });
     }
 
     // Kiểm tra catalog tồn tại
     const catalog = await Catalog.findById(catalog_id);
     if (!catalog) {
-      return res.status(404).json({ message: "Catalog không tồn tại." });
+      return res.status(500).json({ message: "Catalog không tồn tại." });
     }
     const catalogCode = catalog.code;
 

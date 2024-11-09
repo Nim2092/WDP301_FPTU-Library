@@ -39,9 +39,9 @@ const getAllFines = async (req, res, next) => {
       .populate("updateBy");
 
     if (!fines || fines.length === 0) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Get all fines failed",
-        data: null,
+        data: [],
       });
     }
 
@@ -67,7 +67,7 @@ const getFinesById = async (req, res, next) => {
       .populate("createBy")
       .populate("updateBy");
     if (!fines) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Fines not found",
         data: null,
       });
@@ -89,9 +89,9 @@ const getFinesByUserId = async (req, res, next) => {
     const { userId } = req.params;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "User not found",
-        data: null,
+        data: [],
       });
     }
 
@@ -120,9 +120,9 @@ const getFinesByUserCode = async (req, res, next) => {
 
     const user = await User.findOne({ code: userCode });
     if (!user) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "User not found",
-        data: null,
+        data: [],
       });
     }
 
@@ -155,7 +155,7 @@ const getFinesByUserCode = async (req, res, next) => {
       });
 
     if (!fines || fines.length === 0) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "No fines found for this user",
         data: [],
       });
@@ -177,9 +177,9 @@ const getFinesByOrderId = async (req, res, next) => {
     const { orderId } = req.params;
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Order not found",
-        data: null,
+        data: [],
       });
     }
 
@@ -208,21 +208,21 @@ const createFines = async (req, res, next) => {
 
     const user = await User.findById(user_id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(500).json({ message: "User not found" });
     }
 
     const order = await Order.findById(order_id).populate(
       "identifier_code condition"
     );
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(500).json({ message: "Order not found" });
     }
 
     const penaltyReason = await PenaltyReason.findById(fineReason_id).populate(
       "reasonName"
     );
     if (!penaltyReason) {
-      return res.status(404).json({ message: "Penalty reason not found" });
+      return res.status(500).json({ message: "Penalty reason not found" });
     }
 
     // const existingFines = await Fines.findOne({
@@ -285,7 +285,7 @@ const createFines = async (req, res, next) => {
       `Sent lost book fine email to ${userEmail} for order ${order_id}`
     );
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Create fines successfully",
       data: newFines,
     });
@@ -301,9 +301,9 @@ const filterFinesByStatus = async (req, res, next) => {
     const { status } = req.params;
 
     if (!["Pending", "Paid", "Overdue"].includes(status)) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Invalid status",
-        data: null,
+        data: [],
       });
     }
     const fines = await Fines.find({ status })
@@ -320,9 +320,9 @@ const filterFinesByStatus = async (req, res, next) => {
       .populate("updateBy");
 
     if (!fines || fines.length === 0) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "No fines found for the given status",
-        data: null,
+        data: [],
       });
     }
     res.status(200).json({
@@ -343,7 +343,7 @@ const updateFinesStatus = async (req, res, next) => {
 
     const validStatuses = ["Pending", "Paid", "Overdue"];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: `Trạng thái không hợp lệ. Các trạng thái hợp lệ là: ${validStatuses.join(
           ", "
         )}`,
@@ -351,7 +351,7 @@ const updateFinesStatus = async (req, res, next) => {
     }
     const fines = await Fines.findById(finesId);
     if (!fines) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Fines not found",
         data: null,
       });
@@ -378,7 +378,7 @@ const updateFines = async (req, res, next) => {
 
     const fines = await Fines.findById(finesId);
     if (!fines) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Fines not found",
         data: null,
       });
@@ -386,21 +386,21 @@ const updateFines = async (req, res, next) => {
 
     const user = await User.findById(user_id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(500).json({ message: "User not found" });
     }
 
     const order = await Order.findById(order_id).populate(
       "identifier_code condition"
     );
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(500).json({ message: "Order not found" });
     }
 
     const penaltyReason = await PenaltyReason.findById(fineReason_id).populate(
       "reasonName"
     );
     if (!penaltyReason) {
-      return res.status(404).json({ message: "Penalty reason not found" });
+      return res.status(500).json({ message: "Penalty reason not found" });
     }
 
     fines.user_id = user_id;

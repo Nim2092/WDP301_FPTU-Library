@@ -34,7 +34,7 @@ const getAllOrder = async (req, res, next) => {
     });
 
     if (!order || order.length === 0) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Lấy tất cả đơn hàng thất bại",
         data: null,
       });
@@ -57,7 +57,7 @@ const getOrderById = async (req, res, next) => {
 
     // Check if orderId is valid before proceeding
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({ message: "Invalid Order ID" });
+      return res.status(500).json({ message: "Invalid Order ID" });
     }
 
     // Find the order by ID and populate the related fields (book_id, created_by, updated_by)
@@ -73,7 +73,7 @@ const getOrderById = async (req, res, next) => {
       .populate("updated_by", "fullName"); // Populate the updater's full name
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(500).json({ message: "Order not found" });
     }
 
     // Return the order with the populated data
@@ -96,7 +96,7 @@ const getOrderByIdentifierCode = async (req, res, next) => {
     });
 
     if (!books.length) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Không tìm thấy sách với mã identifier_code yêu cầu",
       });
     }
@@ -121,7 +121,54 @@ const getOrderByIdentifierCode = async (req, res, next) => {
 
     // Kiểm tra xem có đơn hàng nào tìm thấy không
     if (!orders.length) {
-      return res.status(404).json({ message: "Không tìm thấy đơn hàng nào" });
+      return res.status(500).json({ message: "Không tìm thấy đơn hàng nào" });
+    }
+
+    // Trả về danh sách đơn hàng đã tìm thấy
+    res.status(200).json({
+      message: "Get orders successfully",
+      data: orders,
+    });
+  } catch (error) {
+    console.error("Error getting the orders", error);
+    res.status(500).send({ message: error.message });
+  }
+};
+const getManageOrderByIdentifierCode = async (req, res, next) => {
+  try {
+    const { identifierCode } = req.params; // Lấy identifier_code từ tham số yêu cầu
+
+    // Tìm tất cả sách có identifier_code chứa đoạn chuỗi identifierCode
+    const books = await Book.find({
+      identifier_code: { $regex: identifierCode, $options: "i" },
+    });
+
+    if (!books.length) {
+      return res.status(500).json({
+        message: "Không tìm thấy sách với mã identifier_code yêu cầu",
+      });
+    }
+
+    // Lấy danh sách _id của các sách tìm được
+    const bookIds = books.map((book) => book._id);
+
+    // Tìm tất cả các đơn hàng có book_id thuộc danh sách bookIds
+    const orders = await Order.find({
+      book_id: { $in: bookIds },
+    })
+        .populate({
+          path: "book_id", // Populate the book reference
+          populate: {
+            path: "bookSet_id", // Nested populate to get book set details
+            model: "BookSet", // Reference to the BookSet model
+          },
+        })
+        .populate("created_by", "fullName") // Populate the creator's full name
+        .populate("updated_by", "fullName"); // Populate the updater's full name
+
+    // Kiểm tra xem có đơn hàng nào tìm thấy không
+    if (!orders.length) {
+      return res.status(500).json({ message: "Không tìm thấy đơn hàng nào" });
     }
 
     // Trả về danh sách đơn hàng đã tìm thấy
@@ -144,7 +191,7 @@ const getOrderByUserId = async (req, res, next) => {
     // Tìm người dùng trước để kiểm tra nếu user tồn tại
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "User not found",
         data: null,
       });
@@ -194,7 +241,7 @@ const createBorrowOrder = async (req, res, next) => {
     // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(500).json({ message: "User not found" });
     }
 
     const userFines = await Fines.find({
@@ -225,7 +272,7 @@ const createBorrowOrder = async (req, res, next) => {
     // Check if book exists
     const book = await Book.findById(bookId);
     if (!book) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Book not found",
         data: null,
       });
@@ -262,7 +309,7 @@ const createBorrowOrder = async (req, res, next) => {
     //check if book set exists and has available copies
     const bookSet = await BookSet.findById(book.bookSet_id);
     if (!bookSet || bookSet.availableCopies < 1) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Không còn quyển sách nào có sẵn cho bộ sách này",
         data: null,
       });
@@ -277,7 +324,7 @@ const createBorrowOrder = async (req, res, next) => {
     });
 
     if (existingOrder) {
-      return res.status(400).json({
+      return res.status(500).json({
         message:
           "Sách này đã được mượn hoặc đã được đặt trước bởi người dùng khác",
         data: null,
@@ -286,7 +333,7 @@ const createBorrowOrder = async (req, res, next) => {
 
     // Check if borrow date and due date are valid
     if (!borrowDate || !dueDate) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Ngày mượn và ngày trả sách là bắt buộc",
         data: null,
       });
@@ -299,21 +346,21 @@ const createBorrowOrder = async (req, res, next) => {
       (dueDateObj - borrowDateObj) / (1000 * 60 * 60 * 24);
 
     if (differenceInDays > 14) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Thời hạn mượn sách tối đa là 14 ngày",
         data: null,
       });
     }
 
     if (isNaN(borrowDateObj.getTime()) || isNaN(dueDateObj.getTime())) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Ngày mượn hoặc ngày trả sách không hợp lệ",
         data: null,
       });
     }
 
     if (dueDateObj <= borrowDateObj) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Ngày trả sách phải sau ngày mượn sách",
         data: null,
       });
@@ -324,7 +371,7 @@ const createBorrowOrder = async (req, res, next) => {
     maxDueDate.setDate(maxDueDate.getDate() + 14); // Add 14 days
 
     if (dueDateObj > maxDueDate) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Ngày trả sách không được quá 14 ngày sau ngày mượn sách",
         data: null,
       });
@@ -388,7 +435,7 @@ const createBorrowOrder = async (req, res, next) => {
       `Đã gửi email xác nhận yêu cầu mượn sách tới ${userEmail} cho đơn hàng ${newOrder._id}`
     );
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Order created successfully",
       data: newOrder,
     });
@@ -412,7 +459,7 @@ async function changeOrderStatus(req, res, next) {
     const book = await Book.findById(order.book_id);
     const bookSet = await BookSet.findById(book.bookSet_id);
     if (!order) {
-      return res.status(404).json({ message: "Order not found." });
+      return res.status(500).json({ message: "Order not found." });
     }
 
     // Validate status
@@ -429,7 +476,7 @@ async function changeOrderStatus(req, res, next) {
     ];
     if (!validStatuses.includes(status)) {
       return res
-        .status(400)
+        .status(500)
         .json({ message: "Trạng thái cập nhật không hợp lệ." });
     }
     if (status === "Received") {
@@ -439,7 +486,7 @@ async function changeOrderStatus(req, res, next) {
     // Xử lý từ chối với lý do
     if (status === "Rejected") {
       if (!reason_order || reason_order.trim() === "") {
-        return res.status(400).json({ message: "Lý do từ chối là bắt buộc." });
+        return res.status(500).json({ message: "Lý do từ chối là bắt buộc." });
       }
       order.reason_order = reason_order;
     }
@@ -450,13 +497,13 @@ async function changeOrderStatus(req, res, next) {
       (order.status === "Lost" || order.status === "Overdue")
     ) {
       return res
-        .status(400)
+        .status(500)
         .json({ message: "Không thể gia hạn sách bị mất hoặc quá hạn" });
     }
 
     //Check can not renew a returned order
     if (order.status === "Returned" && status === "Renew Pending") {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Không thể gia hạn đơn hàng đã trả",
       });
     }
@@ -464,7 +511,7 @@ async function changeOrderStatus(req, res, next) {
     //Check just orders with status Pending or Renew Pending can be cancel
     const cancelableStatuses = ["Pending", "Renew Pending"];
     if (status === "Canceled" && !cancelableStatuses.includes(order.status)) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: `Chỉ có thể hủy đơn hàng với trạng thái ${cancelableStatuses.join(
           " hoặc "
         )}.`,
@@ -493,7 +540,7 @@ async function changeOrderStatus(req, res, next) {
       });
 
       if (cancellationsThisMonth >= 3) {
-        return res.status(400).json({
+        return res.status(500).json({
           message:
             "Bạn đã đạt đến giới hạn số lần hủy đơn hàng trong tháng này.",
         });
@@ -587,7 +634,7 @@ const bulkUpdateOrderStatus = async (req, res) => {
 
     // Validate input
     if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
-      return res.status(400).json({ message: "No orders selected." });
+      return res.status(500).json({ message: "No orders selected." });
     }
 
     // Find and update the orders in bulk where the status is "Pending"
@@ -597,7 +644,7 @@ const bulkUpdateOrderStatus = async (req, res) => {
     });
 
     if (orders.length === 0) {
-      return res.status(404).json({ message: "No pending orders found." });
+      return res.status(500).json({ message: "No pending orders found." });
     }
 
     // Update each order's status to "Approved"
@@ -633,12 +680,12 @@ async function renewOrder(req, res, next) {
     const { orderId } = req.params;
     const { dueDate, renew_reason, userId } = req.body;
     if (!dueDate) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Vui lòng cung cấp ngày trả sách mới.",
       });
     }
     if (!renew_reason) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Vui lòng cung cấp lý do gia hạn.",
       });
     }
@@ -649,13 +696,13 @@ async function renewOrder(req, res, next) {
       "identifier_code condition"
     );
     if (!order) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Không tìm thấy đơn hàng.",
       });
     }
 
     if (order.status !== "Received") {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Chỉ có thể gia hạn đơn hàng với trạng thái 'Đã nhận'.",
       });
     }
@@ -666,14 +713,14 @@ async function renewOrder(req, res, next) {
     const differenceInDays =
       (dueDateObj - oldDueDateObj) / (1000 * 60 * 60 * 24);
     if (differenceInDays > 14) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Thời hạn gia hạn sách tối đa là 14 ngày",
         data: null,
       });
     }
 
     if (order.renewalCount >= 3) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Đơn hàng không thể gia hạn quá 3 lần.",
       });
     }
@@ -693,7 +740,7 @@ async function renewOrder(req, res, next) {
       type: "Renew Pending",
       message: `Yêu cầu gia hạn sách ${bookSet.title} với mã định danh #${
         order.book_id.identifier_code
-      } của bạn đang được xử lý. Ngày trả sách mới là  ${dueDate.toLocaleDateString(
+      } của bạn đang được xử lý. Ngày trả sách mới là  ${dueDateObj.toLocaleDateString(
         "vi-VN"
       )}. Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.`,
     });
@@ -703,7 +750,7 @@ async function renewOrder(req, res, next) {
     // Tìm thông tin người dùng để gửi email
     const user = await User.findById(userId).populate("email");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(500).json({ message: "User not found." });
     }
 
     // Gửi email thông báo cho người dùng
@@ -714,14 +761,14 @@ async function renewOrder(req, res, next) {
       subject: "Yêu Cầu Gia Hạn Sách Đã Được Tiếp Nhận",
       text: `Yêu cầu gia hạn sách ${bookSet.title} với mã định danh #${
         order.book_id.identifier_code
-      } của bạn đang được xử lý. Ngày trả sách mới là  ${dueDate.toLocaleDateString(
+      } của bạn đang được xử lý. Ngày trả sách mới là  ${dueDateObj.toLocaleDateString(
         "vi-VN"
       )}. Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.`,
       html: `<b>Xin chào</b>, yêu cầu gia hạn sách ${
         bookSet.title
       } với mã định danh <strong>${
         order.book_id.identifier_code
-      }</strong> của bạn đang được xử lý. <br>Ngày trả sách mới là <strong>${dueDate.toLocaleDateString(
+      }</strong> của bạn đang được xử lý. <br>Ngày trả sách mới là <strong>${dueDateObj.toLocaleDateString(
         "vi-VN"
       )}</strong>.<br><br>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.`,
     });
@@ -767,13 +814,13 @@ async function returnOrder(req, res, next) {
         },
       });
     if (!order) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Order not found.",
       });
     }
 
     if (order.returnDate) {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "Sách đã được trả trước đó.",
       });
     }
@@ -898,7 +945,7 @@ async function returnOrder(req, res, next) {
     // Tìm thông tin người dùng để gửi email
     const user = await User.findById(userId).populate("email");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(500).json({ message: "User not found." });
     }
 
     // send email
@@ -963,7 +1010,7 @@ const filterOrdersByStatus = async (req, res, next) => {
 
     // Check invalid status
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({
+      return res.status(500).json({
         message:
           "Trạng thái không hợp lệ. Vui lòng cung cấp trạng thái đơn hàng hợp lệ.",
       });
@@ -983,7 +1030,7 @@ const filterOrdersByStatus = async (req, res, next) => {
       .populate("updated_by", "name email");
 
     if (!orders || orders.length === 0) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: "Không tìm thấy đơn hàng với trạng thái được cung cấp.",
         data: null,
       });
@@ -1015,7 +1062,7 @@ const reportLostBook = async (req, res, next) => {
     );
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found." });
+      return res.status(500).json({ message: "Order not found." });
     }
     const book = await Book.findById(order.book_id);
     book.condition = "Lost";
@@ -1042,7 +1089,7 @@ const reportLostBook = async (req, res, next) => {
 
     // Check if the order status is "Received" before allowing it to be reported as "Lost"
     if (order.status !== "Received") {
-      return res.status(400).json({
+      return res.status(500).json({
         message:
           "Chỉ có thể báo mất sách cho các đơn hàng có trạng thái 'Đã nhận'.",
       });
@@ -1087,12 +1134,12 @@ const applyFinesForLostBook = async (req, res, next) => {
       },
     });
     if (!order) {
-      return res.status(404).json({ message: "Order not found." });
+      return res.status(500).json({ message: "Order not found." });
     }
 
     // Check status of the order
     if (order.status !== "Lost") {
-      return res.status(400).json({
+      return res.status(500).json({
         message: "This order is not reported as lost.",
       });
     }
@@ -1102,7 +1149,7 @@ const applyFinesForLostBook = async (req, res, next) => {
       "reasonName"
     );
     if (!penaltyReason) {
-      return res.status(404).json({ message: "Penalty reason not found" });
+      return res.status(500).json({ message: "Penalty reason not found" });
     }
 
     // Create new fine record for lost book
@@ -1135,7 +1182,7 @@ const applyFinesForLostBook = async (req, res, next) => {
     // Tìm thông tin người dùng để gửi email
     const user = await User.findById(userId).populate("email");
     if (!user) {
-      return res.status(404).json({ message: "Không tìm thấy người dùng." });
+      return res.status(500).json({ message: "Không tìm thấy người dùng." });
     }
 
     // Gửi email thông báo cho người dùng
@@ -1482,5 +1529,6 @@ const OrderController = {
   reminderDueDatesOrder,
   reminderOverdueOrder,
   ChartOrderbyMonth,
+  getManageOrderByIdentifierCode
 };
 module.exports = OrderController;
