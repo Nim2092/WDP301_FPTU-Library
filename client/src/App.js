@@ -70,8 +70,8 @@ function App() {
                 <Route path="/news" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsPage /></ProtectedRoute>} />
                 <Route path="/book-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><BookDetail /></ProtectedRoute>} />
                 <Route path="/profile/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><UserProfile /></ProtectedRoute>} />
-                <Route path="/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
-                <Route path="/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
+                <Route path="/news/news-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian"]}><NewsDetail /></ProtectedRoute>} />
+                <Route path="/list-rule-user/rule-detail/:id" element={<ProtectedRoute roles={["borrower", "librarian", "admin"]}><RuleDetail /></ProtectedRoute>} />
                 <Route path="/list-rule-user" element={<ProtectedRoute roles={["borrower", "librarian"]}><ListRuleUser /></ProtectedRoute>} />
                 <Route path="/search-results" element={<ProtectedRoute roles={["borrower", "librarian"]}><SearchResultsPage /></ProtectedRoute>} />
                 <Route path="/chart" element={<ProtectedRoute roles={["admin", "librarian"]}><Chart /></ProtectedRoute>} />
@@ -81,32 +81,32 @@ function App() {
                 <Route path="/report-lost-book" element={<ProtectedRoute roles={["borrower"]}><ReportLostBook /></ProtectedRoute>} />
                 <Route path="/renew-book/:orderId" element={<ProtectedRoute roles={["borrower"]}><RenewBook /></ProtectedRoute>} />
                 <Route path="/order-book/:bookId" element={<ProtectedRoute roles={["borrower"]}><OrderBook /></ProtectedRoute>} />
-                <Route path="/order-book-detail/:orderId" element={<ProtectedRoute roles={["borrower"]}><OrderDetail /></ProtectedRoute>} />
+                <Route path="/list-book-borrowed/order-book-detail/:orderId" element={<ProtectedRoute roles={["borrower"]}><OrderDetail /></ProtectedRoute>} />
                 <Route path="/notification" element={<ProtectedRoute roles={["borrower"]}><Notification /></ProtectedRoute>} />
                 <Route path="/fines" element={<ProtectedRoute roles={["borrower"]}><Fines /></ProtectedRoute>} />
 
                 {/* Librarian Routes */}
                 <Route path="/manage-order" element={<ProtectedRoute roles={["librarian"]}><ManageOrder /></ProtectedRoute>} />
-                <Route path="/create-news" element={<ProtectedRoute roles={["librarian"]}><CreateNews /></ProtectedRoute>} />
+                <Route path="/list-news-admin/create-news" element={<ProtectedRoute roles={["librarian"]}><CreateNews /></ProtectedRoute>} />
                 <Route path="/list-news-admin" element={<ProtectedRoute roles={["librarian"]}><ListNews /></ProtectedRoute>} />
-                <Route path="/update-news/:id" element={<ProtectedRoute roles={["librarian"]}><UpdateNews /></ProtectedRoute>} />
+                <Route path="/list-news-admin/update-news/:id" element={<ProtectedRoute roles={["librarian"]}><UpdateNews /></ProtectedRoute>} />
                 <Route path="/return-book" element={<ProtectedRoute roles={["librarian"]}><ReturnBook /></ProtectedRoute>} />
                 <Route path="/list-fines" element={<ProtectedRoute roles={["librarian"]}><ListFines /></ProtectedRoute>} />
 
                 {/* Admin Routes */}
-                <Route path="/create-account" element={<ProtectedRoute roles={["admin"]}><CreateAccount /></ProtectedRoute>} />
+                <Route path="/account-list/create-account" element={<ProtectedRoute roles={["admin"]}><CreateAccount /></ProtectedRoute>} />
                 <Route path="/list-catalog" element={<ProtectedRoute roles={["admin"]}><CatalogList /></ProtectedRoute>} />
                 <Route path="/account-list" element={<ProtectedRoute roles={["admin"]}><AccountList /></ProtectedRoute>} />
-                <Route path="/update-account/:id" element={<ProtectedRoute roles={["admin"]}><UpdateAccount /></ProtectedRoute>} />
-                <Route path="/create-book" element={<ProtectedRoute roles={["admin"]}><CreateBook /></ProtectedRoute>} />
+                <Route path="/account-list/update-account/:id" element={<ProtectedRoute roles={["admin"]}><UpdateAccount /></ProtectedRoute>} />
+                <Route path="/list-book-set/create-book" element={<ProtectedRoute roles={["admin"]}><CreateBook /></ProtectedRoute>} />
                 <Route path="/list-book-set" element={<ProtectedRoute roles={["admin"]}><ListBookSet /></ProtectedRoute>} />
-                <Route path="/update-bookset/:id" element={<ProtectedRoute roles={["admin"]}><UpdateBookSet /></ProtectedRoute>} />
+                <Route path="/list-book-set/update-bookset/:id" element={<ProtectedRoute roles={["admin"]}><UpdateBookSet /></ProtectedRoute>} />
                 <Route path="/list-rule" element={<ProtectedRoute roles={["admin"]}><ListRule /></ProtectedRoute>} />
-                <Route path="/create-new-rule" element={<ProtectedRoute roles={["admin"]}><CreateNewRule /></ProtectedRoute>} />
-                <Route path="/update-rule/:id" element={<ProtectedRoute roles={["admin"]}><UpdateRule /></ProtectedRoute>} />
+                <Route path="/list-rule/create-new-rule" element={<ProtectedRoute roles={["admin"]}><CreateNewRule /></ProtectedRoute>} />
+                <Route path="/list-rule/update-rule/:id" element={<ProtectedRoute roles={["admin"]}><UpdateRule /></ProtectedRoute>} />
                 <Route path="/list-penalty-reasons" element={<ProtectedRoute roles={["admin"]}><ListPenaltyReasons /></ProtectedRoute>} />
-                <Route path="/update-penalty-reason/:id" element={<ProtectedRoute roles={["admin"]}><UpdatePenaltyReason /></ProtectedRoute>} />
-                <Route path="/create-penalty-reason" element={<ProtectedRoute roles={["admin"]}><CreatePenaltyReason /></ProtectedRoute>} />
+                <Route path="/list-penalty-reasons/update-penalty-reason/:id" element={<ProtectedRoute roles={["admin"]}><UpdatePenaltyReason /></ProtectedRoute>} />
+                <Route path="/list-penalty-reasons/create-penalty-reason" element={<ProtectedRoute roles={["admin"]}><CreatePenaltyReason /></ProtectedRoute>} />
 
 
                 {/* Unauthorized and other routes */}
