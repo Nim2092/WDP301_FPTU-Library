@@ -26,7 +26,7 @@ const BorrowBookList = () => {
     try {
       let response;
       if (identifierCode) {
-        response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identifierCode}`);
+        response = await axios.get(`https://fptu-library.xyz/api/orders/manage-by-identifier-code/${identifierCode}`);
       } else if (status === "") {
         response = await axios.get(`https://fptu-library.xyz/api/orders/getAll`);
       } else {

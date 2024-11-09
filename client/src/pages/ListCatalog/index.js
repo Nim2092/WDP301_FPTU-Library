@@ -18,7 +18,7 @@ const CatalogList = () => {
     code: "",
     major: "",
     semester: "",
-    isTextbook: "",
+    isTextbook: 0,
     createdBy: "",
   });
   const [fileSelected, setFileSelected] = useState(null);
@@ -29,6 +29,9 @@ const CatalogList = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [catalogToDelete, setCatalogToDelete] = useState(null);
+  const [selectedCatalogForImport, setSelectedCatalogForImport] = useState(null);
 
   useEffect(() => {
     const fetchCatalogs = async () => {
@@ -36,8 +39,12 @@ const CatalogList = () => {
         const response = await fetch("https://fptu-library.xyz/api/catalogs/list");
         if (!response.ok) throw new Error("Failed to fetch catalog data");
         const data = await response.json();
-        setCatalogData(data.data);
-        setFilteredData(data.data);
+        
+        // Sort the data by createdAt in descending order
+        const sortedData = data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        setCatalogData(sortedData);
+        setFilteredData(sortedData);
       } catch (error) {
         console.error("Error fetching catalog data:", error);
       } finally {
@@ -48,13 +55,20 @@ const CatalogList = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = catalogData.filter((catalog) =>
-      Object.entries(filters).every(([key, value]) =>
-        value === "" || (catalog[key] !== undefined && catalog[key].toString() === value)
-      )
-    );
-    setFilteredData(filtered);
+    applyFilters();
   }, [filters, catalogData]);
+
+  const applyFilters = () => {
+    const { major, isTextbook, semester } = filters;
+    const filtered = catalogData.filter((item) => {
+      return (
+        (major ? item?.major === major : true) &&
+        (isTextbook ? item?.isTextbook?.toString() === isTextbook : true) &&
+        (semester ? item?.semester?.toString() === semester : true)
+      );
+    });
+    setFilteredData(filtered);
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -62,10 +76,12 @@ const CatalogList = () => {
       ...prevFilters,
       [name]: value,
     }));
+    setCurrentPage(1);
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e, catalogId) => {
     setFileSelected(e.target.files[0]);
+    setSelectedCatalogForImport(catalogId);
   };
 
   const importBookset = async (id) => {
@@ -107,23 +123,28 @@ const CatalogList = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this catalog?");
-    if (confirmDelete) {
-      try {
-        const response = await fetch(`https://fptu-library.xyz/api/catalogs/delete/${id}`, {
-          method: "DELETE",
-        });
-        if (!response.ok) throw new Error(`Failed to delete catalog: ${response.statusText}`);
-        setCatalogData((prevCatalogs) => prevCatalogs.filter((catalog) => catalog._id !== id));
-      } catch (error) {
-        console.error("Error deleting catalog:", error);
-      }
+  const handleDelete = (id) => {
+    setCatalogToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const response = await fetch(`https://fptu-library.xyz/api/catalogs/delete/${catalogToDelete}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error(`Failed to delete catalog: ${response.statusText}`);
+      setCatalogData((prevCatalogs) => prevCatalogs.filter((catalog) => catalog._id !== catalogToDelete));
+    } catch (error) {
+      console.error("Error deleting catalog:", error);
+    } finally {
+      setShowDeleteModal(false);
+      setCatalogToDelete(null);
     }
   };
 
   const handleCreateNewCatalog = () => {
-    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false, createdBy: user.id });
+    setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: 0, createdBy: user.id });
     setIsEditMode(false);
     setShowModal(true);
   };
@@ -156,7 +177,7 @@ const CatalogList = () => {
         setCatalogData([...catalogData, savedCatalog]);
       }
       setShowModal(false);
-      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false, createdBy: user.id });
+      setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: 0, createdBy: user.id });
       toast.success(responseData.message || "Cập nhật thành công");
     } catch (error) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} catalog:`, error);
@@ -166,11 +187,9 @@ const CatalogList = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setNewCatalog((prevCatalog) => ({
       ...prevCatalog,
       [name]: type === "checkbox" ? (checked ? 1 : 0) : value,
-      ...(name === "isTextbook" && !checked ? { major: "", semester: "" } : {}),
     }));
   };
 
@@ -182,6 +201,7 @@ const CatalogList = () => {
   const handlePageChange = (selectedPage) => {
     setCurrentPage(selectedPage.selected + 1);
   };
+
   return (
     <div className="container mt-4">
       <ToastContainer />
@@ -194,11 +214,8 @@ const CatalogList = () => {
             className="form-select mx-1"
           >
             <option value="">Tất cả chuyên ngành</option>
-            {[...new Set(catalogData.map((c) => c.major))].map((major) => (
-              <option key={major} value={major}>
-                {major}
-              </option>
-            ))}
+            <option value="SE">Công nghệ thông tin</option>
+            <option value="KT">Cơ khí</option>
           </select>
 
           <select
@@ -219,10 +236,8 @@ const CatalogList = () => {
             className="form-select mx-1"
           >
             <option value="">Tất cả học kỳ</option>
-            {[...new Set(catalogData.map((c) => c.semester))].map((semester) => (
-              <option key={semester} value={semester}>
-                {semester}
-              </option>
+            {[...Array(9).keys()].map((_, i) => (
+              <option key={i + 1} value={i + 1}>{i + 1}</option>
             ))}
           </select>
         </div>
@@ -262,7 +277,7 @@ const CatalogList = () => {
                     <input
                       type="file"
                       accept=".csv, .xlsx"
-                      onChange={handleFileChange}
+                      onChange={(e) => handleFileChange(e, catalog._id)}
                       style={{ display: "none" }}
                       id={`file-input-${catalog._id}`}
                     />
@@ -273,7 +288,7 @@ const CatalogList = () => {
                     >
                       <i className="fa fa-upload" aria-hidden="true"></i>
                     </button>
-                    {fileSelected && (
+                    {fileSelected && selectedCatalogForImport === catalog._id && (
                       <button
                         className="btn btn-primary mr-2"
                         onClick={() => importBookset(catalog._id)}
@@ -379,25 +394,32 @@ const CatalogList = () => {
               <>
                 <div className="form-group">
                   <label htmlFor="major">Chuyên ngành</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="major"
+                  <select
                     name="major"
                     value={newCatalog.major}
                     onChange={handleInputChange}
-                  />
+                    className="form-select"
+                    required
+                  >
+                    <option value="">Chọn chuyên ngành</option>
+                    <option value="SE">Công nghệ thông tin</option>
+                    <option value="KT">Cơ khí</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label htmlFor="semester">Học kỳ</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    id="semester"
+                  <select
                     name="semester"
                     value={newCatalog.semester}
                     onChange={handleInputChange}
-                  />
+                    className="form-select"
+                    required
+                  >
+                    <option value="">Chọn học kỳ</option>
+                    {[...Array(9).keys()].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>{i + 1}</option>
+                    ))}
+                  </select>
                 </div>
               </>
             )}
@@ -406,6 +428,23 @@ const CatalogList = () => {
             </Button>
           </form>
         </Modal.Body>
+      </Modal>
+
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Xác nhận xóa</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Bạn có chắc chắn muốn xóa danh mục này không?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Hủy
+          </Button>
+          <Button variant="danger" onClick={confirmDelete}>
+            Xóa
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

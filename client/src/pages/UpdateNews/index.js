@@ -57,19 +57,19 @@ function UpdateNews() {
       );
 
       if (response.status === 200) {
-        toast.success("News updated successfully");
+        toast.success("Cập nhật tin tức thành công");
         setTimeout(() => {
           navigate("/list-news-admin"); // Navigate back to the news list
         }, 1000);
       } else {
-        toast.error("Failed to update news");
+        toast.error("Cập nhật tin tức thất bại");
       }
     } catch (error) {
       console.error(
         "Error updating news:",
         error.response ? error.response.data : error.message
       );
-      toast.error("Error updating news");
+      toast.error("Cập nhật tin tức thất bại");
     }
   };
 
@@ -80,10 +80,10 @@ function UpdateNews() {
 
   return (
     <div className="container mt-4">
-       
+      <ToastContainer />
       <div className="row">
         <div className="col-md-12 text-center">
-          <h1>Update News</h1>
+          <h1>Cập nhật tin tức</h1>
         </div>
       </div>
       <form onSubmit={handleSubmit}>
@@ -114,7 +114,7 @@ function UpdateNews() {
                     backgroundColor: "#f0f0f0",
                   }}
                 >
-                  Add img
+                  Thêm ảnh
                 </div>
               )}
               <input
@@ -129,7 +129,7 @@ function UpdateNews() {
         <div className="">
             <div className="form-group mt-3">
               <div >
-                <label htmlFor="title">Title</label>
+                <label htmlFor="title">Tiêu đề</label>
                 <input
                   type="text"
                   className="form-control"
@@ -143,7 +143,7 @@ function UpdateNews() {
 
             <div className="form-group mt-3">
               <div >
-                <label htmlFor="content">Content</label>
+                <label htmlFor="content">Nội dung</label>
                 <CKEditor
                   editor={ClassicEditor}
                   data={data.content} // Initial content for CKEditor
@@ -155,7 +155,7 @@ function UpdateNews() {
               </div>
 
                 <button type="submit" className="btn btn-primary mt-3">
-                  Update
+                  Cập nhật
                 </button>
             </div>
           </div>

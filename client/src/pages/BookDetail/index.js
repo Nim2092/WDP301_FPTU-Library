@@ -2,7 +2,7 @@ import "./Bookdetail.scss";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import AuthContext from '../../contexts/UserContext';
 import { Modal, Button, Form } from 'react-bootstrap';
 
@@ -24,22 +24,24 @@ function BookDetail() {
   const itemsPerPage = 10;
   const [statusFilter, setStatusFilter] = useState("");
   const [conditionFilter, setConditionFilter] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [bookIdToDelete, setBookIdToDelete] = useState(null);
+
+  const fetchBookDetail = async () => {
+    try {
+      const response = await axios.get(`https://fptu-library.xyz/api/book-sets/${id}`);
+      setBookSet(response.data.bookSet);
+      setBooks(response.data.books);
+      const image = response.data.bookSet.image;
+      if (image) {
+        setImage(`https://fptu-library.xyz/api/book-sets/image/${image.split("/").pop()}`);
+      }
+    } catch (error) {
+      console.error("Error fetching book details:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchBookDetail = async () => {
-      try {
-        const response = await axios.get(`https://fptu-library.xyz/api/book-sets/${id}`);
-        setBookSet(response.data.bookSet);
-        setBooks(response.data.books);
-        const image = response.data.bookSet.image;
-        if (image) {
-          setImage(`https://fptu-library.xyz/api/book-sets/image/${image.split("/").pop()}`);
-        }
-      } catch (error) {
-        console.error("Error fetching book details:", error);
-      }
-    };
-
     fetchBookDetail();
   }, [id]);
 
@@ -77,9 +79,7 @@ function BookDetail() {
         createdBy: user.id
       });
       toast.success("Thêm sách thành công");
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      await fetchBookDetail();
     } catch (error) {
       toast.error("Thêm sách lỗi");
     }
@@ -94,27 +94,32 @@ function BookDetail() {
       });
       if (response.status === 200) {
         toast.success("Sửa sách thành công");
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        await fetchBookDetail();
       }
     } catch (error) {
       toast.error("Sửa sách lỗi");
     }
   };
 
-  const handleDeleteCopy = async (id) => {
-    const isConfirmed = window.confirm("Are you sure you want to delete this book copy?");
-    if (!isConfirmed) return;
+  const handleShowDeleteModal = (id) => {
+    setBookIdToDelete(id);
+    setShowDeleteModal(true);
+  };
 
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setBookIdToDelete(null);
+  };
+
+  const handleDeleteCopy = async () => {
     try {
-      await axios.delete(`https://fptu-library.xyz/api/books/delete/${id}`);
+      await axios.delete(`https://fptu-library.xyz/api/books/delete/${bookIdToDelete}`);
       toast.success("Xóa sách thành công");
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      await fetchBookDetail();
     } catch (error) {
       toast.error("Xóa sách lỗi");
+    } finally {
+      handleCloseDeleteModal();
     }
   };
 
@@ -150,6 +155,7 @@ function BookDetail() {
 
   return (
     <div className="container">
+      <ToastContainer />
       {bookSet && (
         <div className="book-detail">
           <div className="row mt-3 book-detail-info shadow-sm p-3 mb-5 bg-body rounded" >
@@ -266,12 +272,12 @@ function BookDetail() {
                       <tr key={book._id}>
                         <td>{indexOfFirstItem + index + 1}</td>
                         <td>{book.identifier_code}</td>
-                        <td>{book.status === "Available" ? "Chưa mượn" : book.status === "Borrowed" ? "Đã mượn" : book.status === "Destroyed" ? "Đã hủy" : ""}</td>
+                        <td>{book.status === "Available" ? "Còn lại" : book.status === "Borrowed" ? "Đã mượn" : book.status === "Destroyed" ? "Đã hủy" : ""}</td>
                         <td>{book.condition === "Good" ? "Tốt" : book.condition === "Light" ? "Hơi bị hư" : book.condition === "Medium" ? "Hư hại nhẹ" : book.condition === "Hard" ? "Hư hại nặng" : book.condition === "Lost" ? "Mất" : ""}</td>
                         <td>{book.condition_detail || 'N/A'}</td>
                         <td className="d-flex justify-content-between">
                           <button className="btn btn-primary" onClick={() => handleShowEditModal(book._id)}>Sửa</button>
-                          <button className="btn btn-danger" onClick={() => handleDeleteCopy(book._id)}>Xóa</button>
+                          <button className="btn btn-danger" onClick={() => handleShowDeleteModal(book._id)}>Xóa</button>
                         </td>
                       </tr>
                     ))
@@ -362,6 +368,24 @@ function BookDetail() {
           </Button>
           <Button variant="primary" onClick={handleAddSubmit}>
             Thêm bản sao
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={handleCloseDeleteModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Xác nhận xóa</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Bạn có chắc chắn muốn xóa bản sao sách này không?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDeleteModal}>
+            Hủy
+          </Button>
+          <Button variant="danger" onClick={handleDeleteCopy}>
+            Xóa
           </Button>
         </Modal.Footer>
       </Modal>

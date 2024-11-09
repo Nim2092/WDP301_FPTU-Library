@@ -17,7 +17,8 @@ function ListFines() {
         // Fetch toàn bộ dữ liệu phạt từ API
         axios.get("https://fptu-library.xyz/api/fines/getAll")
             .then((response) => {
-                setFines(response.data.data);
+                const sortedFines = response.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setFines(sortedFines);
             })
             .catch((error) => {
                 toast.error("Không thể tải dữ liệu phạt.");
@@ -29,7 +30,8 @@ function ListFines() {
     const handleSearchByUserCode = () => {
         axios.get(`https://fptu-library.xyz/api/fines/by-code/${userCode}`)
             .then((response) => {
-                setFines(response.data.data);
+                const sortedFines = response.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setFines(sortedFines);
             })
             .catch((error) => {
                 toast.error("Không thể tải dữ liệu phạt.");
@@ -43,7 +45,8 @@ function ListFines() {
             // Nếu status rỗng, gọi API lấy tất cả dữ liệu
             axios.get("https://fptu-library.xyz/api/fines/getAll")
                 .then((response) => {
-                    setFines(response.data.data);
+                    const sortedFines = response.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    setFines(sortedFines);
                 })
                 .catch((error) => {
                     toast.error("Không thể tải dữ liệu phạt.");
@@ -127,17 +130,24 @@ function ListFines() {
                 </thead>
                 <tbody>
                     {currentItems.length === 0 ? (
-                        null
+                        <tr>
+                            <td colSpan="7" className="text-center">Không tìm thấy dữ liệu</td>
+                        </tr>
                     ) : (
                         currentItems.map((fine, index) => (
                             <tr key={fine._id}>
                                 <td>{index + 1}</td>
                                 <td>{fine.book_id?.bookSet_id?.title || "N/A"}</td>
                                 <td>{fine.user_id?.code || "N/A"}</td>
-                                <td>{fine.book_id?.condition || "N/A"}</td>
-                                <td>{fine.totalFinesAmount || "N/A"} VNĐ</td>
+                                <td>{fine.book_id?.condition === "Lost" ? "Mất" : fine.book_id?.condition === "Hard" ? "Hư hỏng nặng" :
+                                    fine.book_id?.condition === "Medium" ? "Hư hỏng vừa" : fine.book_id?.condition === "Good" ? "Tốt" :
+                                        fine.book_id?.condition === "Light" ? "Hư hỏng nhẹ" : "N/A"}</td>
+                                <td>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(fine.totalFinesAmount)}</td>
                                 <td>{fine.status}</td>
-                                <td>{fine.reason || fine.fineReason_id?.reasonName || "N/A"}</td>
+                                <td>{fine.reason === "Paid" ? "Đã thanh toán" :
+                                    fine.reason === "Pending" ? "Chưa thanh toán" :
+                                        fine.reason === "Overdue" ? "Quá hạn" :
+                                            fine.fineReason_id?.reasonName || "N/A"}</td>
                             </tr>
                         ))
                     )}

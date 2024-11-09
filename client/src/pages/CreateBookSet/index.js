@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../contexts/UserContext";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 function CreateBookSet() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -18,7 +18,6 @@ function CreateBookSet() {
     publisher: "",
     physicalDescription: "",
     totalCopies: "",
-    availableCopies: "",
     price: "",
     image: null, // Sử dụng để lưu trữ file ảnh
     createdBy: user.id,
@@ -64,20 +63,18 @@ function CreateBookSet() {
         },
       });
 
-      if (response.status === 201) {
-        toast.success("Tạo bộ sách thành công");
+      toast.success("Tạo bộ sách thành công");
+      setTimeout(() => {
         navigate("/list-book-set");
-      } else {
-        toast.error("Tạo bộ sách thất bại");
-      }
+      }, 2000);
     } catch (error) {
-      console.error("Lỗi tạo bộ sách:", error);
-      toast.error("Tạo bộ sách thất bại");
+      toast.error(error.response?.data?.message);
     }
   };
 
   return (
     <div className="container mt-5">
+      <ToastContainer />
       <form onSubmit={handleSubmit}>
         <div className="row">
           <div className="col-md-3">
@@ -119,7 +116,6 @@ function CreateBookSet() {
                 { label: "Mã sách", id: "code", type: "text" },
                 { label: "Tên sách", id: "title", type: "text" },
                 { label: "Tác giả", id: "author", type: "text" },
-                { label: "Năm xuất bản", id: "publishedYear", type: "date" },
                 { label: "Nhà xuất bản", id: "publisher", type: "text" },
                 { label: "Tổng số bản", id: "totalCopies", type: "number" },
                 { label: "Vị trí kệ", id: "shelfLocationCode", type: "text" },
@@ -127,13 +123,22 @@ function CreateBookSet() {
                 <div className="mb-3 col-md-6" key={id}>
                   <label htmlFor={id} className="form-label">{label}:</label>
                   <input type={type} className="form-control" id={id} value={formData[id]} 
+                  required
                   onChange={(e) => setFormData({ ...formData, [id]: e.target.value })} />
                 </div>
               ))}
+              <div className="mb3 col-md-6">
+                <label htmlFor="publishedYear" className="form-label">Năm xuất bản:</label>
+                <input type="date" className="form-control" id="publishedYear" value={formData.publishedYear} 
+                required
+                max={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setFormData({ ...formData, publishedYear: e.target.value })} />
+              </div>
               <div className="mb-3 col-md-12">
                 <label htmlFor="description" className="form-label">Mô tả:</label>
-                <textarea className="form-control" id="description" value={formData.description} 
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                <textarea className="form-control" id="physicalDescription" value={formData.physicalDescription} 
+                required
+                onChange={(e) => setFormData({ ...formData, physicalDescription: e.target.value })} />
               </div>
             </div>
           </div>
