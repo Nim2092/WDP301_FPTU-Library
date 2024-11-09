@@ -160,16 +160,16 @@ const AccountList = () => {
           {/* Role Filter */}
           <select className="form-select" style={{ width: "auto" }} value={selectedRole} onChange={handleRoleChange}>
             <option value="">Lọc theo vai trò</option>
-            <option value="admin">Admin</option>
-            <option value="librarian">Librarian</option>
-            <option value="borrower">Borrower</option>
+            <option value="admin">Quản trị viên</option>
+            <option value="librarian">Thủ thư</option>
+            <option value="borrower">Người mượn</option>
           </select>
 
           {/* Status Filter */}
           <select className="form-select" style={{ width: "auto" }} value={selectedStatus} onChange={handleStatusChange}>
             <option value="">Lọc theo trạng thái</option>
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
+            <option value="true">Hoạt động</option>
+            <option value="false">Không hoạt động</option>
           </select>
           <button className="btn btn-primary" title="Tạo mới" onClick={handleCreateNewAccount}>
             <i className="fa fa-plus" aria-hidden="true"></i>
@@ -182,7 +182,7 @@ const AccountList = () => {
           <tr>
             <th>ID</th>
             <th>Họ tên</th>
-            <th>Code</th>
+            <th>Mã người dùng</th>
             <th>Email</th>
             <th>Số điện thoại</th>
             <th>Vai trò</th>
@@ -197,7 +197,7 @@ const AccountList = () => {
               <td>{account.code}</td>
               <td>{account.email}</td>
               <td>+84{account.phoneNumber}</td>
-              <td>{account.role_id.name}</td>
+              <td>{account.role_id.name === "admin" ? "Quản trị viên" : account.role_id.name === "librarian" ? "Thủ thư" : account.role_id.name === "borrower" ? "Người mượn" : ""}</td>
               <td className="d-flex justify-content-between">
                 <button className="btn btn-warning" title="Sửa" onClick={() => handleEdit(account._id)}>
                   <i className="fa fa-pencil-square-o" aria-hidden="true"></i>

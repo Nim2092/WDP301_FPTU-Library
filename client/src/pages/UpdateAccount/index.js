@@ -89,7 +89,7 @@ const UpdateAccount = () => {
 
   return (
     <div className="update-account-container mt-4" style={{ margin: "100px 100px" }}>
-       <ToastContainer/>
+      <ToastContainer />
       <form onSubmit={handleSubmit}>
         <div className="row">
           <div className="col-md-3">
@@ -98,7 +98,7 @@ const UpdateAccount = () => {
                 <img src={imagePreview} alt="Selected" className="img-thumbnail" />
               ) : (
                 <div className="img-thumbnail d-flex justify-content-center align-items-center" style={{ height: "200px", width: "100%", backgroundColor: "#f0f0f0" }}>
-                 Chọn Ảnh
+                  Chọn Ảnh
                 </div>
               )}
               <input
@@ -110,51 +110,71 @@ const UpdateAccount = () => {
           </div>
 
           <div className="col-md-9">
-            {["Họ vầ tên", "email", "Số điện thoại", "Mã người dùng"].map((field) => (
-              <div className="form-group mt-3" key={field}>
-                <label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id={field}
-                  name={field}
-                  value={formData[field]}
-                  onChange={handleInputChange}
-                  placeholder={`Nhập ${field}`}
-                />
-              </div>
-            ))}
+            <div className="form-group mt-3">
+              <label htmlFor="Họ và tên">Họ và tên</label>
+              <input
+                type="text"
+                className="form-control"
+                id="fullName"
+                name="fullName"
+                value={formData["fullName"]}
+                onChange={handleInputChange}
+                placeholder="Nhập Họ và tên"
+              />
+            </div>
+            <div className="form-group mt-3">
+              <label htmlFor="email">Email</label>
+              <input
+                type="text"
+                className="form-control"
+                id="email"
+                name="email"
+                value={formData["email"]}
+                onChange={handleInputChange}
+                placeholder="Nhập email"
+                disabled
+              />
+            </div>
+            <div className="form-group mt-3">
+              <label htmlFor="Số điện thoại">Số điện thoại</label>
+              <input
+                type="text"
+                className="form-control"
+                id="Số điện thoại"
+                name="Số điện thoại"
+                value={formData["Số điện thoại"]}
+                onChange={handleInputChange}
+                placeholder="Nhập Số điện thoại"
+              />
+            </div>
+            <div className="form-group mt-3">
+              <label htmlFor="code">Mã người dùng</label>
+              <input
+                type="text"
+                className="form-control"
+                id="code"
+                name="code"
+                value={formData["code"]}
+                onChange={handleInputChange}
+                placeholder="Nhập mã người dùng"
+                disabled
+              />
+            </div>
 
-            {/* Role Selection - Only Rendered Once */}
             <div className="form-group mt-3">
               <label htmlFor="role_id">Vai trò</label>
               <select
-                className="form-control"
-                id="role_id"
                 name="role_id"
-                value={formData.role_id}
+                className="form-select"
+                value={formData["role_id"]}
                 onChange={handleInputChange}
               >
-                <option value="">Chọn vai trò</option>
                 {roles.map((role) => (
                   <option key={role._id} value={role._id}>
                     {role.name === "librarian" ? "Thủ thư" : role.name === "admin" ? "Quản trị viên" : role.name === "borrower" ? "Người mượn" : ""}
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div className="form-group mt-3">
-              <label htmlFor="password">Mật khẩu</label>
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Nhập mật khẩu mới (Để trống nếu giữ nguyên)"
-              />
             </div>
           </div>
         </div>

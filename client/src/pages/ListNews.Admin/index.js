@@ -2,14 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import ReactPaginate from "react-paginate";
+import { Modal, Button } from "react-bootstrap";
+
 const ListNews = () => {
   const navigate = useNavigate();
-  const [newsData, setNewsData] = useState([]); // State for storing news data
-  const [message, setMessage] = useState(""); // State for messages
+  const [newsData, setNewsData] = useState([]);
+  const [message, setMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5); // Số item trên mỗi trang
+  const [itemsPerPage] = useState(5);
+  const [showModal, setShowModal] = useState(false);
+  const [newsIdToDelete, setNewsIdToDelete] = useState(null);
 
-  // Fetch news data from the API when the component is mounted
   useEffect(() => {
     const fetchNews = async () => {
       try {
@@ -25,39 +28,39 @@ const ListNews = () => {
     fetchNews();
   }, []);
 
-  // Handle news deletion
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this news?")) {
-      try {
-        const response = await fetch(
-          `https://fptu-library.xyz/api/news/delete/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
-
-        if (response.ok) {
-          // Remove the deleted news from the state
-          setNewsData((prevNewsData) =>
-            prevNewsData.filter((news) => news._id !== id)
-          ); // Ensure you're using the correct 'id'
-          toast.success("News deleted successfully");
-        } else {
-          toast.error("Failed to delete news");
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(
+        `https://fptu-library.xyz/api/news/delete/${newsIdToDelete}`,
+        {
+          method: "DELETE",
         }
-      } catch (error) {
-        console.error("Error deleting news:", error);
-        toast.error("Error deleting news");
-      }
+      );
+      setNewsData((prevNewsData) =>
+        prevNewsData.filter((news) => news._id !== newsIdToDelete)
+      );
+      toast.success("Xóa tin tức thành công");
+    } catch (error) {
+      console.error("Error deleting news:", error);
+      toast.error("Xóa tin tức thất bại");
+    } finally {
+      setShowModal(false);
     }
   };
 
-  // Navigate to the update page
+  const handleShowModal = (id) => {
+    setNewsIdToDelete(id);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
   const handleUpdate = (id) => {
     navigate(`/list-news-admin/update-news/${id}`);
   };
 
-  // Navigate to the create news page
   const handleCreateNew = () => {
     navigate("/list-news-admin/create-news");
   };
@@ -66,7 +69,6 @@ const ListNews = () => {
     navigate(`/news/news-detail/${id}`);
   };
 
-  // Function to get limited content
   const getLimitedContent = (content, limit = 50) => {
     if (content.length > limit) {
       return content.substring(0, limit) + "...";
@@ -74,27 +76,22 @@ const ListNews = () => {
     return content;
   };
 
-  // Tính toán các item cho trang hiện tại
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // Sort news data by createdAt before slicing
   const sortedNewsData = [...newsData].sort((a, b) =>
     new Date(b.createdAt) - new Date(a.createdAt)
   );
   const currentItems = sortedNewsData.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Tính tổng số trang
   const totalPages = Math.ceil(newsData.length / itemsPerPage);
 
-
-  // Handle page click
   const handlePageClick = (data) => {
     setCurrentPage(data.selected + 1);
   };
 
   return (
     <div className="container mt-4">
-       
+      <ToastContainer />
       <div className="d-flex justify-content-end mb-3">
         <button
           className="btn btn-primary"
@@ -106,7 +103,6 @@ const ListNews = () => {
         </button>
       </div>
 
-      {/* Display success or error messages */}
       {message && (
         <div
           className={`alert ${message.includes("successfully") ? "alert-success" : "alert-danger"
@@ -166,7 +162,7 @@ const ListNews = () => {
                   </button>
                   <button
                     className="btn btn-danger"
-                    onClick={() => handleDelete(news._id)}
+                    onClick={() => handleShowModal(news._id)}
                     title="Xóa"
                   >
                     <i className="fa fa-trash" aria-hidden="true"></i>
@@ -203,6 +199,21 @@ const ListNews = () => {
         breakLinkClassName={'page-link'}
         activeClassName={"active"}
       />
+
+      <Modal show={showModal} onHide={handleCloseModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this news?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

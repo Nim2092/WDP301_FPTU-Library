@@ -75,7 +75,7 @@ function SearchResults({ books = [] }) {
         dueDate: dueDate,
       });
 
-      if (response.status === 201) {
+      if (response.status === 200) {
         toast.success("Đã mượn sách thành công!");
         setShowModal(false);
       } else {

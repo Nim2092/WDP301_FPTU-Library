@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-
+import { ToastContainer, toast } from "react-toastify";
 function CreateNews() {
   const [data, setData] = useState({
     title: "",
@@ -40,24 +40,23 @@ function CreateNews() {
         },
       });
 
-      if (response.status === 201) {
-        alert("News created successfully");
+      toast.success("Tạo tin tức thành công");
+      setTimeout(() => {
         navigate("/list-news-admin");
-      } else {
-        alert("Failed to create news");
-      }
+      }, 1000);
     } catch (error) {
       console.error("Error creating news:", error);
-      alert("Error creating news");
+      toast.error(error.response.data.message);
     }
   };
 
   return (
     <div className="container mt-4">
-      <h1>Create News</h1>
+      <ToastContainer />
+      <h1>Tạo tin tức</h1>
       <form onSubmit={handleSubmit}>
         <div className="form-group mt-3">
-          <label htmlFor="thumbnail">Thumbnail</label>
+          <label htmlFor="thumbnail">Ảnh đại diện</label>
           {imagePreview && (
             <div className="mt-3">
               <img src={imagePreview} alt="Preview" style={{ maxWidth: "200px", maxHeight: "200px" }} />
@@ -72,7 +71,7 @@ function CreateNews() {
         </div>
 
         <div className="form-group mt-3">
-          <label htmlFor="title">Title</label>
+          <label htmlFor="title">Tiêu đề</label>
           <input
             type="text"
             className="form-control"
@@ -85,7 +84,7 @@ function CreateNews() {
         </div>
 
         <div className="form-group mt-3">
-          <label htmlFor="content">Content</label>
+          <label htmlFor="content">Nội dung</label>
           <CKEditor
             editor={ClassicEditor}
             data={data.content}
@@ -97,7 +96,7 @@ function CreateNews() {
         </div>
 
         <button type="submit" className="btn btn-primary mt-3">
-          Create News
+          Tạo tin tức
         </button>
       </form>
     </div>

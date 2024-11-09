@@ -68,14 +68,14 @@ function RenewBook() {
         </div>
         <div className="col-md-8">
           <h3>{book?.book_id?.bookSet_id?.title || "Unknown Title"}</h3>
-          <p><strong>Author:</strong> {book?.book_id?.bookSet_id?.author || "Unknown Author"}</p>
-          <p><strong>Order date:</strong> {new Date(book?.borrowDate).toLocaleDateString()}</p>
-          <p><strong>Due date:</strong> {new Date(book?.dueDate).toLocaleDateString()}</p>
+          <p><strong>Tác giả:</strong> {book?.book_id?.bookSet_id?.author || "Unknown Author"}</p>
+          <p><strong>Ngày mượn:</strong> {new Date(book?.borrowDate).toLocaleDateString()}</p>
+          <p><strong>Ngày hết hạn:</strong> {new Date(book?.dueDate).toLocaleDateString()}</p>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label htmlFor="newDueDate" className="form-label">
-                New due date
+                Ngày hết hạn mới
               </label>
               <input
                 type="date"
@@ -88,7 +88,7 @@ function RenewBook() {
             </div>
             <div className="mb-3">
               <label htmlFor="renewReason" className="form-label">
-                Reason for renewal
+                Lý do gia hạn
               </label>
               <textarea
                 className="form-control"
@@ -100,7 +100,7 @@ function RenewBook() {
               ></textarea>
             </div>
             <button type="submit" className="btn btn-danger">
-              Submit
+              Gửi
             </button>
           </form>
         </div>
