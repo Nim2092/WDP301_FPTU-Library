@@ -220,7 +220,7 @@ function ReturnBook() {
                         </div>
                         <div className="form-group">
                             <label>Tình trạng sách</label>
-                            <input type="text" className="form-control" value={bookData.book?.condition_detail || ''}  />
+                            <input type="text" className="form-control" value={bookData.book?.condition_detail} onChange={(e) => setBookData({ ...bookData, book: { ...bookData.book, condition_detail: e.target.value } })} />
                         </div>
                         <div className="form-group">
                             <label>Mã định danh sách</label>

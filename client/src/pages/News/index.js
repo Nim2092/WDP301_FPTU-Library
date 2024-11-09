@@ -44,15 +44,15 @@ function NewsPage() {
       {Array.isArray(currentItems) && currentItems.length > 0 ? (
         currentItems.map((item) => (
           <div className="row mb-4" style={{ boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.1)' , borderRadius: '10px'}} key={item._id}>
-            <div className="col-md-4" >
+            <div className="col-md-3" >
               <img
                 src={`https://fptu-library.xyz/api/news/thumbnail/${item.thumbnail.split("/").pop()}`}
                 className="img-fluid"
-                style={{borderRadius: '10px', margin: '10px', border: '1px solid #ccc'}}
+                style={{width: '200px', height: '150px', objectFit: 'cover', borderRadius: '10px', margin: '10px', border: '1px solid #ccc'}}
                 alt={item.title}
               />
             </div>
-            <div className="col-md-8" style={{padding: '10px'}}>
+            <div className="col-md-9" style={{padding: '10px'}}>
               <div className="card-body">
                 <h5 className="card-title">{item.title}</h5>
                 <div
