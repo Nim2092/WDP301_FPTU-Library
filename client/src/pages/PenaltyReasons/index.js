@@ -51,11 +51,11 @@ const ListPenaltyReasons = () => {
   };
 
   const handleUpdate = (id) => {
-    navigate(`/update-penalty-reason/${id}`);
+    navigate(`/list-penalty-reasons/update-penalty-reason/${id}`);
   };
 
   const handleCreatePenaltyReasons = () => {
-    navigate("/create-penalty-reason");
+    navigate("/list-penalty-reasons/create-penalty-reason");
   };
 
   const indexOfLastItem = (currentPage + 1) * itemsPerPage;

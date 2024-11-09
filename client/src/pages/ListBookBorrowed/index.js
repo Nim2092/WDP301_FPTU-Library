@@ -199,7 +199,7 @@ function ListBookBorrowed() {
                     </div>
                     <div className="col">
                       <Link
-                        to={`/order-book-detail/${order._id}`}
+                        to={`/list-book-borrowed/order-book-detail/${order._id}`}
                         className="btn btn-outline-primary"
                       >
                         <img width="20" height="20" title="Xem chi tiết" src="https://img.icons8.com/ios/30/visible--v1.png" alt="visible--v1" />

@@ -23,7 +23,7 @@ const AccountList = () => {
   const currentAccounts = accountData.slice(indexOfFirstAccount, indexOfLastAccount);
 
   const handleEdit = (id) => {
-    navigate(`/update-account/${id}`);
+    navigate(`/account-list/update-account/${id}`);
     console.log(`Edit account with ID: ${id}`);
   };
 
@@ -52,7 +52,7 @@ const AccountList = () => {
   };
 
   const handleCreateNewAccount = () => {
-    navigate("/create-account");
+    navigate("/account-list/create-account");
   };
 
   useEffect(() => {

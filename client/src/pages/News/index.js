@@ -61,7 +61,7 @@ function NewsPage() {
                 />
                 <div className="text-end mt-3">
                   <Link
-                    to={`/news-detail/${item._id}`}
+                    to={`/news/news-detail/${item._id}`}
                     className="btn btn-primary"
                   >
                     Xem chi tiết
