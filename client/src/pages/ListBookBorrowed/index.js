@@ -204,7 +204,7 @@ function ListBookBorrowed() {
                     </button>
 
                     <Link
-                      to={`/order-book-detail/${order._id}`}
+                      to={`/list-book-borrowed/order-book-detail/${order._id}`}
                       className="btn btn-outline-primary btn-sm m-1"
                       title="Xem chi tiết"
                     >
