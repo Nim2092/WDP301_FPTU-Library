@@ -1,7 +1,7 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import ReactPaginate from "react-paginate";
 import { Modal, Button, Form, Container } from "react-bootstrap";
 
@@ -16,13 +16,20 @@ function SearchResults({ books = [] }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const itemsPerPage = 5; // Số sách hiển thị trên mỗi trang
+  const itemsPerPage = 5;
 
-  // Lấy dữ liệu sách cho phân trang
   const offset = currentPage * itemsPerPage;
-  const currentBooks = books.slice(offset, offset + itemsPerPage);
+  const sortedOrders = books.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const currentOrders = sortedOrders.slice(offset, offset + itemsPerPage);
 
-  // Mở Modal mượn sách và lấy thông tin sách
+  const today = new Date().toISOString().slice(0, 10);
+
+  const calculateDueDate = (startDate, daysToAdd) => {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + daysToAdd);
+    return date.toISOString().slice(0, 10);
+  };
+
   const openBorrowModal = async (bookId) => {
     setSelectedBookId(bookId);
     setLoading(true);
@@ -31,8 +38,8 @@ function SearchResults({ books = [] }) {
       setBookSet(response.data.bookSet);
       setBook(response.data.availableBooks);
       setShowModal(true);
-      setBorrowDate(new Date().toISOString().slice(0, 10));
-      setDueDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+      setBorrowDate(today);
+      setDueDate(calculateDueDate(today, 14)); // Set default due date to today + 14 days
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu sách:", error);
       toast.error("Lỗi khi lấy dữ liệu sách.");
@@ -40,21 +47,25 @@ function SearchResults({ books = [] }) {
     setLoading(false);
   };
 
-  // Xử lý yêu cầu mượn sách
-  const handleBorrowSubmit = async () => {
+  const handleBorrowDateChange = (e) => {
+    const newBorrowDate = e.target.value;
+    setBorrowDate(newBorrowDate);
+    setDueDate(calculateDueDate(newBorrowDate, 14)); // Automatically set due date to 14 days after borrow date
+  };
 
+  const handleBorrowSubmit = async () => {
     setLoading(true);
     try {
-      const booksetCurrent = bookSet._id;
-      const ordersResponse = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${user.id}`);
-      const orders = ordersResponse.data.data;
-      const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
+      // const booksetCurrent = bookSet._id;
+      // const ordersResponse = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${user.id}`);
+      // const orders = ordersResponse.data.data;
+      // const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
 
-      if (hasDifferentBookSet && (orders.status === "Pending" || orders.status === "Approved" 
-        || orders.status === "Received" || orders.status === "Overdue" || orders.status === "Renew Pending")) {
-        toast.error("Bạn không thể mượn sách từ bộ sách này vì đã có sách đang mượn.");
-        return;
-      }
+      // if (hasDifferentBookSet && (orders.status === "Pending" || orders.status === "Approved" 
+      //   || orders.status === "Received" || orders.status === "Overdue" || orders.status === "Renew Pending")) {
+      //   toast.error("Bạn không thể mượn sách từ bộ sách này vì đã có sách đang mượn.");
+      //   return;
+      // }
 
       const firstBook = book[0];
       const response = await axios.post(`https://fptu-library.xyz/api/orders/create-borrow/${firstBook._id}`, {
@@ -62,8 +73,6 @@ function SearchResults({ books = [] }) {
         userId: user.id,
         borrowDate: borrowDate,
         dueDate: dueDate,
-        // created_by: user.id,
-        // updated_by: user.id,
       });
 
       if (response.status === 201) {
@@ -71,7 +80,7 @@ function SearchResults({ books = [] }) {
         setShowModal(false);
       } else {
         console.error("Lỗi khi mượn sách:", response.data.message);
-        toast.error(response.data.message);
+        toast.error(response.data.data.message);
       }
     } catch (error) {
       const message = error.response?.data?.message || "Đã xảy ra lỗi.";
@@ -93,12 +102,12 @@ function SearchResults({ books = [] }) {
 
   return (
     <Container className="mt-4">
-       
+      <ToastContainer />
       {books.length === 0 ? (
        <div className="d-flex justify-content-center align-items-center">
        </div>
       ) : (
-        currentBooks.map((book) => (
+        currentOrders.map((book) => (
           <div className="card mb-4 p-3" key={book._id}>
             <div className="row no-gutters">
               <div className="col-md-3">
@@ -141,7 +150,6 @@ function SearchResults({ books = [] }) {
         ))
       )}
 
-      {/* Conditionally render pagination only if there are books */}
       {books.length > 5 && (
         <ReactPaginate
           previousLabel={"<"}
@@ -164,7 +172,6 @@ function SearchResults({ books = [] }) {
         />
       )}
 
-      {/* Modal mượn sách */}
       <Modal show={showModal} onHide={closeModal}>
         <Modal.Header closeButton>
           <Modal.Title>Mượn sách</Modal.Title>
@@ -176,7 +183,8 @@ function SearchResults({ books = [] }) {
               <Form.Control
                 type="date"
                 value={borrowDate}
-                onChange={(e) => setBorrowDate(e.target.value)}
+                min={today}
+                onChange={handleBorrowDateChange}
               />
             </Form.Group>
             <Form.Group controlId="dueDate" className="mt-3">
@@ -184,6 +192,7 @@ function SearchResults({ books = [] }) {
               <Form.Control
                 type="date"
                 value={dueDate}
+                min={borrowDate ? calculateDueDate(borrowDate, 1) : today} 
                 onChange={(e) => setDueDate(e.target.value)}
               />
             </Form.Group>

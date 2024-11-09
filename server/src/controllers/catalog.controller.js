@@ -1,4 +1,4 @@
-const { catalog: Catalog } = require("../models");
+const { catalog: Catalog, book: Book, bookset: BookSet, } = require("../models");
 
 async function createCatalog(req, res, next) {
   try {
@@ -90,17 +90,34 @@ async function deleteCatalog(req, res, next) {
   try {
     const { id } = req.params;
 
+    // Xóa Catalog dựa trên id
     const deletedCatalog = await Catalog.findByIdAndDelete(id);
-
     if (!deletedCatalog) {
-      return res.status(404).json({ message: "Không tìm thấy bộ sách" });
+      return res.status(404).json({ message: "Không tìm thấy catalog" });
     }
 
-    return res.status(200).json({ message: "Xóa bộ sách thành công" });
+    // Lấy danh sách BookSet có catalog_id bằng id
+    const bookSets = await BookSet.find({ catalog_id: id });
+    const bookSetIds = bookSets.map((bookSet) => bookSet._id);
+
+    console.log("BookSet IDs to delete:", bookSetIds); // Kiểm tra danh sách BookSet IDs
+
+    // Xóa tất cả BookSet có catalog_id bằng id
+    const deletedBookSets = await BookSet.deleteMany({ catalog_id: id });
+    console.log("Deleted BookSets:", deletedBookSets);
+
+    // Xóa tất cả Book có bookSet_id trong danh sách bookSetIds
+    const deletedBooks = await Book.deleteMany({ bookSet_id: { $in: bookSetIds } });
+    console.log("Deleted Books:", deletedBooks);
+
+    return res.status(200).json({ message: "Xóa catalog và các liên kết thành công" });
   } catch (error) {
+    console.error("Error deleting catalog and related data:", error);
     return res.status(500).json({ message: "An error occurred", error });
   }
 }
+
+
 
 const CatalogController = {
   createCatalog,

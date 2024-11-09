@@ -41,7 +41,7 @@ function CreateBookSet() {
         const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
         setCatalogData(response.data.data);
       } catch (error) {
-        console.error("Error fetching catalog data:", error);
+        console.error("Lỗi lấy dữ liệu catalog:", error);
       }
     };
     fetchCatalogs();
@@ -65,27 +65,24 @@ function CreateBookSet() {
       });
 
       if (response.status === 201) {
-        toast.success("Book Set created successfully");
+        toast.success("Tạo bộ sách thành công");
         navigate("/list-book-set");
       } else {
-        toast.error("Failed to create book set");
+        toast.error("Tạo bộ sách thất bại");
       }
     } catch (error) {
-      console.error("Error creating book set:", error);
-      toast.error("Error creating book set");
+      console.error("Lỗi tạo bộ sách:", error);
+      toast.error("Tạo bộ sách thất bại");
     }
   };
 
   return (
     <div className="container mt-5">
-      <h1 className="my-4 text-center">Create Book Set</h1>
-
       <form onSubmit={handleSubmit}>
         <div className="row">
           <div className="col-md-3">
             {/* Image Upload */}
             <div className="mb-3">
-              <label className="form-label">Book Set Image:</label>
               {imagePreview && (
                 <div className="mt-3">
                   <img src={imagePreview} alt="Preview" style={{ maxWidth: "200px", maxHeight: "200px" }} />
@@ -101,14 +98,14 @@ function CreateBookSet() {
           <div className="col-md-9">
             <div className="row">
               <div className="mb-3 col-md-6">
-                <label className="form-label">Catalog ID:</label>
+                <label className="form-label">Chuyên ngành:</label>
                 <select
                   className="form-select"
                   name="catalog_id"
                   value={formData.catalog_id}
                   onChange={(e) => setFormData({ ...formData, catalog_id: e.target.value })}
                 >
-                  <option value="">Select Catalog</option>
+                  <option value="">Chọn chuyên ngành</option>
                   {catalogData.map((catalog) => (
                     <option key={catalog._id} value={catalog._id}>
                       {catalog.name}
@@ -118,16 +115,14 @@ function CreateBookSet() {
               </div>
               {[
                 { label: "ISBN", id: "isbn", type: "text" },
-                { label: "Price", id: "price", type: "number" },
-                { label: "Code", id: "code", type: "text" },
-                { label: "Title", id: "title", type: "text" },
-                { label: "Author", id: "author", type: "text" },
-                { label: "Published Year", id: "publishedYear", type: "date" },
-                { label: "Publisher", id: "publisher", type: "text" },
-                { label: "Physical Description", id: "physicalDescription", type: "text" },
-                { label: "Shelf Location Code", id: "shelfLocationCode", type: "text" },
-                { label: "Total Copies", id: "totalCopies", type: "number" },
-                { label: "Available Copies", id: "availableCopies", type: "number" },
+                { label: "Giá", id: "price", type: "number" },
+                { label: "Mã sách", id: "code", type: "text" },
+                { label: "Tên sách", id: "title", type: "text" },
+                { label: "Tác giả", id: "author", type: "text" },
+                { label: "Năm xuất bản", id: "publishedYear", type: "date" },
+                { label: "Nhà xuất bản", id: "publisher", type: "text" },
+                { label: "Tổng số bản", id: "totalCopies", type: "number" },
+                { label: "Vị trí kệ", id: "shelfLocationCode", type: "text" },
               ].map(({ label, id, type }) => (
                 <div className="mb-3 col-md-6" key={id}>
                   <label htmlFor={id} className="form-label">{label}:</label>
@@ -135,11 +130,16 @@ function CreateBookSet() {
                   onChange={(e) => setFormData({ ...formData, [id]: e.target.value })} />
                 </div>
               ))}
+              <div className="mb-3 col-md-12">
+                <label htmlFor="description" className="form-label">Mô tả:</label>
+                <textarea className="form-control" id="description" value={formData.description} 
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+              </div>
             </div>
           </div>
         </div>
         <div className="d-flex justify-content-center align-items-center">
-          <button type="submit" className="btn btn-primary mb-3">Create Book Set</button>
+          <button type="submit" className="btn btn-primary mb-3">Tạo bộ sách</button>
         </div>
       </form>
     </div>

@@ -19,7 +19,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
         params: {
           title: bookName,
           author,
-          publisher,
+          publisher: publisher,
           pubYear: publicationYear,
           catalog_id: catalog,
           isTextbook: subject,
@@ -128,7 +128,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
           <hr />
           <div>
             <div className="mb-3">
-              <label htmlFor="book-name">Book Name</label>
+              <label htmlFor="book-name">Tên sách</label>
               <input
                 type="text"
                 id="book-name"
@@ -139,7 +139,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
               />
             </div>
             <div className="mb-3">
-              <label htmlFor="author">Author</label>
+              <label htmlFor="author">Tác giả</label>
               <input
                 type="text"
                 id="author"
@@ -151,7 +151,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
             </div>
             <div className="row g-3">
               <div className="col-md-6">
-                <label htmlFor="publisher">Publisher</label>
+                <label htmlFor="publisher">Nhà xuất bản</label>
                 <input
                   type="text"
                   id="publisher"
@@ -162,7 +162,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
                 />
               </div>
               <div className="col-md-6">
-                <label htmlFor="publication-year">Publication Year</label>
+                <label htmlFor="publication-year">Năm xuất bản</label>
                 <input
                   type="date"
                   id="publication-year"
@@ -176,7 +176,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
           </div>
           <hr />
           <button type="submit" className="btn btn-primary mt-3">
-            Search
+            Tìm kiếm
           </button>
         </div>
       </form>

@@ -11,11 +11,17 @@ function ReturnBook() {
     const [bookData, setBookData] = useState({});
     const [showModal, setShowModal] = useState(false);
     const [returnDate, setReturnDate] = useState(new Date().toISOString().split('T')[0]);
-    const [bookCondition, setBookCondition] = useState(bookData.condition); // Giá trị mặc định là "Good"
+    const [bookCondition, setBookCondition] = useState(""); // Giá trị mặc định là "Good"
     const [fineData, setFineData] = useState({ fine_reason: "" });
     const [conditionDetail, setConditionDetail] = useState("");
     const [currentPage, setCurrentPage] = useState(0);
     const itemsPerPage = 5; // Number of items per page
+
+    useEffect(() => {
+        if (bookData.book?.condition) {
+            setBookCondition(bookData.book.condition);
+        }
+    })
 
     useEffect(() => {
         if (bookData.book?.condition_detail) {
@@ -28,7 +34,7 @@ function ReturnBook() {
             const user = await axios.get(`https://fptu-library.xyz/api/user/getByCode/${studentCode}`);
             const userID = user.data.data.userID;
             const response = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${userID}`);
-            const data = response.data.data.filter(order => order.status === "Received"); // Chỉ giữ các orders có status là "Received"
+            const data = response.data.data; // Chỉ giữ các orders có status là "Received"
             setBookList(Array.isArray(data) ? data : [data]);
         } catch (error) {
             const message = error.response?.data?.message || "An error occurred";
@@ -38,13 +44,8 @@ function ReturnBook() {
 
     const handleSearchByIdentityCode = async () => {
         try {
-            const response = await axios.get(`https://fptu-library.xyz.xyz/api/orders/by-identifier-code/${identityCode}`);
-            if (response.data.data.status === "Received") {
-                setBookList(Array.isArray(response.data.data) ? response.data.data : [response.data.data]);
-
-            } else {
-                toast.error(`Trạng thái của quyển sách là ${response.data.data.status}! Không thể trả sách`);
-            }
+            const response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identityCode}`);
+            setBookList(Array.isArray(response.data.data) ? response.data.data : [response.data.data]);
         } catch (error) {
             const message = error.response?.data?.message || "An error occurred";
             toast.error(message);
@@ -79,11 +80,10 @@ function ReturnBook() {
             axios.post(`https://fptu-library.xyz/api/orders/return/${bookData._id}`, payload) // Sử dụng _id từ bookData
                 .then((response) => {
                     if (response.status === 200) {
-                        toast.success("Book return confirmed successfully!");
+                        toast.success("Đã trả sách thành công!");
                         handleCloseModal();
-                        handleSearchByStudentID(studentCode);
+                        // handleSearchByStudentID(studentCode);
                     }
-
                 }).catch((error) => {
                     const message = error.response?.data?.message || "An error occurred";
                     toast.error(message);
@@ -107,7 +107,7 @@ function ReturnBook() {
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Nhập mã sinh viên, hoạc mã cán bộ, giảng viên"
+                        placeholder="Nhập mã sinh viên, hoặc mã cán bộ, giảng viên"
                         value={studentCode}
                         style={{ width: "50%", marginRight: "10px" }}
                         onChange={(e) => setStudentCode(e.target.value)}
@@ -120,7 +120,7 @@ function ReturnBook() {
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Nhập mã sách"
+                        placeholder="Nhập mã định danh sách"
                         value={identityCode}
                         style={{ width: "50%", marginRight: "10px" }}
                         onChange={(e) => setIdentityCode(e.target.value)}
@@ -151,10 +151,18 @@ function ReturnBook() {
                                 <td>
                                     <input type="date" className="form-control text-center" value={book.dueDate?.split('T')[0] || ''} readOnly />
                                 </td>
-                                <td>{book.status}</td>
-                                <td>
-                                    <button className="btn btn-primary" onClick={() => handleReturnBook(book._id)}>Trả sách</button>
-                                </td>
+                                <td>{book.status === "Pending" ? "Đang chờ" :
+                                    book.status === "Received" ? "Đã nhận" :
+                                        book.status === "Canceled" ? "Đã hủy" :
+                                            book.status === "Lost" ? "Đã mất" :
+                                                book.status === "Returned" ? "Đã trả" :
+                                                    book.status === "Renew Pending" ? "Đang gia hạn" :
+                                                        book.status === "Approved" ? "Đã xác nhận" : "Không xác định"}</td>
+                                {book.status === "Received" && (
+                                    <td>
+                                        <button className="btn btn-primary" onClick={() => handleReturnBook(book._id)}>Trả sách</button>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
@@ -215,7 +223,7 @@ function ReturnBook() {
                         </div>
 
                         <div className="form-group">
-                            <label>Chi tiết trạng thái</label>
+                            <label>Tình trạng sách</label>
                             <input
                                 type="text"
                                 className="form-control"
@@ -224,7 +232,7 @@ function ReturnBook() {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Mã sách</label>
+                            <label>Mã định danh sách</label>
                             <input type="text" className="form-control" value={checkIdentityCode} onChange={(e) => setCheckIdentityCode(e.target.value)} />
                         </div>
                         <div className="form-group">

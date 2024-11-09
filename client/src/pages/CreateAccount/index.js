@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // import toastify CSS
+
 const CreateAccount = () => {
   const navigate = useNavigate();
   const [image, setImage] = useState(null);
@@ -12,6 +14,7 @@ const CreateAccount = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+
   useEffect(() => {
     // Fetch roles from the backend
     const fetchRoles = async () => {
@@ -19,6 +22,7 @@ const CreateAccount = () => {
         const response = await axios.get("https://fptu-library.xyz/api/user/all-role");
         setRoles(response.data.data);
       } catch (error) {
+        toast.error("Error fetching roles. Please try again later.");
         console.error("Error fetching roles:", error);
       }
     };
@@ -31,7 +35,7 @@ const CreateAccount = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Prepare form data with an image file if provided
     const formData = new FormData();
     formData.append("image", image);
@@ -41,8 +45,9 @@ const CreateAccount = () => {
     formData.append("email", email);
     formData.append("code", code);
     formData.append("password", password);
+
     try {
-      const response = await axios.post("https://fptu-library.xyz/api/user/add", formData, {
+      await axios.post("https://fptu-library.xyz/api/user/add", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -52,14 +57,15 @@ const CreateAccount = () => {
         navigate("/account-list");
       }, 1000);
     } catch (error) {
+      const errorMessage = error.response?.data?.message || "An error occurred while creating the account.";
+      toast.error(errorMessage);
       console.error("Error creating account:", error);
     }
   };
 
   return (
     <div className="create-account-container mt-4" style={{ margin: "100px 100px" }}>
-       
-      <h2 className="text-center">Create Account</h2>
+      <ToastContainer/>
       <form onSubmit={handleSubmit}>
         <div className="row">
           {/* Image Upload Section */}
@@ -76,7 +82,7 @@ const CreateAccount = () => {
                     backgroundColor: "#f0f0f0",
                   }}
                 >
-                  Add img
+                  Thêm Ảnh
                 </div>
               )}
               <input
@@ -90,50 +96,53 @@ const CreateAccount = () => {
           {/* Form Input Fields */}
           <div className="col-md-9">
             <div className="create-account-form-group form-group">
-              <label htmlFor="name">Name</label>
+              <label htmlFor="name">Họ và tên</label>
               <input
                 type="text"
                 className="form-control"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter name"
+                placeholder="Nhập họ và tên"
+                required
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="code">Code</label>
+              <label htmlFor="code">Mã người dùng</label>
               <input
+                required
                 type="text"
                 className="form-control"
                 id="code"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="Enter code"
+                placeholder="Nhập mã người dùng"
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="phoneNumber">Phone number</label>
+              <label htmlFor="phoneNumber">Số điện thoại</label>
               <input
+                required
                 type="text"
                 className="form-control"
                 id="phoneNumber"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="Enter phone number"
+                placeholder="Nhập số điện thoại"
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="role">Role</label>
+              <label htmlFor="role">Vai trò</label>
               <select
                 className="form-control"
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
               >
-                <option value="">Select a role</option>
+                <option value="">Chọn vai trò</option>
                 {roles.map((r) => (
                   <option key={r._id} value={r._id}>
-                    {r.name}
+                    {r.name === "librarian" ? "Thủ thư" : r.name === "admin" ? "Quản trị viên" : r.name === "borrower" ? "Người mượn" : ""}
                   </option>
                 ))}
               </select>
@@ -142,22 +151,24 @@ const CreateAccount = () => {
               <label htmlFor="email">Email</label>
               <input
                 type="text"
+                required
                 className="form-control"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email"
+                placeholder="Nhập email"
               />
             </div>
             <div className="create-account-form-group form-group mt-3">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Mật khẩu</label>
               <input
+                required
                 type="password"
                 className="form-control"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder="Nhập mật khẩu"
               />
             </div>
           </div>
