@@ -192,7 +192,7 @@ const getOrderByUserId = async (req, res, next) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(500).json({
-        message: "User not found",
+        message: "Không tìm thấy đơn của người dùng",
         data: null,
       });
     }
@@ -1525,10 +1525,10 @@ const OrderController = {
   reportLostBook,
   applyFinesForLostBook,
   getOrderByIdentifierCode,
+  getManageOrderByIdentifierCode,
   cancelOverdueOrders,
   reminderDueDatesOrder,
   reminderOverdueOrder,
   ChartOrderbyMonth,
-  getManageOrderByIdentifierCode
 };
 module.exports = OrderController;
