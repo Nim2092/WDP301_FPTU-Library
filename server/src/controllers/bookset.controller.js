@@ -610,7 +610,7 @@ async function importBookSets(req, res, next) {
           shelfLocationCode,
           title,
           author,
-          publishedYear,
+          publishedYear: new Date(publishedYear),
           publisher,
           physicalDescription,
           totalCopies,
