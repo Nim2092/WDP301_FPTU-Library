@@ -97,7 +97,7 @@ const getOrderByIdentifierCode = async (req, res, next) => {
 
     if (!books.length) {
       return res.status(500).json({
-        message: "Không tìm thấy sách với mã identifier_code yêu cầu",
+        message: "Không tìm thấy đơn với mã định danh yêu cầu",
       });
     }
 
