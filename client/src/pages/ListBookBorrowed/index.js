@@ -2,89 +2,95 @@ import React, { useState, useEffect, useContext } from "react";
 import "./ListBookBorrowed.scss";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import AuthContext from "../../contexts/UserContext"; // Adjust this path to where your context is located
+import AuthContext from "../../contexts/UserContext";
 import 'font-awesome/css/font-awesome.min.css';
-import ReactPaginate from 'react-paginate'; // Ensure this import is present
+import ReactPaginate from 'react-paginate';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import ConfirmLostBookModal from "../../components/confirmLostBookModal/ConfirmLostBookModal"; // Import the modal component
+
 function ListBookBorrowed() {
   const navigate = useNavigate();
   const [borrowedBooks, setBorrowedBooks] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0); // New state for current page
-  const [totalPages, setTotalPages] = useState(0); // New state for total pages
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
-  // Access user and token from AuthContext
+  const [showConfirmLostModal, setShowConfirmLostModal] = useState(false); // New state for showing confirm modal
+  const [selectedOrderId, setSelectedOrderId] = useState(null); // New state for selected order ID
+
   const { user, token } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchBorrowedBooks = async () => {
-      if (!user) return; // If no user is logged in, don't make the API call
+      if (!user) return;
 
       try {
         const response = await axios.get(
           `https://fptu-library.xyz/api/orders/by-user/${user.id}?page=${currentPage + 1}&status=${statusFilter}`,
           {
             headers: {
-              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+              Authorization: `Bearer ${token}`,
             },
           }
         );
-        const sortedBooks = response.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by creation date
-        setBorrowedBooks(sortedBooks); // Assuming the response contains an array of orders in `data.data`
-        setTotalPages(response.data.totalPages); // Assuming the API returns total pages
+        const sortedBooks = response.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setBorrowedBooks(sortedBooks);
+        setTotalPages(response.data.totalPages);
       } catch (err) {
         console.error(err);
       }
     };
 
     fetchBorrowedBooks();
-  }, [user, token, currentPage, statusFilter]); // Added currentPage and statusFilter to dependencies
+    const intervalId = setInterval(fetchBorrowedBooks, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [user, token, currentPage, statusFilter]);
 
   const handlePageClick = (data) => {
-    setCurrentPage(data.selected); // Update current page on page change
+    setCurrentPage(data.selected);
   };
 
-  // Function to handle the "Report lost book" action
-  const handleReportLostBook = async (orderId, currentStatus) => {
-    const confirmLost = window.confirm(
-      "Are you sure you want to report this book as lost?"
-    );
-    if (confirmLost) {
-      try {
-        await axios.put(
-          `https://fptu-library.xyz/api/orders/report-lost/${orderId}`,
-          { userId: user.id, status: currentStatus, updated_by: user.id },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        toast.success("The book has been successfully reported as lost.");
+  const handleReportLostBook = (orderId) => {
+    setSelectedOrderId(orderId); // Store the order ID of the book to be reported as lost
+    setShowConfirmLostModal(true); // Show the confirmation modal
+  };
 
-        const response = await axios.get(
-          `https://fptu-library.xyz/api/orders/by-user/${user.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setBorrowedBooks(response.data.data);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to report the book as lost. Please try again.");
-      }
+  const confirmReportLostBook = async () => {
+    setShowConfirmLostModal(false); // Close the modal
+
+    try {
+      await axios.put(
+        `https://fptu-library.xyz/api/orders/report-lost/${selectedOrderId}`,
+        { userId: user.id, updated_by: user.id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("The book has been successfully reported as lost.");
+
+      const response = await axios.get(
+        `https://fptu-library.xyz/api/orders/by-user/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setBorrowedBooks(response.data.data);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to report the book as lost. Please try again.");
     }
   };
 
   const handleCancelOrder = async (orderId) => {
-
     try {
-      await axios.put(`https://fptu-library.xyz/api/orders/change-status/${orderId}`, {
-        status: "Canceled",
-        updated_by: user.id
-      },
+      await axios.put(
+        `https://fptu-library.xyz/api/orders/change-status/${orderId}`,
+        { status: "Canceled", updated_by: user.id },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -103,7 +109,6 @@ function ListBookBorrowed() {
     navigate(`/renew-book/${orderId}`);
   };
 
-  // Add this function before the return statement
   const getStatusColor = (status) => {
     switch (status) {
       case 'Received':
@@ -132,6 +137,7 @@ function ListBookBorrowed() {
           <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">Tất cả</option>
             <option value="Appoved">Đã duyệt</option>
+            <option value="Rejected">Từ chối mượn</option>
             <option value="Pending">Chờ duyệt</option>
             <option value="Received">Đã nhận</option>
             <option value="Canceled">Đã hủy</option>
@@ -162,12 +168,12 @@ function ListBookBorrowed() {
                 <td>{index + 1}</td>
                 <td>
                   {order.book_id?.bookSet_id?.title || "Unknown Title"}
-                </td>{" "}
-                {/* Displaying the book title from the nested bookSet */}
+                </td>
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
                 <td className={getStatusColor(order.status)}>
                   {order.status === "Pending" ? "Chờ duyệt" :
+                  order.status === "Rejected" ? "Từ chối mượn" :
                     order.status === "Received" ? "Đã nhận" :
                       order.status === "Canceled" ? "Đã hủy" :
                         order.status === "Lost" ? "Đã mất" :
@@ -180,7 +186,7 @@ function ListBookBorrowed() {
                 <td className="text-center">
                   <div className="d-flex flex-wrap justify-content-center">
                     <button
-                      onClick={() => handleReportLostBook(order._id, order.status)}
+                      onClick={() => handleReportLostBook(order._id)}
                       className="btn btn-outline-primary btn-sm m-1"
                       title="Báo mất sách"
                       style={{
@@ -204,7 +210,7 @@ function ListBookBorrowed() {
                     </button>
 
                     <Link
-                      to={`/order-book-detail/${order._id}`}
+                      to={`/list-book-borrowed/order-book-detail/${order._id}`}
                       className="btn btn-outline-primary btn-sm m-1"
                       title="Xem chi tiết"
                     >
@@ -235,6 +241,7 @@ function ListBookBorrowed() {
           </tbody>
         )}
       </table>
+
       {borrowedBooks.length > 10 && (
         <ReactPaginate
           previousLabel={'<'}
@@ -256,6 +263,12 @@ function ListBookBorrowed() {
           activeClassName={'active'}
         />
       )}
+
+      <ConfirmLostBookModal
+        show={showConfirmLostModal}
+        onClose={() => setShowConfirmLostModal(false)}
+        onConfirm={confirmReportLostBook}
+      />
     </div>
   );
 }

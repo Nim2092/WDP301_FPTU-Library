@@ -50,7 +50,13 @@ const BorrowBookList = () => {
 
   useEffect(() => {
     fetchBooks();
+    const interval = setInterval(() => {
+      fetchBooks();
+    }, 5000); // Gọi fetchBooks mỗi 5 giây
+  
+    return () => clearInterval(interval); // Dọn dẹp interval khi component unmount hoặc khi status thay đổi
   }, [status]);
+  
 
   const handleActionClick = (book, type) => {
     setSelectedBook(book);
