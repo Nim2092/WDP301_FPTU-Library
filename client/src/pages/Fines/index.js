@@ -24,31 +24,36 @@ function Fines() {
   const [pollingIntervalId, setPollingIntervalId] = useState(null);
   const [timeoutId, setTimeoutId] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const finesPerPage = 10; // Number of fines per page
+  const [paymentSuccessful, setPaymentSuccessful] = useState(false);
+  const [isSuccessToastShown, setIsSuccessToastShown] = useState(false); // New state for tracking success toast
+  const finesPerPage = 10;
 
-  // Generate transaction code on component mount
   useEffect(() => {
     const code = `TX${Date.now()}${Math.random().toString(36).substring(2)}`;
     setTransactionCode(code);
-  }, []);
 
-  // Fetch fines on component mount
-  useEffect(() => {
-    axios.get(`https://fptu-library.xyz/api/fines/by-user/${user.id}`)
-      .then((response) => setFines(response.data.data))
-      .catch((error) => {
-        console.error("Error fetching fines:", error.response?.data || error.message);
-        toast.error("Failed to load fines. Please try again later.");
-      });
+    const fetchFines = () => {
+      axios
+        .get(`https://fptu-library.xyz/api/fines/by-user/${user.id}`)
+        .then((response) => setFines(response.data.data))
+        .catch((error) => {
+          console.error("Error fetching fines:", error.response?.data || error.message);
+          toast.error("Failed to load fines. Please try again later.");
+        });
+    };
+
+    fetchFines();
+
+    const intervalId = setInterval(fetchFines, 5000);
+
+    return () => clearInterval(intervalId);
   }, [user.id]);
 
-  // Handle select all
   const handleSelectAll = () => {
     setSelectedFines(selectAll ? [] : fines.filter(fine => fine.status !== "Paid").map(fine => fine._id));
     setSelectAll(!selectAll);
   };
 
-  // Handle individual fine selection
   const handleSelectFine = (fineId) => {
     setSelectedFines((prevSelected) =>
       prevSelected.includes(fineId)
@@ -57,15 +62,15 @@ function Fines() {
     );
   };
 
-  // Calculate total amount and initiate payment process
   const handlePay = () => {
+    setPaymentSuccessful(false);
+    setIsSuccessToastShown(false); // Reset success toast state on new payment
     const total = fines
       .filter((fine) => selectedFines.includes(fine._id))
       .reduce((sum, fine) => sum + fine.totalFinesAmount, 0);
     setTotalAmount(total);
     setShowQRCode(true);
 
-    // Start payment polling and timeout when "Pay" is clicked
     const intervalId = setInterval(checkPayment, 5000);
     setPollingIntervalId(intervalId);
 
@@ -73,29 +78,28 @@ function Fines() {
       clearInterval(intervalId);
       setShowQRCode(false);
       toast.error("Hết thời gian chờ thanh toán. Vui lòng thử lại.");
-    }, 300000); // 5-minute timeout
+    }, 300000);
     setTimeoutId(timeout);
   };
 
-  // Polling function to check payment status
   const checkPayment = () => {
-    axios.post(`https://fptu-library.xyz/api/fines/check-payment/${transactionCode}`, {
-      fineId: selectedFines,
-    })
+    if (paymentSuccessful) return;
+
+    axios
+      .post(`https://fptu-library.xyz/api/fines/check-payment/${transactionCode}`, {
+        fineId: selectedFines,
+      })
       .then((response) => {
         if (response.data.message === "OK") {
+          setPaymentSuccessful(true);
           clearInterval(pollingIntervalId);
           clearTimeout(timeoutId);
           setShowQRCode(false);
-          toast.success("Thanh toán thành công");
-          
-          // Fetch fines again to update the list
-          axios.get(`https://fptu-library.xyz/api/fines/by-user/${user.id}`)
-            .then((response) => setFines(response.data.data))
-            .catch((error) => {
-              console.error("Error fetching fines:", error.response?.data || error.message);
-              toast.error("Failed to update fines. Please try again later.");
-            });
+
+          if (!isSuccessToastShown) {
+            toast.success("Thanh toán thành công");
+            setIsSuccessToastShown(true); // Mark success toast as shown
+          }
         }
       })
       .catch((error) => {
@@ -103,7 +107,6 @@ function Fines() {
       });
   };
 
-  // Clean up intervals and timeouts when component unmounts or QR code modal closes
   useEffect(() => {
     return () => {
       clearInterval(pollingIntervalId);
@@ -111,15 +114,12 @@ function Fines() {
     };
   }, [pollingIntervalId, timeoutId]);
 
-  // Calculate total pages
   const totalPages = Math.ceil(fines.length / finesPerPage);
 
-  // Handle page click
   const handlePageClick = (data) => {
     setCurrentPage(data.selected);
   };
 
-  // Get current fines to display
   const currentFines = fines.slice(
     currentPage * finesPerPage,
     (currentPage + 1) * finesPerPage
@@ -184,27 +184,26 @@ function Fines() {
         <p>No fines available</p>
       )}
       {fines.length > 10 && (
-      <ReactPaginate
-        previousLabel={'<'}
-        nextLabel={'>'}
-        breakLabel={'...'}
-        pageCount={totalPages}
-        marginPagesDisplayed={2}
-        pageRangeDisplayed={5}
-        onPageChange={handlePageClick}
-        containerClassName={'pagination justify-content-end'}
-        pageClassName={'page-item'}
-        pageLinkClassName={'page-link'}
-        previousClassName={'page-item'}
-        previousLinkClassName={'page-link'}
-        nextClassName={'page-item'}
-        nextLinkClassName={'page-link'}
-        breakClassName={'page-item'}
-        breakLinkClassName={'page-link'}
-        activeClassName={'active'}
-      />
+        <ReactPaginate
+          previousLabel={'<'}
+          nextLabel={'>'}
+          breakLabel={'...'}
+          pageCount={totalPages}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          onPageChange={handlePageClick}
+          containerClassName={'pagination justify-content-end'}
+          pageClassName={'page-item'}
+          pageLinkClassName={'page-link'}
+          previousClassName={'page-item'}
+          previousLinkClassName={'page-link'}
+          nextClassName={'page-item'}
+          nextLinkClassName={'page-link'}
+          breakClassName={'page-item'}
+          breakLinkClassName={'page-link'}
+          activeClassName={'active'}
+        />
       )}
-      {/* QR Code Modal */}
       <Modal show={showQRCode} onHide={() => setShowQRCode(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Scan QR code để hoàn thành thanh toán</Modal.Title>

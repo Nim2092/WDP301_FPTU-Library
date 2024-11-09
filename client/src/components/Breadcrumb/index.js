@@ -56,7 +56,7 @@ const Breadcrumb = () => {
     <nav aria-label="breadcrumb">
       <ol className="breadcrumb custom-breadcrumb">
         <li className="breadcrumb-item">
-          <Link to="/" className="breadcrumb-link">Home</Link>
+          <Link to="/" className="breadcrumb-link">Trang chủ</Link>
         </li>
         {pathnames
           .filter((value) => !/^[a-fA-F0-9]{24}$/.test(value))
