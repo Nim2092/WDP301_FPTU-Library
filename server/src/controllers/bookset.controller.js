@@ -348,9 +348,11 @@ async function listBookSet(req, res, next) {
           : true;
 
       // Kiểm tra isTextbook trong catalog đã populate
-      const isTextbookMatch = isTextbook !== undefined
-          ? bookSet.catalog_id && bookSet.catalog_id.isTextbook === parseInt(isTextbook, 10)
-          : true;
+      const isTextbookMatch =
+          isTextbook !== undefined && isTextbook !== ""
+              ? bookSet.catalog_id &&
+              bookSet.catalog_id.isTextbook === parseInt(isTextbook, 10)
+              : true;
 
       return titleMatch && authorMatch && publisherMatch && isTextbookMatch;
     });
