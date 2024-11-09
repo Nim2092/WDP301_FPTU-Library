@@ -97,7 +97,7 @@ const getOrderByIdentifierCode = async (req, res, next) => {
 
     if (!books.length) {
       return res.status(500).json({
-        message: "Không tìm thấy sách với mã identifier_code yêu cầu",
+        message: "Không tìm thấy đơn với mã định danh yêu cầu",
       });
     }
 
@@ -192,7 +192,7 @@ const getOrderByUserId = async (req, res, next) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(500).json({
-        message: "User not found",
+        message: "Không tìm thấy đơn của người dùng",
         data: null,
       });
     }
@@ -1525,10 +1525,10 @@ const OrderController = {
   reportLostBook,
   applyFinesForLostBook,
   getOrderByIdentifierCode,
+  getManageOrderByIdentifierCode,
   cancelOverdueOrders,
   reminderDueDatesOrder,
   reminderOverdueOrder,
   ChartOrderbyMonth,
-  getManageOrderByIdentifierCode
 };
 module.exports = OrderController;

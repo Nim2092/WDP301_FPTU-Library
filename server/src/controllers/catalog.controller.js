@@ -26,7 +26,7 @@ async function createCatalog(req, res, next) {
 
     const savedCatalog = await newCatalog.save();
 
-    return res.status(201).json(savedCatalog);
+    return res.status(200).json(savedCatalog);
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({ message: "Mã bộ sách đã tồn tại." });

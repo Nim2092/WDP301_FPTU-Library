@@ -38,7 +38,7 @@ const createNotification = async (req, res, next) => {
     });
 
     await notification.save();
-    res.status(201).json({
+    res.status(200).json({
       message: "Tạo thông báo thành công",
       data: notification,
     });

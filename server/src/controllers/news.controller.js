@@ -70,7 +70,7 @@ async function createNews(req, res, next) {
         const savedNews = await newNews.save();
 
         // Trả về kết quả
-        res.status(201).json({
+        res.status(200).json({
           message: "News added successfully",
           news: savedNews,
         });

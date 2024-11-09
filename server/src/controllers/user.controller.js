@@ -142,7 +142,7 @@ const addNewUser = async (req, res, next) => {
       uploadStream.on("finish", async () => {
         user.image = `/user/image/${uploadStream.id}`; // Lưu đường dẫn ảnh
         await user.save();
-        res.status(201).json({ message: "User created successfully", user });
+        res.status(200).json({ message: "User created successfully", user });
       });
 
       uploadStream.on("error", (err) => {
@@ -150,7 +150,7 @@ const addNewUser = async (req, res, next) => {
       });
     } else {
       await user.save();
-      res.status(201).json({ message: "User created successfully", user });
+      res.status(200).json({ message: "User created successfully", user });
     }
   } catch (error) {
     if (error.code === 11000) {

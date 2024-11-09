@@ -49,7 +49,7 @@ const createPenaltyReasons = async (req, res) => {
       type,
     });
     await penaltyReason.save();
-    res.status(201).json({
+    res.status(200).json({
       message: "Create penalty reason successfully",
       data: penaltyReason,
     });
