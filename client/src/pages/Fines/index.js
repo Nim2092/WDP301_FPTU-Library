@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AuthContext from "../../contexts/UserContext";
 import ReactPaginate from "react-paginate";
+
 function formatCurrency(amount) {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -35,7 +36,10 @@ function Fines() {
   useEffect(() => {
     axios.get(`https://fptu-library.xyz/api/fines/by-user/${user.id}`)
       .then((response) => setFines(response.data.data))
-      .catch((error) => console.error("Error fetching fines:", error));
+      .catch((error) => {
+        console.error("Error fetching fines:", error.response?.data || error.message);
+        toast.error("Failed to load fines. Please try again later.");
+      });
   }, [user.id]);
 
   // Handle select all
@@ -84,12 +88,18 @@ function Fines() {
           clearTimeout(timeoutId);
           setShowQRCode(false);
           toast.success("Thanh toán thành công");
-
-          // Reload the page
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
+          
+          // Fetch fines again to update the list
+          axios.get(`https://fptu-library.xyz/api/fines/by-user/${user.id}`)
+            .then((response) => setFines(response.data.data))
+            .catch((error) => {
+              console.error("Error fetching fines:", error.response?.data || error.message);
+              toast.error("Failed to update fines. Please try again later.");
+            });
         }
+      })
+      .catch((error) => {
+        console.error("Error in checkPayment:", error.response?.data || error.message);
       });
   };
 
@@ -117,7 +127,9 @@ function Fines() {
 
   return (
     <Container className="mt-5">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <div className="d-flex justify-content-center">
+        <h2>Fines Management</h2>
       </div>
       <div className="d-flex justify-content-end" title={selectedFines.length === 0 ? "Chọn ít nhất 1 phạt để thanh toán" : "Thanh toán"}>
         <Button
@@ -137,8 +149,7 @@ function Fines() {
                 variant="secondary"
                 onClick={handleSelectAll}
                 type="checkbox"
-              >
-              </input></th>
+              /></th>
               <th>STT</th>
               <th>Người bị phạt</th>
               <th>Lý do</th>
@@ -169,8 +180,9 @@ function Fines() {
             ))}
           </tbody>
         </table>
-
-      ) : null}
+      ) : (
+        <p>No fines available</p>
+      )}
       {fines.length > 10 && (
       <ReactPaginate
         previousLabel={'<'}
@@ -189,8 +201,8 @@ function Fines() {
         nextLinkClassName={'page-link'}
         breakClassName={'page-item'}
         breakLinkClassName={'page-link'}
-          activeClassName={'active'}
-        />
+        activeClassName={'active'}
+      />
       )}
       {/* QR Code Modal */}
       <Modal show={showQRCode} onHide={() => setShowQRCode(false)}>
