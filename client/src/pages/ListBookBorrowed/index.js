@@ -29,7 +29,8 @@ function ListBookBorrowed() {
             },
           }
         );
-        setBorrowedBooks(response.data.data); // Assuming the response contains an array of orders in `data.data`
+        const sortedBooks = response.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by creation date
+        setBorrowedBooks(sortedBooks); // Assuming the response contains an array of orders in `data.data`
         setTotalPages(response.data.totalPages); // Assuming the API returns total pages
       } catch (err) {
         console.error(err);
@@ -123,14 +124,15 @@ function ListBookBorrowed() {
   };
 
   return (
-    <div className="container mt-5">
+    <div className="mt-5">
       <div className="row mb-3">
         <div className="col-md-9">
-         </div>
+        </div>
         <div className="col-md-3">
           <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">Tất cả</option>
-            <option value="Pending">Đang chờ</option>
+            <option value="Appoved">Đã duyệt</option>
+            <option value="Pending">Chờ duyệt</option>
             <option value="Received">Đã nhận</option>
             <option value="Canceled">Đã hủy</option>
             <option value="Lost">Đã mất</option>
@@ -153,8 +155,7 @@ function ListBookBorrowed() {
             <th>Hành động</th>
           </tr>
         </thead>
-        {borrowedBooks.length > 0 && (
-
+        {borrowedBooks.length > 0 ? (
           <tbody>
             {borrowedBooks.map((order, index) => (
               <tr key={order._id}>
@@ -166,82 +167,95 @@ function ListBookBorrowed() {
                 <td>{new Date(order.borrowDate).toLocaleDateString()}</td>
                 <td>{new Date(order.dueDate).toLocaleDateString()}</td>
                 <td className={getStatusColor(order.status)}>
-                  {order.status === "Pending" ? "Đang chờ" :
+                  {order.status === "Pending" ? "Chờ duyệt" :
                     order.status === "Received" ? "Đã nhận" :
                       order.status === "Canceled" ? "Đã hủy" :
                         order.status === "Lost" ? "Đã mất" :
                           order.status === "Returned" ? "Đã trả" :
                             order.status === "Renew Pending" ? "Đang gia hạn" :
-                              "Không xác định"}
+                              order.status === "Approved" ? "Đã duyệt" : "Không xác định"}
                 </td>
                 <td>{order.book_id?.identifier_code}</td>
                 <td>{order.renewalCount}</td>
                 <td className="text-center">
-                  <div className="row">
-                    <div className="col">
-                      <button
-                        onClick={() => handleReportLostBook(order._id, order.status)}
-                        className="btn btn-outline-primary"
-                        style={{ cursor: order.status !== "Received" ? 'not-allowed' : 'pointer', display: order.status !== "Received" ? 'none' : 'block' }} // Disable if status is not "Received"
-                      >
-                        <img width="20" height="20" title="Báo mất sách" src="https://img.icons8.com/hatch/64/quest.png" alt="quest" />
-                      </button>
-                    </div>
-                    <div className="col">
-                      <button
-                        className="btn btn-outline-primary"
-                        title="Gia hạn sách"
-                        onClick={() => handleRenewBook(order._id)}
-                        style={{ cursor: order.status !== "Received" ? 'not-allowed' : 'pointer', display: order.status !== "Received" ? 'none' : 'block' }} // Disable if status is not "Received"
-                      >
-                        <img width="20" height="20" title="Gia hạn sách" src="https://img.icons8.com/ios/50/renew-subscription.png" alt="renew-subscription" />
-                      </button>
-                    </div>
-                    <div className="col">
-                      <Link
-                        to={`/list-book-borrowed/order-book-detail/${order._id}`}
-                        className="btn btn-outline-primary"
-                      >
-                        <img width="20" height="20" title="Xem chi tiết" src="https://img.icons8.com/ios/30/visible--v1.png" alt="visible--v1" />
-                      </Link>
-                    </div>
-                    <div className="col">
-                      <button
-                        onClick={() => handleCancelOrder(order._id)}
-                        className="btn btn-outline-danger"
-                        style={{ cursor: order.status !== "Pending" ? 'not-allowed' : 'pointer', display: order.status !== "Pending" ? 'none' : 'block' }} // Disable if status is not "Pending"
-                      >
-                        <img width="20" height="20" title="Hủy đơn hàng" src="https://img.icons8.com/ios/30/cancel.png" alt="cancel" />
-                      </button>
-                    </div>
+                  <div className="d-flex flex-wrap justify-content-center">
+                    <button
+                      onClick={() => handleReportLostBook(order._id, order.status)}
+                      className="btn btn-outline-primary btn-sm m-1"
+                      title="Báo mất sách"
+                      style={{
+                        cursor: order.status !== "Received" ? 'not-allowed' : 'pointer',
+                        display: order.status !== "Received" ? 'none' : 'block'
+                      }}
+                    >
+                      <img width="20" height="20" src="https://img.icons8.com/hatch/64/quest.png" alt="quest" />
+                    </button>
+
+                    <button
+                      className="btn btn-outline-primary btn-sm m-1"
+                      title="Gia hạn sách"
+                      onClick={() => handleRenewBook(order._id)}
+                      style={{
+                        cursor: order.status !== "Received" ? 'not-allowed' : 'pointer',
+                        display: order.status !== "Received" ? 'none' : 'block'
+                      }}
+                    >
+                      <img width="20" height="20" src="https://img.icons8.com/ios/50/renew-subscription.png" alt="renew-subscription" />
+                    </button>
+
+                    <Link
+                      to={`/order-book-detail/${order._id}`}
+                      className="btn btn-outline-primary btn-sm m-1"
+                      title="Xem chi tiết"
+                    >
+                      <img width="20" height="20" src="https://img.icons8.com/ios/30/visible--v1.png" alt="visible--v1" />
+                    </Link>
+
+                    <button
+                      onClick={() => handleCancelOrder(order._id)}
+                      className="btn btn-outline-danger btn-sm m-1"
+                      title="Hủy đơn hàng"
+                      style={{
+                        cursor: order.status !== "Pending" ? 'not-allowed' : 'pointer',
+                        display: order.status !== "Pending" ? 'none' : 'block'
+                      }}
+                    >
+                      <img width="20" height="20" src="https://img.icons8.com/ios/30/cancel.png" alt="cancel" />
+                    </button>
                   </div>
                 </td>
-
               </tr>
             ))}
           </tbody>
+        ) : (
+          <tbody>
+            <tr>
+              <td colSpan="8" className="text-center">Không tìm thấy sách nào</td>
+            </tr>
+          </tbody>
         )}
-
       </table>
-      <ReactPaginate
-        previousLabel={'<'}
-        nextLabel={'>'}
-        breakLabel={'...'}
-        pageCount={totalPages}
-        marginPagesDisplayed={2}
-        pageRangeDisplayed={5}
-        onPageChange={handlePageClick}
-        containerClassName={'pagination justify-content-end'}
-        pageClassName={'page-item'}
-        pageLinkClassName={'page-link'}
-        previousClassName={'page-item'}
-        previousLinkClassName={'page-link'}
-        nextClassName={'page-item'}
-        nextLinkClassName={'page-link'}
-        breakClassName={'page-item'}
-        breakLinkClassName={'page-link'}
-        activeClassName={'active'}
-      />
+      {borrowedBooks.length > 10 && (
+        <ReactPaginate
+          previousLabel={'<'}
+          nextLabel={'>'}
+          breakLabel={'...'}
+          pageCount={totalPages}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          onPageChange={handlePageClick}
+          containerClassName={'pagination justify-content-end'}
+          pageClassName={'page-item'}
+          pageLinkClassName={'page-link'}
+          previousClassName={'page-item'}
+          previousLinkClassName={'page-link'}
+          nextClassName={'page-item'}
+          nextLinkClassName={'page-link'}
+          breakClassName={'page-item'}
+          breakLinkClassName={'page-link'}
+          activeClassName={'active'}
+        />
+      )}
     </div>
   );
 }

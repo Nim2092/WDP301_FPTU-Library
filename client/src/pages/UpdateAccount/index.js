@@ -89,8 +89,7 @@ const UpdateAccount = () => {
 
   return (
     <div className="update-account-container mt-4" style={{ margin: "100px 100px" }}>
-       
-      <h2 className="text-center">Update Account</h2>
+       <ToastContainer/>
       <form onSubmit={handleSubmit}>
         <div className="row">
           <div className="col-md-3">
@@ -99,7 +98,7 @@ const UpdateAccount = () => {
                 <img src={imagePreview} alt="Selected" className="img-thumbnail" />
               ) : (
                 <div className="img-thumbnail d-flex justify-content-center align-items-center" style={{ height: "200px", width: "100%", backgroundColor: "#f0f0f0" }}>
-                  Add img
+                 Chọn Ảnh
                 </div>
               )}
               <input
@@ -111,7 +110,7 @@ const UpdateAccount = () => {
           </div>
 
           <div className="col-md-9">
-            {["fullName", "email", "phoneNumber", "code"].map((field) => (
+            {["Họ vầ tên", "email", "Số điện thoại", "Mã người dùng"].map((field) => (
               <div className="form-group mt-3" key={field}>
                 <label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
                 <input
@@ -121,14 +120,14 @@ const UpdateAccount = () => {
                   name={field}
                   value={formData[field]}
                   onChange={handleInputChange}
-                  placeholder={`Enter ${field}`}
+                  placeholder={`Nhập ${field}`}
                 />
               </div>
             ))}
 
             {/* Role Selection - Only Rendered Once */}
             <div className="form-group mt-3">
-              <label htmlFor="role_id">Role</label>
+              <label htmlFor="role_id">Vai trò</label>
               <select
                 className="form-control"
                 id="role_id"
@@ -136,17 +135,17 @@ const UpdateAccount = () => {
                 value={formData.role_id}
                 onChange={handleInputChange}
               >
-                <option value="">Select Role</option>
+                <option value="">Chọn vai trò</option>
                 {roles.map((role) => (
                   <option key={role._id} value={role._id}>
-                    {role.name}
+                    {role.name === "librarian" ? "Thủ thư" : role.name === "admin" ? "Quản trị viên" : role.name === "borrower" ? "Người mượn" : ""}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="form-group mt-3">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Mật khẩu</label>
               <input
                 type="password"
                 className="form-control"
@@ -154,7 +153,7 @@ const UpdateAccount = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder="Enter new password (leave empty to keep current)"
+                placeholder="Nhập mật khẩu mới (Để trống nếu giữ nguyên)"
               />
             </div>
           </div>

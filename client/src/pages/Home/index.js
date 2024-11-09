@@ -14,7 +14,7 @@ function Home() {
 
       <SearchResults books={searchResults} />
 
-      {searchResults.length === 0 && (
+      {searchResults?.length === 0 && (
         <>
           <News />
 
