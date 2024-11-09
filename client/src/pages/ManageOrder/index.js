@@ -19,6 +19,8 @@ const BorrowBookList = () => {
   const [identifierCode, setIdentifierCode] = useState(""); // Holds the identifier code for search
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 10; // Number of items per page
+  const [renew_reason, setRenewReason] = useState("");
+  const [renewalDate, setRenewalDate] = useState("");
 
   const fetchBooks = async (identifierCode = "") => {
     try {
@@ -29,8 +31,7 @@ const BorrowBookList = () => {
         response = await axios.get(`https://fptu-library.xyz/api/orders/getAll`);
       } else {
         response = await axios.get(`https://fptu-library.xyz/api/orders/filter?status=${status}`);
-      }
-
+      } 
       const data = response.data.data || [];
       const formattedData = Array.isArray(data) ? data : [data];
 
@@ -59,8 +60,15 @@ const BorrowBookList = () => {
     if (type === "receive") {
       setCondition(book?.book_id?.condition || ""); // Prefill condition if available
       setConditionDetail(book?.book_id?.condition_detail || ""); // Prefill condition_detail if available
+
+      // Prefill renew_reason and renewalDate if the status is Renew Pending
+      if (book.status === "Renew Pending") {
+        setRenewReason(book.renew_reason || ""); // Set renew reason if available
+        setRenewalDate(book.renewalDate ? new Date(book.renewalDate).toISOString().slice(0, 10) : ""); // Format date as YYYY-MM-DD
+      }
     }
   };
+
 
   const handleConditionChange = (e) => {
     setCondition(e.target.value);
@@ -263,14 +271,24 @@ const BorrowBookList = () => {
                   </td>
                 )}
                 {book.status === "Approved" && (
-                  <td><Button variant="primary" title="Nhận" onClick={() => handleActionClick(book, "receive")}>
-                    <i className="fa fa-check" aria-hidden="true"></i>
-                  </Button></td>
+                  <td>
+                    <Button variant="primary" style={{ marginRight: '10px' }} title="Nhận" onClick={() => handleActionClick(book, "receive")}>
+                      <i className="fa fa-check" aria-hidden="true"></i>
+                    </Button>
+                    <Button variant="danger" title="Từ chối" onClick={() => handleActionClick(book, "reject")}>
+                      <i className="fa fa-times" aria-hidden="true"></i>
+                    </Button>
+                  </td>
                 )}
                 {book.status === "Renew Pending" && (
-                  <td><Button variant="primary" title="Duyệt gia hạn" onClick={() => handleActionClick(book, "receive")}>
-                    <i className="fa fa-check" aria-hidden="true"></i>
-                  </Button></td>
+                  <td>
+                    <Button variant="primary" style={{ marginRight: '10px' }} title="Duyệt gia hạn" onClick={() => handleActionClick(book, "receive")}>
+                      <i className="fa fa-check" aria-hidden="true"></i>
+                    </Button>
+                    <Button variant="danger" title="Từ chối" onClick={() => handleActionClick(book, "reject")}>
+                      <i className="fa fa-times" aria-hidden="true"></i>
+                    </Button>
+                  </td>
                 )}
               </tr>
             ))
@@ -308,7 +326,7 @@ const BorrowBookList = () => {
             {modalType === "approve"
               ? "Xác nhận duyệt"
               : modalType === "receive"
-                ? "Xác nhận nhận"
+                ? "Xác nhận nhận sách"
                 : "Lý do từ chối"}
           </Modal.Title>
         </Modal.Header>
@@ -359,6 +377,34 @@ const BorrowBookList = () => {
                   placeholder="Nhập mô tả tình trạng"
                 />
               </div>
+              {selectedBook?.status === "Renew Pending" && (
+                <>
+                  <div className="form-group mt-3">
+                    <label htmlFor="renew_reason">Lý do gia hạn</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="renew_reason"
+                      value={renew_reason}
+                      onChange={(e) => setRenewReason(e.target.value)}
+                      placeholder="Nhập lý do gia hạn"
+                      readOnly
+                    />
+                  </div>
+                  <div className="form-group mt-3">
+                    <label htmlFor="renewalDate">Ngày gia hạn</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="renewalDate"
+                      value={renewalDate}
+                      onChange={(e) => setRenewalDate(e.target.value)}
+                      placeholder="Nhập ngày gia hạn"
+                      readOnly
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
         </Modal.Body>
@@ -371,6 +417,7 @@ const BorrowBookList = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 };
