@@ -236,13 +236,21 @@ const createBorrowOrder = async (req, res, next) => {
         data: null,
       });
     }
+    const booksWithSameBookSet = await Book.find({ bookSet_id: book.bookSet_id });
+    const bookIds = booksWithSameBookSet.map(book => book._id);
     const existingUserOrders = await Order.find({
       created_by: userId,
+      book_id: { $in: bookIds },
       status: { $nin: ["Lost", "Returned", "Canceled"] }, // Loại bỏ các đơn với trạng thái Lost và Returned
-    }).populate({
+    }) .populate({
       path: "book_id",
-      match: { bookSet_id: book.bookSet_id }, // Tìm kiếm theo `bookSet_id`
-    });
+      populate: {
+        path: "bookSet_id",
+        model: "BookSet",
+      },
+    })
+        .populate("created_by", "fullName")
+        .populate("updated_by", "fullName");
     console.log(existingUserOrders);
     if (existingUserOrders.length > 0) {
       return res.status(500).json({
