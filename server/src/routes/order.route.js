@@ -15,6 +15,10 @@ orderRouter.get(
   "/by-identifier-code/:identifierCode",
   orderController.getOrderByIdentifierCode
 );
+orderRouter.get(
+  "/manage-by-identifier-code/:identifierCode",
+  orderController.getManageOrderByIdentifierCode
+);
 
 orderRouter.post("/create-borrow/:bookId", orderController.createBorrowOrder);
 
