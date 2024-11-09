@@ -1,0 +1,28 @@
+.custom-breadcrumb {
+    font-size: 14px;
+    font-weight: normal;
+  }
+  
+  .breadcrumb-link {
+    color: #007bff; /* Màu xanh cho các link */
+    text-decoration: none;
+  }
+  
+  .breadcrumb-link:hover {
+    text-decoration: underline;
+  }
+  
+  .breadcrumb-active {
+    font-weight: bold;
+    color: black; /* Màu chữ đậm cho phần tử cuối */
+  }
+  
+  .breadcrumb-item::after {
+    padding: 0 5px;
+    color: #6c757d; /* Màu của dấu '/' */
+  }
+  
+  .breadcrumb-item:last-child::after {
+    content: ''; /* Ẩn dấu '/' cho phần tử cuối */
+  }
+  

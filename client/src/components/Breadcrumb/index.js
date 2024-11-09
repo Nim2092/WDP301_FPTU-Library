@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './Breadcrumb.scss';
 
 const Breadcrumb = () => {
   const location = useLocation();
@@ -53,26 +54,23 @@ const Breadcrumb = () => {
 
   return (
     <nav aria-label="breadcrumb">
-      <ol className="breadcrumb">
-        {/* Link Trang chủ */}
+      <ol className="breadcrumb custom-breadcrumb">
         <li className="breadcrumb-item">
-          <Link to="/">Trang chủ</Link>
+          <Link to="/" className="breadcrumb-link">Home</Link>
         </li>
-        {/* Các phần tử breadcrumb khác */}
         {pathnames
-          .filter((value) => !/^[a-fA-F0-9]{24}$/.test(value)) // Lọc bỏ các phần tử có định dạng ID (24 ký tự hex)
+          .filter((value) => !/^[a-fA-F0-9]{24}$/.test(value))
           .map((value, index) => {
-            // Xây dựng URL động
             const to = `/${pathnames.slice(0, index + 1).filter((x) => !/^[a-fA-F0-9]{24}$/.test(x)).join('/')}`;
             const isLast = index === pathnames.length - 1;
 
             return isLast ? (
-              <li key={to} className="breadcrumb-item active" aria-current="page">
+              <li key={to} className="breadcrumb-item active breadcrumb-active" aria-current="page">
                 {formatPathname(value)}
               </li>
             ) : (
               <li key={to} className="breadcrumb-item">
-                <Link to={to}>{formatPathname(value)}</Link>
+                <Link to={to} className="breadcrumb-link">{formatPathname(value)}</Link>
               </li>
             );
           })}
