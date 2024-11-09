@@ -98,7 +98,7 @@ function ListBookSet() {
           </select>
         </div>
         <div className="col-md-2">
-          <Link to="/create-book" title="Tạo mới" className="btn btn-primary w-100">
+          <Link to="/list-book-set/create-book" title="Tạo mới" className="btn btn-primary w-100">
             <i className="fa fa-plus" aria-hidden="true"></i>
             <span className="tooltip-text"> Tạo mới</span>
           </Link>
@@ -144,7 +144,7 @@ function ListBookSet() {
                     <td>{bookSet.publisher}</td>
                     <td>{new Date(bookSet.publishedYear).getFullYear()}</td>
                     <td className="d-flex ">
-                      <Link to={`/update-bookset/${bookSet._id}`} title="Sửa" className="btn btn-primary btn-sm" style={{marginRight: '5px'}}> 
+                      <Link to={`/list-book-set/update-bookset/${bookSet._id}`} title="Sửa" className="btn btn-primary btn-sm" style={{marginRight: '5px'}}> 
                         <i className="fa fa-pencil" aria-hidden="true"></i>
                       </Link>
                       <button className="btn btn-danger btn-sm" title="Xóa" onClick={() => handleDelete(bookSet._id)} style={{marginRight: '5px'}}>

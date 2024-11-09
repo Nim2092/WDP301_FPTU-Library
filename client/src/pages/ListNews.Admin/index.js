@@ -54,16 +54,16 @@ const ListNews = () => {
 
   // Navigate to the update page
   const handleUpdate = (id) => {
-    navigate(`/update-news/${id}`);
+    navigate(`/list-news-admin/update-news/${id}`);
   };
 
   // Navigate to the create news page
   const handleCreateNew = () => {
-    navigate("/create-news");
+    navigate("/list-news-admin/create-news");
   };
 
   const handleDetail = (id) => {
-    navigate(`/news-detail/${id}`);
+    navigate(`/news/news-detail/${id}`);
   };
 
   // Function to get limited content

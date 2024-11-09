@@ -25,7 +25,7 @@ function News() {
   }, []);
 
   const handleClick = (id) => {
-    navigate(`/news-detail/${id}`);
+    navigate(`/news/news-detail/${id}`);
   };
 
   return (

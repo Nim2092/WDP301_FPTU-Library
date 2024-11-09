@@ -54,7 +54,7 @@ function ListRule() {
   };
 
   const handleClick = (id) => {
-    navigate(`/rule-detail/${id}`);
+    navigate(`/list-rule-user/rule-detail/${id}`);
   };
 
   return (
