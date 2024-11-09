@@ -101,7 +101,10 @@ const getOrderByIdentifierCode = async (req, res, next) => {
     const bookIds = books.map(book => book._id);
 
     // Tìm tất cả các đơn hàng có book_id thuộc danh sách bookIds
-    const orders = await Order.find({ book_id: { $in: bookIds } })
+    const orders = await Order.find({
+      book_id: { $in: bookIds },
+      status: "Received" // Chỉ lấy các đơn hàng có status là "Received"
+    })
         .populate({
           path: "book_id", // Populate the book reference
           populate: {
@@ -186,13 +189,35 @@ const createBorrowOrder = async (req, res, next) => {
     const { borrowDate, dueDate, userId } = req.body;
     const { bookId } = req.params;
 
-    console.log(req.body);
-    console.log(req.params);
-
     // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    const userFines = await Fines.find({
+      user_id: userId,
+      status: "Pending",
+    });
+
+    console.log("User fines found:", userFines); // Kiểm tra kết quả truy vấn
+
+    if (userFines.length > 0) {
+      return res.status(500).json({
+        message: "Người dùng cần phải thanh toán tiền phạt trước khi mượn sách mới",
+        data: null,
+      });
+    }
+
+    const userOverdueOrders = await Order.find({
+      created_by: userId,
+      status: "Overdue"
+    });
+    if(userOverdueOrders && userOverdueOrders > 0) {
+      return res.status(500).json({
+        message: "Người dùng cần phải trả sách quá hạn trước khi mượn sách mới",
+        data: null,
+      });
     }
 
     // Check if book exists
@@ -206,6 +231,20 @@ const createBorrowOrder = async (req, res, next) => {
     if (book.status !== "Available") {
       return res.status(500).json({
         message: "Sách đã được mượn hoặc không đủ điều kiện để mượn.",
+        data: null,
+      });
+    }
+    const existingUserOrders = await Order.find({
+      created_by: userId,
+      status: { $nin: ["Lost", "Returned", "Canceled"] }, // Loại bỏ các đơn với trạng thái Lost và Returned
+    }).populate({
+      path: "book_id",
+      match: { bookSet_id: book.bookSet_id }, // Tìm kiếm theo `bookSet_id`
+    });
+    console.log(existingUserOrders);
+    if (existingUserOrders.length > 0) {
+      return res.status(500).json({
+        message: "Người dùng đã mượn sách này rồi.",
         data: null,
       });
     }
@@ -694,27 +733,29 @@ async function returnOrder(req, res, next) {
     const bookSet = await BookSet.findById(book.bookSet_id);
     var isDestroyed = false;
     var fineReasonType = "";
-    switch (book_condition) {
-      default:
-        isDestroyed = false;
-        fineReasonType = "";
-        break;
-      case "Light":
-        isDestroyed = false;
-        fineReasonType = "PN2";
-        break;
-      case "Medium":
-        isDestroyed = false;
-        fineReasonType = "PN3";
-        break;
-      case "Hard":
-        isDestroyed = true;
-        fineReasonType = "PN4";
-        break;
-      case "Lost":
-        isDestroyed = true;
-        fineReasonType = "PN5";
-        break;
+    if (book_condition !== book.condition) {
+      switch (book_condition) {
+        default:
+          isDestroyed = false;
+          fineReasonType = "";
+          break;
+        case "Light":
+          isDestroyed = false;
+          fineReasonType = "PN2";
+          break;
+        case "Medium":
+          isDestroyed = false;
+          fineReasonType = "PN3";
+          break;
+        case "Hard":
+          isDestroyed = true;
+          fineReasonType = "PN4";
+          break;
+        case "Lost":
+          isDestroyed = true;
+          fineReasonType = "PN5";
+          break;
+      }
     }
 
     let finesApplied = [];

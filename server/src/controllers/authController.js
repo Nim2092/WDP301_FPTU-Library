@@ -158,7 +158,7 @@ const authController = {
     }
 
     try {
-      // Verify the Google ID token
+      // Xác thực token Google ID
       const ticket = await client.verifyIdToken({
         idToken: token,
         audience: process.env.GOOGLE_CLIENT_ID,
@@ -168,28 +168,25 @@ const authController = {
       const email = payload.email;
       const fullName = payload.name || payload.email.split("@")[0];
 
-      // Verify email domain
+      // Kiểm tra tên miền email
       if (!email.endsWith("@fpt.edu.vn") && !email.endsWith("@fe.edu.vn")) {
         return res.status(400).json({ message: "Email domain not allowed" });
       }
 
-      // Extract code from email (part before '@')
       const code = email.split("@")[0];
 
-      // Check if user exists
+      // Kiểm tra xem người dùng đã tồn tại
       let user = await User.findOne({ email }).populate("role_id");
 
       if (!user) {
-        // If user does not exist, assign 'User' role
         const userRole = await Role.findOne({ name: "borrower" });
         if (!userRole) {
           return res.status(500).json({ message: "borrower role not found" });
         }
 
-        // Create new user with 'User' role and a random password
         const randomPassword = bcrypt.hashSync(
-          Math.random().toString(36).slice(-8),
-          10
+            Math.random().toString(36).slice(-8),
+            10
         );
 
         user = new User({
@@ -197,36 +194,32 @@ const authController = {
           code,
           fullName,
           email,
-          password: randomPassword, // Assign a random password
-          phoneNumber: null, // Optional
+          password: randomPassword,
+          phoneNumber: null,
         });
-        await user.save(); // Only save user in DB on first login
+        await user.save();
+        user = await User.findById(user._id).populate("role_id");
       }
 
-      // Check if user is active
       if (!user.isActive) {
         return res.status(403).json({
-          message:
-            "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thư viện để được hỗ trợ.",
+          message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thư viện để được hỗ trợ.",
         });
       }
 
-      // If user already exists or after creation, generate tokens
       const accessToken = authController.generateAccessToken(user);
       const refreshToken = authController.generateRefreshToken(user);
       refreshTokens.push(refreshToken);
 
-      // Store refresh token in cookie
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Set to true in production
+        secure: process.env.NODE_ENV === "production",
         path: "/",
         sameSite: "strict",
       });
 
-      // Return user information and tokens, omitting password
-      const { password, ...others } = user._doc;
-      res.status(200).json({ ...others, accessToken, refreshToken });
+      const { password, ...userDetails } = user._doc;
+      res.status(200).json({ ...userDetails, accessToken, refreshToken });
     } catch (error) {
       console.error("Google Login Error:", error);
       res.status(500).json({ message: "Internal server error" });
