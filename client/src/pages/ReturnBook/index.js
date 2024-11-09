@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Modal, Button } from 'react-bootstrap';
 import ReactPaginate from 'react-paginate';
+
 function ReturnBook() {
     const [studentCode, setStudentCode] = useState("");
     const [identityCode, setIdentityCode] = useState("");
@@ -11,31 +12,19 @@ function ReturnBook() {
     const [bookData, setBookData] = useState({});
     const [showModal, setShowModal] = useState(false);
     const [returnDate, setReturnDate] = useState(new Date().toISOString().split('T')[0]);
-    const [bookCondition, setBookCondition] = useState(""); // Giá trị mặc định là "Good"
     const [fineData, setFineData] = useState({ fine_reason: "" });
-    const [conditionDetail, setConditionDetail] = useState("");
     const [currentPage, setCurrentPage] = useState(0);
-    const itemsPerPage = 5; // Number of items per page
-
-    useEffect(() => {
-        if (bookData.book?.condition) {
-            setBookCondition(bookData.book.condition);
-        }
-    })
-
-    useEffect(() => {
-        if (bookData.book?.condition_detail) {
-            setConditionDetail(bookData.book.condition_detail);
-        }
-    }, [bookData]);
+    const itemsPerPage = 10;
+    const [flag, setFlag] = useState(false);
 
     const handleSearchByStudentID = async () => {
         try {
             const user = await axios.get(`https://fptu-library.xyz/api/user/getByCode/${studentCode}`);
             const userID = user.data.data.userID;
             const response = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${userID}`);
-            const data = response.data.data; // Chỉ giữ các orders có status là "Received"
+            const data = response.data.data;
             setBookList(Array.isArray(data) ? data : [data]);
+            setFlag(false);
         } catch (error) {
             const message = error.response?.data?.message || "An error occurred";
             toast.error(message);
@@ -46,6 +35,7 @@ function ReturnBook() {
         try {
             const response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identityCode}`);
             setBookList(Array.isArray(response.data.data) ? response.data.data : [response.data.data]);
+            setFlag(true);
         } catch (error) {
             const message = error.response?.data?.message || "An error occurred";
             toast.error(message);
@@ -58,7 +48,7 @@ function ReturnBook() {
     const handleReturnBook = (bookID) => {
         axios.get(`https://fptu-library.xyz/api/orders/by-order/${bookID}`).then((response) => {
             const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail } = response.data.data;
-            setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail }); // Lưu trữ toàn bộ thông tin về đơn hàng bao gồm _id
+            setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail });
             handleShowModal();
         }).catch((error) => {
             const message = error.response?.data?.message || "An error occurred";
@@ -72,20 +62,21 @@ function ReturnBook() {
             returnDate: new Date(returnDate).toISOString(),
             createBy: bookData.created_by?._id,
             updateBy: bookData.updated_by?._id,
-            book_condition: bookCondition,
+            book_condition: bookData.book.condition, // Use condition from bookData
             fine_reason: fineData.fine_reason,
-            condition_detail: conditionDetail,
+            condition_detail: bookData.book.condition_detail, // Use condition_detail from bookData
         };
+
         if (checkIdentityCode === bookData.book.identifier_code) {
-            axios.post(`https://fptu-library.xyz/api/orders/return/${bookData._id}`, payload) // Sử dụng _id từ bookData
+            axios.post(`https://fptu-library.xyz/api/orders/return/${bookData._id}`, payload)
                 .then((response) => {
                     if (response.status === 200) {
                         toast.success("Đã trả sách thành công!");
                         handleCloseModal();
-                        // handleSearchByStudentID(studentCode);
+                        handleSearchByStudentID(studentCode);
                     }
                 }).catch((error) => {
-                    const message = error.response?.data?.message || "An error occurred";
+                    const message = error.response?.data?.message;
                     toast.error(message);
                 });
         } else {
@@ -142,29 +133,35 @@ function ReturnBook() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentItems.map((book) => (
-                            <tr key={book._id}>
-                                <td>{book.book_id?.bookSet_id?.title}</td>
-                                <td>
-                                    <input type="date" className="form-control text-center" value={book.borrowDate?.split('T')[0] || ''} readOnly />
-                                </td>
-                                <td>
-                                    <input type="date" className="form-control text-center" value={book.dueDate?.split('T')[0] || ''} readOnly />
-                                </td>
-                                <td>{book.status === "Pending" ? "Đang chờ" :
-                                    book.status === "Received" ? "Đã nhận" :
-                                        book.status === "Canceled" ? "Đã hủy" :
-                                            book.status === "Lost" ? "Đã mất" :
-                                                book.status === "Returned" ? "Đã trả" :
-                                                    book.status === "Renew Pending" ? "Đang gia hạn" :
-                                                        book.status === "Approved" ? "Đã xác nhận" : "Không xác định"}</td>
-                                {book.status === "Received" && (
+                        {currentItems.length > 0 ? (
+                            currentItems.map((book) => (
+                                <tr key={book._id}>
+                                    <td>{book.book_id?.bookSet_id?.title}</td>
                                     <td>
-                                        <button className="btn btn-primary" onClick={() => handleReturnBook(book._id)}>Trả sách</button>
+                                        <input type="date" className="form-control text-center" value={book.borrowDate?.split('T')[0] || ''} readOnly />
                                     </td>
-                                )}
+                                    <td>
+                                        <input type="date" className="form-control text-center" value={book.dueDate?.split('T')[0] || ''} readOnly />
+                                    </td>
+                                    <td>{book.status === "Pending" ? "Đang chờ" :
+                                        book.status === "Received" ? "Đã nhận" :
+                                            book.status === "Canceled" ? "Đã hủy" :
+                                                book.status === "Lost" ? "Đã mất" :
+                                                    book.status === "Returned" ? "Đã trả" :
+                                                        book.status === "Renew Pending" ? "Đang gia hạn" :
+                                                            book.status === "Approved" ? "Đã xác nhận" : "Không xác định"}</td>
+                                    {book.status === "Received" && (
+                                        <td>
+                                            <button className="btn btn-primary" onClick={() => handleReturnBook(book._id)}>Trả sách</button>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="5" className="text-center">Nhập mã sinh viên, hoặc mã định danh sách để tìm kiếm</td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
                 {bookList.length > 10 && (
@@ -174,7 +171,7 @@ function ReturnBook() {
                         breakLabel={'...'}
                         pageCount={Math.ceil(bookList.length / itemsPerPage)}
                         marginPagesDisplayed={2}
-                        pageRangeDisplayed={5}
+                        pageRangeDisplayed={10}
                         onPageChange={handlePageClick}
                         containerClassName={'pagination justify-content-end'}
                         pageClassName={'page-item'}
@@ -213,27 +210,21 @@ function ReturnBook() {
                         </div>
                         <div className="form-group">
                             <label>Trạng thái sách</label>
-                            <select className="form-control" value={bookCondition} onChange={(e) => setBookCondition(e.target.value)}>
+                            <select className="form-control" value={bookData.book?.condition || ''} onChange={(e) => setBookData({ ...bookData, book: { ...bookData.book, condition: e.target.value } })}>
                                 <option value="Good">Tốt</option>
-                                <option value="Light">Hơi bị hư</option>
-                                <option value="Medium">Bị hư nhẹ</option>
-                                <option value="Hard">Bị hư nặng</option>
+                                <option value="Light">Hư hỏng không đáng kể</option>
+                                <option value="Medium">Hư hỏng nhẹ</option>
+                                <option value="Hard">Hư hỏng nặng</option>
                                 <option value="Lost">Mất</option>
                             </select>
                         </div>
-
                         <div className="form-group">
                             <label>Tình trạng sách</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={conditionDetail}
-                                onChange={(e) => setConditionDetail(e.target.value)}
-                            />
+                            <input type="text" className="form-control" value={bookData.book?.condition_detail || ''}  />
                         </div>
                         <div className="form-group">
                             <label>Mã định danh sách</label>
-                            <input type="text" className="form-control" value={checkIdentityCode} onChange={(e) => setCheckIdentityCode(e.target.value)} />
+                            <input type="text" className="form-control" value={flag ? bookData?.book?.identifier_code : checkIdentityCode} onChange={(e) => setCheckIdentityCode(e.target.value)} />
                         </div>
                         <div className="form-group">
                             <label>Lý do phạt</label>
