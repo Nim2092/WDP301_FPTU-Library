@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { Modal, Button } from "react-bootstrap";
 import axios from "axios";
 import AuthContext from "../../contexts/UserContext";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import ReactPaginate from 'react-paginate';
 
 const BorrowBookList = () => {
@@ -31,7 +31,7 @@ const BorrowBookList = () => {
         response = await axios.get(`https://fptu-library.xyz/api/orders/getAll`);
       } else {
         response = await axios.get(`https://fptu-library.xyz/api/orders/filter?status=${status}`);
-      } 
+      }
       const data = response.data.data || [];
       const formattedData = Array.isArray(data) ? data : [data];
 
@@ -53,10 +53,10 @@ const BorrowBookList = () => {
     const interval = setInterval(() => {
       fetchBooks();
     }, 5000); // Gọi fetchBooks mỗi 5 giây
-  
+
     return () => clearInterval(interval); // Dọn dẹp interval khi component unmount hoặc khi status thay đổi
   }, [status]);
-  
+
 
   const handleActionClick = (book, type) => {
     setSelectedBook(book);
@@ -97,6 +97,9 @@ const BorrowBookList = () => {
         case "receive":
           newStatus = "Received";
           break;
+        case "Renew Pending":
+          newStatus = "Renew Pending";
+          break;
         default:
           newStatus = "Pending";
           break;
@@ -119,6 +122,7 @@ const BorrowBookList = () => {
           condition,
           condition_detail: conditionDetail,
         });
+        toast.success("Cập nhật trạng thái sách thành công!");
       }
 
       setShowModal(false);
@@ -184,6 +188,7 @@ const BorrowBookList = () => {
 
   return (
     <div className="mt-4">
+      <ToastContainer />
       <div className="d-flex justify-content-between mb-3">
         <div className="search-bar d-flex align-items-center">
           <input
@@ -225,7 +230,12 @@ const BorrowBookList = () => {
         <thead>
           <tr>
             <th>
-              <input type="checkbox" title="Chọn tất cả" onClick={handleSelectAll} />
+              <input
+                type="checkbox"
+                title="Chọn tất cả"
+                onChange={handleSelectAll}
+                checked={selectedBooks.length === currentBooks.length && currentBooks.length > 0}
+              />
             </th>
             <th>ID</th>
             <th>Tên sách</th>
@@ -333,7 +343,9 @@ const BorrowBookList = () => {
               ? "Xác nhận duyệt"
               : modalType === "receive"
                 ? "Xác nhận nhận sách"
-                : "Lý do từ chối"}
+                : modalType === "Renew Pending"
+                  ? "Xác nhận gia hạn"
+                  : "Lý do từ chối"}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -356,7 +368,7 @@ const BorrowBookList = () => {
               />
             </div>
           )}
-          {modalType === "receive" && (
+          {modalType === "receive" && selectedBook?.status === "Approved" && (
             <div className="form-group mb-3">
               <label htmlFor="condition">Tình trạng sách</label>
               <select
@@ -383,35 +395,35 @@ const BorrowBookList = () => {
                   placeholder="Nhập mô tả tình trạng"
                 />
               </div>
-              {selectedBook?.status === "Renew Pending" && (
-                <>
-                  <div className="form-group mt-3">
-                    <label htmlFor="renew_reason">Lý do gia hạn</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="renew_reason"
-                      value={renew_reason}
-                      onChange={(e) => setRenewReason(e.target.value)}
-                      placeholder="Nhập lý do gia hạn"
-                      readOnly
-                    />
-                  </div>
-                  <div className="form-group mt-3">
-                    <label htmlFor="renewalDate">Ngày gia hạn</label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      id="renewalDate"
-                      value={renewalDate}
-                      onChange={(e) => setRenewalDate(e.target.value)}
-                      placeholder="Nhập ngày gia hạn"
-                      readOnly
-                    />
-                  </div>
-                </>
-              )}
             </div>
+          )}
+          {selectedBook?.status === "Renew Pending" && (
+            <>
+              <div className="form-group mt-3">
+                <label htmlFor="renew_reason">Lý do gia hạn</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="renew_reason"
+                  value={renew_reason}
+                  onChange={(e) => setRenewReason(e.target.value)}
+                  placeholder="Nhập lý do gia hạn"
+                  readOnly
+                />
+              </div>
+              <div className="form-group mt-3">
+                <label htmlFor="renewalDate">Ngày gia hạn</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  id="renewalDate"
+                  value={renewalDate}
+                  onChange={(e) => setRenewalDate(e.target.value)}
+                  placeholder="Nhập ngày gia hạn"
+                  readOnly
+                />
+              </div>
+            </>
           )}
         </Modal.Body>
         <Modal.Footer>

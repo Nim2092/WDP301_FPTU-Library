@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { Modal, Button } from 'react-bootstrap';
 import ReactPaginate from 'react-paginate';
 
@@ -38,6 +38,7 @@ function ReturnBook() {
             setFlag(true);
         } catch (error) {
             const message = error.response?.data?.message || "An error occurred";
+            console.log(message);
             toast.error(message);
         }
     }
@@ -49,11 +50,12 @@ function ReturnBook() {
         axios.get(`https://fptu-library.xyz/api/orders/by-order/${bookID}`).then((response) => {
             const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail } = response.data.data;
             setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail });
+            setCheckIdentityCode(book.identifier_code);
             handleShowModal();
         }).catch((error) => {
             const message = error.response?.data?.message || "An error occurred";
             toast.error(message);
-        })
+        });
     }
 
     const handleSubmit = () => {
@@ -93,6 +95,7 @@ function ReturnBook() {
 
     return (
         <div className="return-book-container container">
+            <ToastContainer />
             <div className="row mb-3">
                 <div className="d-flex justify-content-start search-by-student-id col-6">
                     <input
@@ -224,7 +227,12 @@ function ReturnBook() {
                         </div>
                         <div className="form-group">
                             <label>Mã định danh sách</label>
-                            <input type="text" className="form-control" value={flag ? bookData?.book?.identifier_code : checkIdentityCode} onChange={(e) => setCheckIdentityCode(e.target.value)} />
+                            <input 
+                                type="text" 
+                                className="form-control" 
+                                value={flag ? checkIdentityCode : ""} 
+                                onChange={(e) => setCheckIdentityCode(e.target.value)} 
+                            />
                         </div>
                         <div className="form-group">
                             <label>Lý do phạt</label>
