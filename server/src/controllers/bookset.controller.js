@@ -462,7 +462,7 @@ const addBooks = async (req, res, next) => {
     await bookSet.save();
 
     return res
-      .status(201)
+      .status(200)
       .json({ message: "Books added successfully", books: savedBooks });
   } catch (error) {
     return res
@@ -645,7 +645,7 @@ async function importBookSets(req, res, next) {
       }
     }
 
-    res.status(201).json({ message: "BookSets và Books đã được nhập thành công." });
+    res.status(200).json({ message: "BookSets và Books đã được nhập thành công." });
   } catch (error) {
     res.status(500).json({ message: "Đã xảy ra lỗi", error: error.message });
   }

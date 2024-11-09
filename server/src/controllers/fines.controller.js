@@ -118,7 +118,7 @@ const getFinesByUserCode = async (req, res, next) => {
   try {
     const { userCode } = req.params;
 
-    const user = await User.findOne({ code: userCode });
+    const user = await User.findOne({ code: { $regex: userCode, $options: "i" } });
     if (!user) {
       return res.status(500).json({
         message: "User not found",

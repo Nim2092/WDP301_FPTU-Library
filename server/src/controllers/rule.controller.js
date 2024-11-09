@@ -61,7 +61,7 @@ async function createRule(req, res, next) {
       updatedBy: updatedBy,
     });
     const savedRule = await rule.save();
-    res.status(201).json({
+    res.status(200).json({
       message: "Tạo quy định thành công",
       data: savedRule,
     });
