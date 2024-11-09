@@ -101,7 +101,10 @@ const getOrderByIdentifierCode = async (req, res, next) => {
     const bookIds = books.map(book => book._id);
 
     // Tìm tất cả các đơn hàng có book_id thuộc danh sách bookIds
-    const orders = await Order.find({ book_id: { $in: bookIds, status: "Received" } })
+    const orders = await Order.find({
+      book_id: { $in: bookIds },
+      status: "Received" // Chỉ lấy các đơn hàng có status là "Received"
+    })
         .populate({
           path: "book_id", // Populate the book reference
           populate: {
