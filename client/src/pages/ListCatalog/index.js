@@ -157,7 +157,7 @@ const CatalogList = () => {
       }
       setShowModal(false);
       setNewCatalog({ name: "", code: "", major: "", semester: "", isTextbook: false, createdBy: user.id });
-      toast.success(responseData.message || "Operation successful");
+      toast.success(responseData.message || "Cập nhật thành công");
     } catch (error) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} catalog:`, error);
       toast.error(error.message);
@@ -166,9 +166,11 @@ const CatalogList = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setNewCatalog((prevCatalog) => ({
       ...prevCatalog,
       [name]: type === "checkbox" ? (checked ? 1 : 0) : value,
+      ...(name === "isTextbook" && !checked ? { major: "", semester: "" } : {}),
     }));
   };
 
@@ -180,9 +182,9 @@ const CatalogList = () => {
   const handlePageChange = (selectedPage) => {
     setCurrentPage(selectedPage.selected + 1);
   };
-
   return (
     <div className="container mt-4">
+      <ToastContainer />
       <div className="d-flex justify-content-between my-3 row">
         <div className="col-10 d-flex">
           <select
@@ -238,8 +240,8 @@ const CatalogList = () => {
           <thead>
             <tr>
               <th>ID</th>
-              <th>Tên sách</th>
-              <th>Mã sách</th>
+              <th>Tên loại sách</th>
+              <th>Mã loại sách</th>
               <th>Chuyên ngành</th>
               <th>Học kỳ</th>
               <th>Sách giáo khoa</th>
@@ -363,30 +365,8 @@ const CatalogList = () => {
                 required
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="major">Chuyên ngành</label>
-              <input
-                type="text"
-                className="form-control"
-                id="major"
-                name="major"
-                value={newCatalog.major}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="semester">Học kỳ</label>
-              <input
-                type="number"
-                className="form-control"
-                id="semester"
-                name="semester"
-                value={newCatalog.semester}
-                onChange={handleInputChange}
-              />
-            </div>
             <div className="form-group" style={{ display: "flex", alignItems: "center", margin: "10px" }}>
-              <label htmlFor="isTextbook" style={{ marginRight: "10px" }}>Sách giáo khoa</label>
+              <label htmlFor="isTextbook" style={{ marginRight: "10px" }}>Sách giáo trình</label>
               <input
                 type="checkbox"
                 id="isTextbook"
@@ -395,7 +375,33 @@ const CatalogList = () => {
                 onChange={handleInputChange}
               />
             </div>
-            <Button variant="primary" type="submit">
+            {newCatalog.isTextbook === 1 && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="major">Chuyên ngành</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="major"
+                    name="major"
+                    value={newCatalog.major}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="semester">Học kỳ</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    id="semester"
+                    name="semester"
+                    value={newCatalog.semester}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </>
+            )}
+            <Button className="mt-3" variant="primary" type="submit">
               {isEditMode ? "Cập nhật" : "Lưu"}
             </Button>
           </form>

@@ -266,8 +266,8 @@ function BookDetail() {
                       <tr key={book._id}>
                         <td>{indexOfFirstItem + index + 1}</td>
                         <td>{book.identifier_code}</td>
-                        <td>{book.status}</td>
-                        <td>{book.condition}</td>
+                        <td>{book.status === "Available" ? "Chưa mượn" : book.status === "Borrowed" ? "Đã mượn" : book.status === "Destroyed" ? "Đã hủy" : ""}</td>
+                        <td>{book.condition === "Good" ? "Tốt" : book.condition === "Light" ? "Hơi bị hư" : book.condition === "Medium" ? "Hư hại nhẹ" : book.condition === "Hard" ? "Hư hại nặng" : book.condition === "Lost" ? "Mất" : ""}</td>
                         <td>{book.condition_detail || 'N/A'}</td>
                         <td className="d-flex justify-content-between">
                           <button className="btn btn-primary" onClick={() => handleShowEditModal(book._id)}>Sửa</button>

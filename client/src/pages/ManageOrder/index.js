@@ -7,10 +7,8 @@ import ReactPaginate from 'react-paginate';
 
 const BorrowBookList = () => {
   const [showModal, setShowModal] = useState(false);
-  const [condition, setCondition] = useState({
-    condition: "",
-    condition_detail: "",
-  });
+  const [condition, setCondition] = useState(""); // Separate state for condition
+  const [conditionDetail, setConditionDetail] = useState(""); // Separate state for condition_detail
   const [modalType, setModalType] = useState(""); // 'approve', 'reject', 'receive', etc.
   const [selectedBook, setSelectedBook] = useState(null); // Holds the selected book for rejection or approval
   const [reason, setReason] = useState(""); // Holds the reason for rejection
@@ -22,11 +20,9 @@ const BorrowBookList = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 10; // Number of items per page
 
-  // Fetch books function with identifierCode parameter
   const fetchBooks = async (identifierCode = "") => {
     try {
       let response;
-
       if (identifierCode) {
         response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identifierCode}`);
       } else if (status === "") {
@@ -42,8 +38,7 @@ const BorrowBookList = () => {
         toast.info("Không tìm thấy sách với tiêu chí đã chọn.");
       }
 
-      // Sort borrowBooks by the most recent date
-      const sortedData = formattedData.sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate));
+      const sortedData = formattedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setBorrowBooks(sortedData);
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "Đã xảy ra lỗi khi lấy sách đã mượn.";
@@ -60,14 +55,19 @@ const BorrowBookList = () => {
     setSelectedBook(book);
     setModalType(type);
     setShowModal(true);
+
+    if (type === "receive") {
+      setCondition(book?.book_id?.condition || ""); // Prefill condition if available
+      setConditionDetail(book?.book_id?.condition_detail || ""); // Prefill condition_detail if available
+    }
   };
 
   const handleConditionChange = (e) => {
-    const { name, value } = e.target;
-    setCondition((prevCondition) => ({
-      ...prevCondition,
-      [name]: value,
-    }));
+    setCondition(e.target.value);
+  };
+
+  const handleConditionDetailChange = (e) => {
+    setConditionDetail(e.target.value);
   };
 
   const handleSubmit = async () => {
@@ -91,27 +91,26 @@ const BorrowBookList = () => {
       const updateData = {
         status: newStatus,
         updated_by: user.id,
+        ...(modalType === "receive" && { condition, condition_detail: conditionDetail })
       };
 
       if (modalType === "reject") {
         updateData.reason_order = reason;
       }
 
-      if (modalType === "receive") {
-        updateData.condition = condition;
-      }
-
-      // Update the status of the order
       await axios.put(`https://fptu-library.xyz/api/orders/change-status/${selectedBook._id}`, updateData);
 
-      // Update the condition of the book if the action is "receive"
       if (modalType === "receive") {
-        await axios.put(`https://fptu-library.xyz/api/books/update/${selectedBook.book_id._id}`, condition);
+        await axios.put(`https://fptu-library.xyz/api/books/update/${selectedBook.book_id._id}`, {
+          condition,
+          condition_detail: conditionDetail,
+        });
       }
 
       setShowModal(false);
       setReason("");
-      setCondition({ condition: "", condition_detail: "" }); // Reset condition state
+      setCondition("");
+      setConditionDetail("");
       fetchBooks();
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : "Đã xảy ra lỗi khi cập nhật trạng thái sách.";
@@ -176,7 +175,7 @@ const BorrowBookList = () => {
           <input
             type="text"
             style={{ width: "300px", height: "40px", borderRadius: "10px", border: "1px solid #ccc" }}
-            placeholder=" Nhập mã sách"
+            placeholder=" Nhập mã định danh sách"
             value={identifierCode}
             onChange={(e) => setIdentifierCode(e.target.value)}
           />
@@ -243,8 +242,12 @@ const BorrowBookList = () => {
                 <td>{new Date(book.dueDate).toLocaleDateString()}</td>
                 <td>{book.book_id?.identifier_code}</td>
                 <td>
-                  <span className={`text-${book.status === "Pending" ? "warning" : book.status === "Approved" ? "success" : book.status === "Rejected" ? "danger" : book.status === "Received" ? "info" : "secondary"}              `}>
-                    {book.status === "Pending" ? "Đang chờ" : book.status === "Approved" ? "Đã duyệt" : book.status === "Rejected" ? "Đã từ chối" : book.status === "Received" ? "Đã nhận" : book.status === "Canceled" ? "Đã hủy" : book.status === "Returned" ? "Đã trả" : book.status === "Overdue" ? "Quá hạn" : book.status === "Lost" ? "Mất" : book.status === "Renew Pending" ? "Đang chờ duyệt gia hạn" : "Khác"}
+                  <span className={`text-${book.status === "Pending" ? "warning" : book.status === "Approved" ? "success" :
+                    book.status === "Rejected" ? "danger" : book.status === "Received" ? "info" : "secondary"}`}>
+                    {book.status === "Pending" ? "Đang chờ" : book.status === "Approved" ? "Đã duyệt"
+                      : book.status === "Rejected" ? "Đã từ chối" : book.status === "Received" ? "Đã nhận" : book.status === "Canceled" ? "Đã hủy"
+                        : book.status === "Returned" ? "Đã trả" : book.status === "Overdue" ? "Quá hạn" : book.status === "Lost" ? "Mất"
+                          : book.status === "Renew Pending" ? "Đang chờ duyệt gia hạn" : "Khác"}
                   </span>
                 </td>
                 <td>{book.book_id?.condition === "Good" ? "Tốt" : book.book_id?.condition === "Light" ? "Hư hỏng không đáng kể"
@@ -311,12 +314,10 @@ const BorrowBookList = () => {
         </Modal.Header>
         <Modal.Body>
           {modalType === "approve" && (
-            <>
-              <p>
-                Bạn có chắc chắn muốn {modalType} yêu cầu cho sách:{" "}
-                <strong>{selectedBook?.book_id?.bookSet_id?.title}</strong>?
-              </p>
-            </>
+            <p>
+              Bạn có chắc chắn muốn {modalType} yêu cầu cho sách:{" "}
+              <strong>{selectedBook?.book_id?.bookSet_id?.title}</strong>?
+            </p>
           )}
           {modalType === "reject" && (
             <div className="form-group mb-3">
@@ -333,30 +334,28 @@ const BorrowBookList = () => {
           )}
           {modalType === "receive" && (
             <div className="form-group mb-3">
-              <div className="form-group mb-3">
-                <label htmlFor="condition">Tình trạng sách</label>
-                <select
-                  className="form-select"
-                  name="condition"
-                  value={condition.condition}
-                  onChange={handleConditionChange}
-                >
-                  <option value="Good">Good</option>
-                  <option value="Light">Light</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                  <option value="Lost">Lost</option>
-                </select>
-              </div>
-              <div className="form-group mb-3">
+              <label htmlFor="condition">Tình trạng sách</label>
+              <select
+                className="form-select"
+                name="condition"
+                value={condition}
+                onChange={handleConditionChange}
+              >
+                <option value="Good">Tốt</option>
+                <option value="Light">Hư hỏng không đáng kể</option>
+                <option value="Medium">Hư hỏng nhẹ</option>
+                <option value="Hard">Hư hỏng nặng</option>
+                <option value="Lost">Mất sách</option>
+              </select>
+              <div className="form-group mt-3">
                 <label htmlFor="condition_detail">Mô tả tình trạng</label>
                 <input
                   type="text"
                   className="form-control"
                   id="condition_detail"
                   name="condition_detail"
-                  value={condition.condition_detail}
-                  onChange={handleConditionChange}
+                  value={conditionDetail}
+                  onChange={handleConditionDetailChange}
                   placeholder="Nhập mô tả tình trạng"
                 />
               </div>
