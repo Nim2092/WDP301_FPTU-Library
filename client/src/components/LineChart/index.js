@@ -27,7 +27,7 @@ function FinesByMonthChart() {
           labels,
           datasets: [
             {
-              label: "Total Fines Amount",
+              label: "Tổng tiền phạt",
               data: data,
               borderColor: "rgba(75, 192, 192, 1)",
               backgroundColor: "rgba(75, 192, 192, 0.2)",
@@ -58,20 +58,20 @@ function FinesByMonthChart() {
       },
       title: {
         display: true,
-        text: "Fines by Month",
+        text: "Thống kê phạt theo tháng",
       },
     },
     scales: {
       x: {
         title: {
           display: true,
-          text: "Month",
+          text: "Tháng",
         },
       },
       y: {
         title: {
           display: true,
-          text: "Total Fines Amount",
+          text: "Tổng tiền phạt",
         },
         beginAtZero: true,
       },
@@ -80,7 +80,7 @@ function FinesByMonthChart() {
 
   return (
     <div>
-      <p>Total Fines: {totalFines}</p>
+      <p>Tổng tiền phạt: {totalFines}</p>
       <Line data={chartData} options={options} />
     </div>
   );

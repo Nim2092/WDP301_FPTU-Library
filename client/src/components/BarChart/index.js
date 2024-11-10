@@ -46,17 +46,17 @@ function MonthlyOrderChart() {
         responsive: true,
         plugins: {
             legend: { display: true, position: "top" },
-            title: { display: true, text: "Monthly Order Statistics" },
+            title: { display: true, text: "Thống kê đơn hàng theo tháng" },
         },
         scales: {
-            x: { title: { display: true, text: "Month" } },
-            y: { title: { display: true, text: "Order Count" }, beginAtZero: true },
+            x: { title: { display: true, text: "Tháng" } },
+            y: { title: { display: true, text: "Số lượng đơn hàng" }, beginAtZero: true },
         },
     };
 
     return (
         <div>
-            <p>Total Orders: {totalOrder}</p>
+            <p>Tổng số đơn hàng: {totalOrder}</p>
             <Bar data={chartData} options={options} />
         </div>
     );
