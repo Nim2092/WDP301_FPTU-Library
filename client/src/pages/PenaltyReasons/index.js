@@ -69,7 +69,7 @@ const ListPenaltyReasons = () => {
   return (
     <div className="container mt-4">
        
-      <div className="d-flex justify-content-end mb-3">
+      {/* <div className="d-flex justify-content-end mb-3">
         <button
           className="btn btn-primary"
           onClick={handleCreatePenaltyReasons}
@@ -78,7 +78,7 @@ const ListPenaltyReasons = () => {
           <i className="fa fa-plus" aria-hidden="true"></i>
           <span className="tooltip-text"> Tạo mới</span>
         </button>
-      </div>
+      </div> */}
 
       {message && (
         <div
