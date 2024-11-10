@@ -75,7 +75,7 @@ function ReturnBook() {
                     if (response.status === 200) {
                         toast.success("Đã trả sách thành công!");
                         handleCloseModal();
-                        handleSearchByStudentID(studentCode);
+                        setBookList([]);
                     }
                 }).catch((error) => {
                     const message = error.response?.data?.message;
