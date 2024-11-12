@@ -34,7 +34,7 @@ function Fines() {
 
     const fetchFines = () => {
       axios
-        .get(`https://fptu-library.xyz/api/fines/by-user/${user.id}`)
+        .get(`http://localhost:9999/api/fines/by-user/${user.id}`)
         .then((response) => setFines(response.data.data))
         .catch((error) => {
           console.error("Error fetching fines:", error.response?.data || error.message);
@@ -86,7 +86,7 @@ function Fines() {
     if (paymentSuccessful) return;
 
     axios
-      .post(`https://fptu-library.xyz/api/fines/check-payment/${transactionCode}`, {
+      .post(`http://localhost:9999/api/fines/check-payment/${transactionCode}`, {
         fineId: selectedFines,
       })
       .then((response) => {

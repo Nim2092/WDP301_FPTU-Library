@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { Modal, Button } from 'react-bootstrap';
 import ReactPaginate from 'react-paginate';
-
+import { useNavigate } from "react-router-dom";
 function ReturnBook() {
+    const navigate = useNavigate();
     const [studentCode, setStudentCode] = useState("");
     const [identityCode, setIdentityCode] = useState("");
     const [checkIdentityCode, setCheckIdentityCode] = useState("");
@@ -19,9 +20,9 @@ function ReturnBook() {
 
     const handleSearchByStudentID = async () => {
         try {
-            const user = await axios.get(`https://fptu-library.xyz/api/user/getByCode/${studentCode}`);
+            const user = await axios.get(`http://localhost:9999/api/user/getByCode/${studentCode}`);
             const userID = user.data.data.userID;
-            const response = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${userID}`);
+            const response = await axios.get(`http://localhost:9999/api/orders/by-user/${userID}`);
             const data = response.data.data;
             setBookList(Array.isArray(data) ? data : [data]);
             setFlag(false);
@@ -33,7 +34,7 @@ function ReturnBook() {
 
     const handleSearchByIdentityCode = async () => {
         try {
-            const response = await axios.get(`https://fptu-library.xyz/api/orders/by-identifier-code/${identityCode}`);
+            const response = await axios.get(`http://localhost:9999/api/orders/by-identifier-code/${identityCode}`);
             setBookList(Array.isArray(response.data.data) ? response.data.data : [response.data.data]);
             setFlag(true);
         } catch (error) {
@@ -47,7 +48,7 @@ function ReturnBook() {
     const handleCloseModal = () => setShowModal(false);
 
     const handleReturnBook = (bookID) => {
-        axios.get(`https://fptu-library.xyz/api/orders/by-order/${bookID}`).then((response) => {
+        axios.get(`http://localhost:9999/api/orders/by-order/${bookID}`).then((response) => {
             const { _id, book_id: book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail } = response.data.data;
             setBookData({ _id, book, borrowDate, dueDate, created_by, updated_by, condition, condition_detail });
             setCheckIdentityCode(book.identifier_code);
@@ -70,12 +71,12 @@ function ReturnBook() {
         };
 
         if (checkIdentityCode === bookData.book.identifier_code) {
-            axios.post(`https://fptu-library.xyz/api/orders/return/${bookData._id}`, payload)
+            axios.post(`http://localhost:9999/api/orders/return/${bookData._id}`, payload)
                 .then((response) => {
                     if (response.status === 200) {
-                        toast.success("Đã trả sách thành công!");
                         handleCloseModal();
-                        handleSearchByStudentID(studentCode);
+                        toast.success("Đã trả sách thành công!");
+                        setBookList([]);
                     }
                 }).catch((error) => {
                     const message = error.response?.data?.message;

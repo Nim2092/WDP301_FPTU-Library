@@ -19,7 +19,7 @@ const CreateAccount = () => {
     // Fetch roles from the backend
     const fetchRoles = async () => {
       try {
-        const response = await axios.get("https://fptu-library.xyz/api/user/all-role");
+        const response = await axios.get("http://localhost:9999/api/user/all-role");
         const rolesData = response.data.data;
 
         // Set the default role to librarian if found
@@ -57,7 +57,7 @@ const CreateAccount = () => {
     formData.append("password", password);
 
     try {
-      await axios.post("https://fptu-library.xyz/api/user/add", formData, {
+      await axios.post("http://localhost:9999/api/user/add", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

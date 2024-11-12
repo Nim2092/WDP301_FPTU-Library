@@ -14,7 +14,7 @@ const UpdatePenaltyReason = () => {
   useEffect(() => {
     const fetchPenaltyReason = async () => {
       try {
-        const response = await fetch(`https://fptu-library.xyz/api/penalty-reasons/get/${id}`);
+        const response = await fetch(`http://localhost:9999/api/penalty-reasons/get/${id}`);
         const data = await response.json();
         if (response.ok) {
           setFormData(data.data);
@@ -38,7 +38,7 @@ const UpdatePenaltyReason = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`https://fptu-library.xyz/api/penalty-reasons/update/${id}`, {
+      const response = await fetch(`http://localhost:9999/api/penalty-reasons/update/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

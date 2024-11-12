@@ -15,7 +15,7 @@ function FinesByMonthChart() {
 
   useEffect(() => {
     // Fetch monthly fines data from the API
-    axios.get("https://fptu-library.xyz/api/fines/chart-fines-by-month")
+    axios.get("http://localhost:9999/api/fines/chart-fines-by-month")
       .then((response) => {
         const monthlyData = response.data.data;
 
@@ -43,7 +43,7 @@ function FinesByMonthChart() {
   }, []);
 
   useEffect(() => {
-    axios.get("https://fptu-library.xyz/api/fines/getAll")
+    axios.get("http://localhost:9999/api/fines/getAll")
       .then((res) => {
         setTotalFines(res.data.data.length);
       });

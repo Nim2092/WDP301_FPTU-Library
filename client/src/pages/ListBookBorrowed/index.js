@@ -26,7 +26,7 @@ function ListBookBorrowed() {
 
       try {
         const response = await axios.get(
-          `https://fptu-library.xyz/api/orders/by-user/${user.id}?page=${currentPage + 1}&status=${statusFilter}`,
+          `http://localhost:9999/api/orders/by-user/${user.id}?page=${currentPage + 1}&status=${statusFilter}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -61,7 +61,7 @@ function ListBookBorrowed() {
 
     try {
       await axios.put(
-        `https://fptu-library.xyz/api/orders/report-lost/${selectedOrderId}`,
+        `http://localhost:9999/api/orders/report-lost/${selectedOrderId}`,
         { userId: user.id, updated_by: user.id },
         {
           headers: {
@@ -72,7 +72,7 @@ function ListBookBorrowed() {
       toast.success("The book has been successfully reported as lost.");
 
       const response = await axios.get(
-        `https://fptu-library.xyz/api/orders/by-user/${user.id}`,
+        `http://localhost:9999/api/orders/by-user/${user.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -89,7 +89,7 @@ function ListBookBorrowed() {
   const handleCancelOrder = async (orderId) => {
     try {
       await axios.put(
-        `https://fptu-library.xyz/api/orders/change-status/${orderId}`,
+        `http://localhost:9999/api/orders/change-status/${orderId}`,
         { status: "Canceled", updated_by: user.id },
         {
           headers: {

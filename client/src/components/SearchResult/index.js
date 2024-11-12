@@ -35,7 +35,7 @@ function SearchResults({ books = [] }) {
     setSelectedBookId(bookId);
     setLoading(true);
     try {
-      const response = await axios.get(`https://fptu-library.xyz/api/book-sets/available/${bookId}`);
+      const response = await axios.get(`http://localhost:9999/api/book-sets/available/${bookId}`);
       setBookSet(response.data.bookSet);
       setBook(response.data.availableBooks);
       setShowModal(true);
@@ -58,7 +58,7 @@ function SearchResults({ books = [] }) {
     setLoading(true);
     try {
       // const booksetCurrent = bookSet._id;
-      // const ordersResponse = await axios.get(`https://fptu-library.xyz/api/orders/by-user/${user.id}`);
+      // const ordersResponse = await axios.get(`http://localhost:9999/api/orders/by-user/${user.id}`);
       // const orders = ordersResponse.data.data;
       // const hasDifferentBookSet = orders.some((order) => order.book_id.bookSet_id._id === booksetCurrent);
 
@@ -69,7 +69,7 @@ function SearchResults({ books = [] }) {
       // }
 
       const firstBook = book[0];
-      const response = await axios.post(`https://fptu-library.xyz/api/orders/create-borrow/${firstBook._id}`, {
+      const response = await axios.post(`http://localhost:9999/api/orders/create-borrow/${firstBook._id}`, {
         book_id: firstBook._id,
         userId: user.id,
         borrowDate: borrowDate,
@@ -114,7 +114,7 @@ function SearchResults({ books = [] }) {
               <div className="col-md-3">
                 {book.image ? (
                   <img
-                  src={`https://fptu-library.xyz/api/book-sets/image/${book.image.split("/").pop()}`}
+                  src={`http://localhost:9999/api/book-sets/image/${book.image.split("/").pop()}`}
                   alt={book.title}
                   style={{ width: "250px", height: "auto" }}
                 />

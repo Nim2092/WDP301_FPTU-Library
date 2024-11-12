@@ -19,7 +19,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`https://fptu-library.xyz/api/user/profile/${id}`)
+    axios.get(`http://localhost:9999/api/user/profile/${id}`)
       .then(response => {
         const userData = response.data.data;
         setProfile({
@@ -27,7 +27,7 @@ const UserProfile = () => {
           fullName: userData.fullName,
           email: userData.email,
           phoneNumber: userData.phoneNumber,
-          image: userData.image ? `https://fptu-library.xyz${userData.image}` : '',
+          image: userData.image ? `http://localhost:9999${userData.image}` : '',
         });
         setLoading(false);
       })

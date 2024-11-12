@@ -15,7 +15,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.get("https://fptu-library.xyz/api/book-sets/list", {
+      const response = await axios.get("http://localhost:9999/api/book-sets/list", {
         params: {
           title: bookName,
           author,
@@ -36,7 +36,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
     const fetchCatalogs = async () => {
       try {
         if (subject === "1") {
-          const response = await axios.get("https://fptu-library.xyz/api/catalogs/list", {
+          const response = await axios.get("http://localhost:9999/api/catalogs/list", {
             params: {
               isTextbook: subject,
               semester: semester,
@@ -44,7 +44,7 @@ const AdvancedBookForm = ({ setSearchResults }) => {
           });
           setCatalogData(response.data.data);
         } else if (subject === "0") {
-          const response = await axios.get("https://fptu-library.xyz/api/catalogs/list");
+          const response = await axios.get("http://localhost:9999/api/catalogs/list");
           setCatalogData(response.data.data);
         }
       } catch (error) {

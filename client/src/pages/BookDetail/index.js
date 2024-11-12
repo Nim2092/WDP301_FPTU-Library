@@ -29,12 +29,12 @@ function BookDetail() {
 
   const fetchBookDetail = async () => {
     try {
-      const response = await axios.get(`https://fptu-library.xyz/api/book-sets/${id}`);
+      const response = await axios.get(`http://localhost:9999/api/book-sets/${id}`);
       setBookSet(response.data.bookSet);
       setBooks(response.data.books);
       const image = response.data.bookSet.image;
       if (image) {
-        setImage(`https://fptu-library.xyz/api/book-sets/image/${image.split("/").pop()}`);
+        setImage(`http://localhost:9999/api/book-sets/image/${image.split("/").pop()}`);
       }
     } catch (error) {
       console.error("Error fetching book details:", error);
@@ -73,7 +73,7 @@ function BookDetail() {
 
   const handleAddNewCopy = async () => {
     try {
-      await axios.post(`https://fptu-library.xyz/api/book-sets/add-books`, {
+      await axios.post(`http://localhost:9999/api/book-sets/add-books`, {
         bookSet_id: id,
         numberOfCopies: parseInt(numberOfCopies),
         createdBy: user.id
@@ -87,7 +87,7 @@ function BookDetail() {
 
   const handleEditCopy = async (id) => {
     try {
-      const response = await axios.put(`https://fptu-library.xyz/api/books/update/${id}`, {
+      const response = await axios.put(`http://localhost:9999/api/books/update/${id}`, {
         condition: condition,
         condition_detail: conditionDetail,
         updatedBy: user.id
@@ -113,7 +113,7 @@ function BookDetail() {
 
   const handleDeleteCopy = async () => {
     try {
-      await axios.delete(`https://fptu-library.xyz/api/books/delete/${bookIdToDelete}`);
+      await axios.delete(`http://localhost:9999/api/books/delete/${bookIdToDelete}`);
       toast.success("Xóa sách thành công");
       await fetchBookDetail();
     } catch (error) {
